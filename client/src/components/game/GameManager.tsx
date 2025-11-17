@@ -108,7 +108,7 @@ export function GameManager() {
       setLastShootTime(currentTime);
     }
     
-    const targetScrollPosition = Math.max(scrollPosition, playerPosition.z + 10);
+    const targetScrollPosition = Math.max(scrollPosition, -playerPosition.z + 15);
     const newScrollPosition = scrollPosition + (targetScrollPosition - scrollPosition) * delta * 3;
     setScrollPosition(newScrollPosition);
     
