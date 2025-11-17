@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { useAudio } from "@/lib/stores/useAudio";
 
 export function HUD() {
   const { lives, score, level, phase, setPhase, restart, activePowerUps } = useArcadeGame();
+  const { isMuted, toggleMute } = useAudio();
   const [, setTick] = useState(0);
   
   useEffect(() => {
@@ -169,10 +171,29 @@ export function HUD() {
         </div>
       </div>
       
+      <button
+        onClick={toggleMute}
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          background: "rgba(0, 0, 0, 0.7)",
+          color: "white",
+          padding: "10px 15px",
+          borderRadius: "8px",
+          border: "2px solid white",
+          cursor: "pointer",
+          fontSize: "1.5rem",
+          zIndex: 100,
+        }}
+      >
+        {isMuted ? "🔇" : "🔊"}
+      </button>
+      
       {activePowerUps.length > 0 && (
         <div style={{
           position: "fixed",
-          top: "20px",
+          top: "80px",
           right: "20px",
           background: "rgba(0, 0, 0, 0.7)",
           color: "white",

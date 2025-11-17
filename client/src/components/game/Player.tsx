@@ -42,7 +42,7 @@ export function Player() {
         z: playerPosition.z + movement.z * speed * delta
       };
       
-      newPosition.x = Math.max(-8, Math.min(8, newPosition.x));
+      newPosition.x = Math.max(-12, Math.min(12, newPosition.x));
       newPosition.z = Math.max(-10, Math.min(100, newPosition.z));
       
       setPlayerPosition(newPosition);
