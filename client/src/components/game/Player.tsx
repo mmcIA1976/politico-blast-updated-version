@@ -28,8 +28,8 @@ export function Player() {
     
     if (keys.forward) movement.z += 1;
     if (keys.back) movement.z -= 1;
-    if (keys.left) movement.x -= 1;
-    if (keys.right) movement.x += 1;
+    if (keys.left) movement.x += 1;
+    if (keys.right) movement.x -= 1;
     
     if (movement.length() > 0) {
       movement.normalize();
