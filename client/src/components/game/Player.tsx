@@ -1,0 +1,77 @@
+import { useRef, useEffect } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useKeyboardControls } from "@react-three/drei";
+import * as THREE from "three";
+import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+
+enum Controls {
+  forward = "forward",
+  back = "back",
+  left = "left",
+  right = "right",
+  shoot = "shoot",
+}
+
+export function Player() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const { playerPosition, setPlayerPosition, setPlayerDirection, phase } = useArcadeGame();
+  const [, getKeys] = useKeyboardControls<Controls>();
+  
+  useFrame((state, delta) => {
+    if (phase !== "playing" || !meshRef.current) return;
+    
+    const keys = getKeys();
+    const speed = 5;
+    const movement = new THREE.Vector3();
+    
+    if (keys.forward) movement.z += 1;
+    if (keys.back) movement.z -= 1;
+    if (keys.left) movement.x -= 1;
+    if (keys.right) movement.x += 1;
+    
+    if (movement.length() > 0) {
+      movement.normalize();
+      setPlayerDirection(movement.clone());
+      
+      const newPosition = playerPosition.clone();
+      newPosition.x += movement.x * speed * delta;
+      newPosition.z += movement.z * speed * delta;
+      
+      newPosition.x = Math.max(-8, Math.min(8, newPosition.x));
+      newPosition.z = Math.max(-10, Math.min(5, newPosition.z));
+      
+      setPlayerPosition(newPosition);
+      meshRef.current.position.copy(newPosition);
+    } else {
+      meshRef.current.position.copy(playerPosition);
+    }
+  });
+  
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.position.copy(playerPosition);
+    }
+  }, [playerPosition]);
+  
+  return (
+    <mesh ref={meshRef} position={[playerPosition.x, 0.5, playerPosition.z]} castShadow>
+      <boxGeometry args={[0.8, 1, 0.8]} />
+      <meshStandardMaterial color="#ff6b6b" />
+      
+      <mesh position={[0, 0.6, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#ffcc99" />
+      </mesh>
+      
+      <mesh position={[-0.3, 0, 0.3]} rotation={[0, 0, Math.PI / 6]}>
+        <boxGeometry args={[0.15, 0.6, 0.15]} />
+        <meshStandardMaterial color="#ffcc99" />
+      </mesh>
+      
+      <mesh position={[0.3, 0, 0.3]} rotation={[0, 0, -Math.PI / 6]}>
+        <boxGeometry args={[0.15, 0.6, 0.15]} />
+        <meshStandardMaterial color="#ffcc99" />
+      </mesh>
+    </mesh>
+  );
+}
