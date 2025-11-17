@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useAudio } from "@/lib/stores/useAudio";
+import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function SoundManager() {
-  const { setHitSound, setSuccessSound } = useAudio();
+  const { setHitSound, setSuccessSound, setBackgroundMusic, isMuted, backgroundMusic } = useAudio();
+  const { phase } = useArcadeGame();
   
   useEffect(() => {
     const hitAudio = new Audio("/sounds/hit.mp3");
@@ -12,7 +14,24 @@ export function SoundManager() {
     const successAudio = new Audio("/sounds/success.mp3");
     successAudio.volume = 0.4;
     setSuccessSound(successAudio);
-  }, [setHitSound, setSuccessSound]);
+    
+    const bgMusic = new Audio("/sounds/background.mp3");
+    bgMusic.volume = 0.2;
+    bgMusic.loop = true;
+    setBackgroundMusic(bgMusic);
+  }, [setHitSound, setSuccessSound, setBackgroundMusic]);
+  
+  useEffect(() => {
+    if (!backgroundMusic) return;
+    
+    if (phase === "playing" && !isMuted) {
+      backgroundMusic.play().catch(error => {
+        console.log("Background music play prevented:", error);
+      });
+    } else {
+      backgroundMusic.pause();
+    }
+  }, [phase, isMuted, backgroundMusic]);
   
   return null;
 }
