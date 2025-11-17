@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
 
 enum Controls {
@@ -11,6 +11,21 @@ enum Controls {
   left = "left",
   right = "right",
   shoot = "shoot",
+}
+
+function vec3ToThree(v: Vec3): THREE.Vector3 {
+  return new THREE.Vector3(v.x, v.y, v.z);
+}
+
+function threeToVec3(v: THREE.Vector3): Vec3 {
+  return { x: v.x, y: v.y, z: v.z };
+}
+
+function vec3Distance(a: Vec3, b: Vec3): number {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  const dz = a.z - b.z;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 export function GameManager() {
@@ -31,6 +46,9 @@ export function GameManager() {
     level,
     setLevel,
     mutateEnemies,
+    mutatePowerUps,
+    hasActivePowerUp,
+    updateActivePowerUps,
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
@@ -42,21 +60,51 @@ export function GameManager() {
     if (phase !== "playing") return;
     
     const currentTime = state.clock.getElapsedTime();
+    updateActivePowerUps(currentTime);
     
     const keys = getKeys();
     if (keys.shoot && currentTime - lastShootTime > 0.3) {
-      const bulletId = `bullet-${Date.now()}-${Math.random()}`;
-      const direction = playerDirection.clone().normalize();
+      const direction = vec3ToThree(playerDirection).normalize();
+      const basePos = vec3ToThree(playerPosition).add(direction.clone().multiplyScalar(0.5));
       
-      const bullet = {
-        id: bulletId,
-        position: playerPosition.clone().add(direction.clone().multiplyScalar(0.5)),
-        direction: direction,
-        speed: 15,
-        fromPlayer: true,
-      };
+      const hasTripleShot = hasActivePowerUp("tripleShot");
       
-      addBullet(bullet);
+      if (hasTripleShot) {
+        const angleSpread = Math.PI / 12;
+        const perpendicular = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
+        
+        [
+          { angle: -angleSpread, offset: -0.4 },
+          { angle: 0, offset: 0 },
+          { angle: angleSpread, offset: 0.4 }
+        ].forEach(({ angle, offset }) => {
+          const bulletId = `bullet-${Date.now()}-${Math.random()}`;
+          
+          const rotatedDirection = direction.clone();
+          rotatedDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+          
+          const bulletPos = basePos.clone().add(perpendicular.clone().multiplyScalar(offset));
+          
+          addBullet({
+            id: bulletId,
+            position: threeToVec3(bulletPos),
+            direction: threeToVec3(rotatedDirection),
+            speed: 15,
+            fromPlayer: true,
+          });
+        });
+      } else {
+        const bulletId = `bullet-${Date.now()}-${Math.random()}`;
+        
+        addBullet({
+          id: bulletId,
+          position: threeToVec3(basePos),
+          direction: threeToVec3(direction),
+          speed: 15,
+          fromPlayer: true,
+        });
+      }
+      
       setLastShootTime(currentTime);
     }
     
@@ -65,20 +113,26 @@ export function GameManager() {
     
     const enemiesToSpawn: Array<{
       id: string;
-      position: THREE.Vector3;
+      position: Vec3;
       health: number;
       type: "politician" | "boss";
       shootTimer: number;
+      movePattern: "straight" | "zigzag" | "circular" | "formation";
+      spawnTime: number;
+      initialX: number;
     }> = [];
     
     if (newScrollPosition > 50 && !bossSpawned.current) {
       const bossId = `boss-${Date.now()}`;
       enemiesToSpawn.push({
         id: bossId,
-        position: new THREE.Vector3(0, 0.7, 10),
+        position: { x: 0, y: 0.7, z: 10 },
         health: 20,
         type: "boss",
         shootTimer: 1,
+        movePattern: "circular",
+        spawnTime: currentTime,
+        initialX: 0,
       });
       bossSpawned.current = true;
     } else if (newScrollPosition < 50) {
@@ -88,17 +142,22 @@ export function GameManager() {
         enemySpawnTimer.current = 0;
         
         const numEnemies = Math.min(3, Math.floor(newScrollPosition / 10) + 1);
+        const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
+        const patternIndex = Math.floor((currentTime * 10) % patterns.length);
         
         for (let i = 0; i < numEnemies; i++) {
-          const enemyId = `enemy-${Date.now()}-${Math.random()}`;
-          const xPos = (Math.random() - 0.5) * 14;
+          const enemyId = `enemy-${currentTime}-${i}`;
+          const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
           
           enemiesToSpawn.push({
             id: enemyId,
-            position: new THREE.Vector3(xPos, 0.5, 12),
+            position: { x: xPos, y: 0.5, z: 12 },
             health: 3,
             type: "politician",
-            shootTimer: Math.random() * 2 + 1,
+            shootTimer: (currentTime % 3) + 1,
+            movePattern: patterns[patternIndex],
+            spawnTime: currentTime,
+            initialX: xPos,
           });
         }
       }
@@ -106,8 +165,8 @@ export function GameManager() {
     
     const enemyBulletsToAdd: Array<{
       id: string;
-      position: THREE.Vector3;
-      direction: THREE.Vector3;
+      position: Vec3;
+      direction: Vec3;
       speed: number;
       fromPlayer: boolean;
     }> = [];
@@ -115,23 +174,59 @@ export function GameManager() {
     let scoreToAdd = 0;
     let shouldEndGame = false;
     
+    mutatePowerUps((currentPowerUps) => {
+      return currentPowerUps
+        .map(powerUp => ({
+          ...powerUp,
+          position: {
+            x: powerUp.position.x,
+            y: powerUp.position.y,
+            z: powerUp.position.z - delta * 2
+          }
+        }))
+        .filter(p => p.position.z > -15);
+    });
+    
     mutateEnemies((currentEnemies) => {
       let enemies = [...currentEnemies, ...enemiesToSpawn];
       const enemiesToRemove: string[] = [];
       
       enemies = enemies.map(enemy => {
+        const age = currentTime - enemy.spawnTime;
+        let newPos = { ...enemy.position };
+        
+        switch (enemy.movePattern) {
+          case "zigzag":
+            newPos.x = enemy.initialX + Math.sin(age * 3) * 4;
+            newPos.z -= delta * 1.5;
+            break;
+          case "circular":
+            const radius = 3;
+            const angularSpeed = 2;
+            newPos.x = enemy.initialX + Math.cos(age * angularSpeed) * radius;
+            newPos.z = 12 - age * 1.2 + Math.sin(age * angularSpeed) * (radius * 0.5);
+            break;
+          case "formation":
+            const waveOffset = Math.sin(age * 1.5) * 1.5;
+            newPos.x = enemy.initialX + waveOffset;
+            newPos.z -= delta * 1.8;
+            break;
+          default:
+            newPos.z -= delta * 2;
+        }
+        
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
         
         if (newShootTimer <= 0) {
-          const directionToPlayer = new THREE.Vector3()
-            .subVectors(playerPosition, enemy.position)
+          const directionToPlayer = vec3ToThree(playerPosition)
+            .sub(vec3ToThree(enemy.position))
             .normalize();
           
           const bulletId = `enemy-bullet-${Date.now()}-${Math.random()}`;
           enemyBulletsToAdd.push({
             id: bulletId,
-            position: enemy.position.clone(),
-            direction: directionToPlayer,
+            position: { ...enemy.position },
+            direction: threeToVec3(directionToPlayer),
             speed: 8,
             fromPlayer: false,
           });
@@ -139,11 +234,13 @@ export function GameManager() {
           return {
             ...enemy,
             shootTimer: enemy.type === "boss" ? 0.8 : 2 + Math.random() * 2,
+            position: newPos,
           };
         }
         return {
           ...enemy,
           shootTimer: newShootTimer,
+          position: newPos,
         };
       });
       
@@ -151,7 +248,7 @@ export function GameManager() {
         if (bullet.fromPlayer) {
           enemies.forEach((enemy, index) => {
             if (!enemiesToRemove.includes(enemy.id)) {
-              const distance = bullet.position.distanceTo(enemy.position);
+              const distance = vec3Distance(bullet.position, enemy.position);
               if (distance < 1 && !bulletsToRemove.includes(bullet.id)) {
                 enemies[index] = { ...enemy, health: enemy.health - 1 };
                 bulletsToRemove.push(bullet.id);
@@ -168,7 +265,7 @@ export function GameManager() {
             }
           });
         } else {
-          const distance = bullet.position.distanceTo(playerPosition);
+          const distance = vec3Distance(bullet.position, playerPosition);
           if (distance < 0.6 && !bulletsToRemove.includes(bullet.id)) {
             bulletsToRemove.push(bullet.id);
             loseLife();

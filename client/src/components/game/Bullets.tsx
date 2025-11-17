@@ -1,15 +1,18 @@
 import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
 
 export function Bullets() {
   const { bullets, updateBullets, removeBullet } = useArcadeGame();
   
   useFrame((state, delta) => {
     const updatedBullets = bullets.map(bullet => {
-      const newPosition = bullet.position.clone();
-      newPosition.add(bullet.direction.clone().multiplyScalar(bullet.speed * delta));
+      const newPosition: Vec3 = {
+        x: bullet.position.x + bullet.direction.x * bullet.speed * delta,
+        y: bullet.position.y + bullet.direction.y * bullet.speed * delta,
+        z: bullet.position.z + bullet.direction.z * bullet.speed * delta
+      };
       
       return {
         ...bullet,

@@ -4,21 +4,43 @@ import * as THREE from "three";
 
 export type GamePhase = "menu" | "playing" | "paused" | "ended" | "victory";
 
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface Bullet {
   id: string;
-  position: THREE.Vector3;
-  direction: THREE.Vector3;
+  position: Vec3;
+  direction: Vec3;
   speed: number;
   fromPlayer: boolean;
 }
 
 export interface Enemy {
   id: string;
-  position: THREE.Vector3;
+  position: Vec3;
   health: number;
   type: "politician" | "boss";
   shootTimer: number;
-  movePattern?: string;
+  movePattern: "straight" | "zigzag" | "circular" | "formation";
+  spawnTime: number;
+  initialX: number;
+}
+
+export interface PowerUp {
+  id: string;
+  position: Vec3;
+  type: "tripleShot" | "speedBoost";
+  collected: boolean;
+}
+
+export interface ActivePowerUp {
+  type: "tripleShot" | "speedBoost";
+  expiresAt: number;
+  startedAt: number;
+  duration: number;
 }
 
 interface ArcadeGameState {
@@ -27,10 +49,12 @@ interface ArcadeGameState {
   score: number;
   level: number;
   scrollPosition: number;
-  playerPosition: THREE.Vector3;
-  playerDirection: THREE.Vector3;
+  playerPosition: Vec3;
+  playerDirection: Vec3;
   bullets: Bullet[];
   enemies: Enemy[];
+  powerUps: PowerUp[];
+  activePowerUps: ActivePowerUp[];
   lastShootTime: number;
   
   setPhase: (phase: GamePhase) => void;
@@ -39,19 +63,26 @@ interface ArcadeGameState {
   setScore: (score: number) => void;
   setLevel: (level: number) => void;
   setScrollPosition: (position: number) => void;
-  setPlayerPosition: (position: THREE.Vector3) => void;
-  setPlayerDirection: (direction: THREE.Vector3) => void;
+  setPlayerPosition: (position: Vec3) => void;
+  setPlayerDirection: (direction: Vec3) => void;
   addBullet: (bullet: Bullet) => void;
   removeBullet: (id: string) => void;
   updateBullets: (bullets: Bullet[]) => void;
   mutateEnemies: (mutator: (enemies: Enemy[]) => Enemy[]) => void;
+  addPowerUp: (powerUp: PowerUp) => void;
+  removePowerUp: (id: string) => void;
+  mutatePowerUps: (mutator: (powerUps: PowerUp[]) => PowerUp[]) => void;
+  activatePowerUp: (type: "tripleShot" | "speedBoost", duration: number, currentTime: number) => void;
+  updateActivePowerUps: (currentTime: number) => void;
+  hasActivePowerUp: (type: "tripleShot" | "speedBoost") => boolean;
+  getTimeRemaining: (type: "tripleShot" | "speedBoost", currentTime: number) => number;
   setLastShootTime: (time: number) => void;
   loseLife: () => void;
   restart: () => void;
 }
 
-const initialPlayerPosition = new THREE.Vector3(0, 0, -5);
-const initialPlayerDirection = new THREE.Vector3(0, 0, 1);
+const initialPlayerPosition: Vec3 = { x: 0, y: 0, z: -5 };
+const initialPlayerDirection: Vec3 = { x: 0, y: 0, z: 1 };
 
 export const useArcadeGame = create<ArcadeGameState>()(
   subscribeWithSelector((set, get) => ({
@@ -60,10 +91,12 @@ export const useArcadeGame = create<ArcadeGameState>()(
     score: 0,
     level: 1,
     scrollPosition: 0,
-    playerPosition: initialPlayerPosition.clone(),
-    playerDirection: initialPlayerDirection.clone(),
+    playerPosition: { ...initialPlayerPosition },
+    playerDirection: { ...initialPlayerDirection },
     bullets: [],
     enemies: [],
+    powerUps: [],
+    activePowerUps: [],
     lastShootTime: 0,
     
     setPhase: (phase) => set({ phase }),
@@ -94,6 +127,58 @@ export const useArcadeGame = create<ArcadeGameState>()(
       enemies: mutator(state.enemies)
     })),
     
+    addPowerUp: (powerUp) => set((state) => ({ 
+      powerUps: [...state.powerUps, powerUp] 
+    })),
+    
+    removePowerUp: (id) => set((state) => ({
+      powerUps: state.powerUps.filter(p => p.id !== id)
+    })),
+    
+    mutatePowerUps: (mutator) => set((state) => ({
+      powerUps: mutator(state.powerUps)
+    })),
+    
+    activatePowerUp: (type, duration, currentTime) => set((state) => {
+      const existingIndex = state.activePowerUps.findIndex(p => p.type === type);
+      let newActivePowerUps;
+      
+      if (existingIndex >= 0) {
+        newActivePowerUps = [...state.activePowerUps];
+        newActivePowerUps[existingIndex] = { 
+          type, 
+          startedAt: currentTime,
+          duration: duration,
+          expiresAt: currentTime + duration 
+        };
+      } else {
+        newActivePowerUps = [...state.activePowerUps, { 
+          type, 
+          startedAt: currentTime,
+          duration: duration,
+          expiresAt: currentTime + duration 
+        }];
+      }
+      
+      return { activePowerUps: newActivePowerUps };
+    }),
+    
+    updateActivePowerUps: (currentTime) => set((state) => ({
+      activePowerUps: state.activePowerUps.filter(p => currentTime < p.expiresAt)
+    })),
+    
+    hasActivePowerUp: (type) => {
+      const state = get();
+      return state.activePowerUps.some(p => p.type === type);
+    },
+    
+    getTimeRemaining: (type, currentTime) => {
+      const state = get();
+      const powerUp = state.activePowerUps.find(p => p.type === type);
+      if (!powerUp) return 0;
+      return Math.max(0, powerUp.expiresAt - currentTime);
+    },
+    
     setLastShootTime: (time) => set({ lastShootTime: time }),
     
     loseLife: () => set((state) => {
@@ -110,10 +195,12 @@ export const useArcadeGame = create<ArcadeGameState>()(
       score: 0,
       level: 1,
       scrollPosition: 0,
-      playerPosition: initialPlayerPosition.clone(),
-      playerDirection: initialPlayerDirection.clone(),
+      playerPosition: { ...initialPlayerPosition },
+      playerDirection: { ...initialPlayerDirection },
       bullets: [],
       enemies: [],
+      powerUps: [],
+      activePowerUps: [],
       lastShootTime: 0,
     }),
   }))

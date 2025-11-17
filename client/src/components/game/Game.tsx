@@ -4,6 +4,7 @@ import { KeyboardControls } from "@react-three/drei";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
 import { Enemies } from "./Enemies";
+import { PowerUps } from "./PowerUps";
 import { ScrollingBackground } from "./ScrollingBackground";
 import { GameManager } from "./GameManager";
 import { Lights } from "./Lights";
@@ -52,6 +53,7 @@ export function Game() {
             <Player />
             <Bullets />
             <Enemies />
+            <PowerUps />
             <GameManager />
             <Camera />
           </Suspense>

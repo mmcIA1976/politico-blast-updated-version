@@ -1,7 +1,18 @@
+import { useState, useEffect } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function HUD() {
-  const { lives, score, level, phase, setPhase, restart } = useArcadeGame();
+  const { lives, score, level, phase, setPhase, restart, activePowerUps } = useArcadeGame();
+  const [, setTick] = useState(0);
+  
+  useEffect(() => {
+    if (activePowerUps.length > 0) {
+      const interval = setInterval(() => {
+        setTick(t => t + 1);
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [activePowerUps.length > 0]);
   
   if (phase === "menu") {
     return (
@@ -134,27 +145,58 @@ export function HUD() {
   }
   
   return (
-    <div style={{
-      position: "fixed",
-      top: "20px",
-      left: "20px",
-      background: "rgba(0, 0, 0, 0.7)",
-      color: "white",
-      padding: "15px 25px",
-      borderRadius: "8px",
-      fontFamily: "Inter, sans-serif",
-      fontSize: "1.2rem",
-      zIndex: 100,
-    }}>
-      <div style={{ marginBottom: "8px" }}>
-        ❤️ Vidas: {lives}
+    <>
+      <div style={{
+        position: "fixed",
+        top: "20px",
+        left: "20px",
+        background: "rgba(0, 0, 0, 0.7)",
+        color: "white",
+        padding: "15px 25px",
+        borderRadius: "8px",
+        fontFamily: "Inter, sans-serif",
+        fontSize: "1.2rem",
+        zIndex: 100,
+      }}>
+        <div style={{ marginBottom: "8px" }}>
+          ❤️ Vidas: {lives}
+        </div>
+        <div style={{ marginBottom: "8px" }}>
+          ⭐ Puntos: {score}
+        </div>
+        <div>
+          📍 Nivel: {level}
+        </div>
       </div>
-      <div style={{ marginBottom: "8px" }}>
-        ⭐ Puntos: {score}
-      </div>
-      <div>
-        📍 Nivel: {level}
-      </div>
-    </div>
+      
+      {activePowerUps.length > 0 && (
+        <div style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          background: "rgba(0, 0, 0, 0.7)",
+          color: "white",
+          padding: "15px 25px",
+          borderRadius: "8px",
+          fontFamily: "Inter, sans-serif",
+          fontSize: "1rem",
+          zIndex: 100,
+        }}>
+          <div style={{ fontWeight: "bold", marginBottom: "8px" }}>
+            💪 POWER-UPS ACTIVOS:
+          </div>
+          {activePowerUps.map((powerUp, index) => {
+            const icon = powerUp.type === "tripleShot" ? "🔥" : "⚡";
+            const label = powerUp.type === "tripleShot" ? "Disparo Triple" : "Velocidad Aumentada";
+            
+            return (
+              <div key={index} style={{ marginBottom: "4px" }}>
+                {icon} {label}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
   );
 }

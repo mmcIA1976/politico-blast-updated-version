@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
 
 enum Controls {
   forward = "forward",
@@ -14,14 +14,16 @@ enum Controls {
 
 export function Player() {
   const meshRef = useRef<THREE.Mesh>(null);
-  const { playerPosition, setPlayerPosition, setPlayerDirection, phase } = useArcadeGame();
+  const { playerPosition, setPlayerPosition, setPlayerDirection, phase, hasActivePowerUp } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
   useFrame((state, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
     const keys = getKeys();
-    const speed = 5;
+    const baseSpeed = 5;
+    const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.5 : 1;
+    const speed = baseSpeed * speedMultiplier;
     const movement = new THREE.Vector3();
     
     if (keys.forward) movement.z += 1;
@@ -31,25 +33,28 @@ export function Player() {
     
     if (movement.length() > 0) {
       movement.normalize();
-      setPlayerDirection(movement.clone());
+      const dirVec3: Vec3 = { x: movement.x, y: movement.y, z: movement.z };
+      setPlayerDirection(dirVec3);
       
-      const newPosition = playerPosition.clone();
-      newPosition.x += movement.x * speed * delta;
-      newPosition.z += movement.z * speed * delta;
+      const newPosition: Vec3 = {
+        x: playerPosition.x + movement.x * speed * delta,
+        y: playerPosition.y,
+        z: playerPosition.z + movement.z * speed * delta
+      };
       
       newPosition.x = Math.max(-8, Math.min(8, newPosition.x));
       newPosition.z = Math.max(-10, Math.min(5, newPosition.z));
       
       setPlayerPosition(newPosition);
-      meshRef.current.position.copy(newPosition);
+      meshRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);
     } else {
-      meshRef.current.position.copy(playerPosition);
+      meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
     }
   });
   
   useEffect(() => {
     if (meshRef.current) {
-      meshRef.current.position.copy(playerPosition);
+      meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
     }
   }, [playerPosition]);
   
