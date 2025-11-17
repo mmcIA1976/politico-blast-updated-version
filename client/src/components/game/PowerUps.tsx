@@ -55,7 +55,7 @@ export function PowerUps() {
       
       addPowerUp({
         id: `powerup-${state.clock.getElapsedTime()}-${scrollPosition}`,
-        position: { x: nextPowerUpX.current, y: 0.5, z: -scrollPosition + 15 },
+        position: { x: nextPowerUpX.current, y: 0.5, z: scrollPosition + 15 },
         type: nextPowerUpType.current,
         collected: false,
       });

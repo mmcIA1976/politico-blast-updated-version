@@ -13,11 +13,11 @@ export function Camera() {
     const targetPosition = new THREE.Vector3(
       playerPosition.x * 0.25,
       12,
-      -scrollPosition - 6
+      scrollPosition - 6
     );
     
     camera.position.lerp(targetPosition, 0.15);
-    camera.lookAt(playerPosition.x * 0.15, 0, -scrollPosition + 5);
+    camera.lookAt(playerPosition.x * 0.15, 0, scrollPosition + 5);
   });
   
   return null;
