@@ -108,8 +108,7 @@ export function GameManager() {
       setLastShootTime(currentTime);
     }
     
-    const targetScrollPosition = Math.max(scrollPosition, playerPosition.z + 5);
-    const newScrollPosition = scrollPosition + (targetScrollPosition - scrollPosition) * delta * 5;
+    const newScrollPosition = Math.max(scrollPosition, playerPosition.z);
     setScrollPosition(newScrollPosition);
     
     const enemiesToSpawn: Array<{

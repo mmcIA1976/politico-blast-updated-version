@@ -22,11 +22,12 @@ export function ScrollingBackground() {
   }, [texture]);
   
   useFrame(() => {
+    const { playerPosition } = useArcadeGame.getState();
     if (texture) {
-      texture.offset.y = scrollPosition * 0.1;
+      texture.offset.y = playerPosition.z * 0.1;
     }
     if (groupRef.current) {
-      groupRef.current.position.z = scrollPosition;
+      groupRef.current.position.z = playerPosition.z;
     }
   });
   
