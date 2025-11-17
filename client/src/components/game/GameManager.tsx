@@ -108,8 +108,7 @@ export function GameManager() {
       setLastShootTime(currentTime);
     }
     
-    const targetScrollPosition = Math.max(scrollPosition, -playerPosition.z + 15);
-    const newScrollPosition = scrollPosition + (targetScrollPosition - scrollPosition) * delta * 3;
+    const newScrollPosition = scrollPosition + delta * 2;
     setScrollPosition(newScrollPosition);
     
     const enemiesToSpawn: Array<{
@@ -139,12 +138,12 @@ export function GameManager() {
     } else if (newScrollPosition < 50) {
       enemySpawnTimer.current += delta;
       
-      if (enemySpawnTimer.current > 2) {
+      if (enemySpawnTimer.current > 3) {
         enemySpawnTimer.current = 0;
         
-        const numEnemies = Math.min(3, Math.floor(newScrollPosition / 10) + 1);
+        const numEnemies = Math.min(2, Math.floor(newScrollPosition / 15) + 1);
         const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
-        const patternIndex = Math.floor((currentTime * 10) % patterns.length);
+        const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
         
         for (let i = 0; i < numEnemies; i++) {
           const enemyId = `enemy-${currentTime}-${i}`;
@@ -198,22 +197,22 @@ export function GameManager() {
         
         switch (enemy.movePattern) {
           case "zigzag":
-            newPos.x = enemy.initialX + Math.sin(age * 3) * 4;
+            newPos.x = enemy.initialX + Math.sin(age * 2) * 6;
             newPos.z -= delta * 1.5;
             break;
           case "circular":
-            const radius = 3;
-            const angularSpeed = 2;
+            const radius = 4;
+            const angularSpeed = 1.5;
             newPos.x = enemy.initialX + Math.cos(age * angularSpeed) * radius;
-            newPos.z = 12 - age * 1.2 + Math.sin(age * angularSpeed) * (radius * 0.5);
+            newPos.z = 12 - age * 1.5 + Math.sin(age * angularSpeed) * radius;
             break;
           case "formation":
-            const waveOffset = Math.sin(age * 1.5) * 1.5;
+            const waveOffset = Math.sin(age * 2) * 2;
             newPos.x = enemy.initialX + waveOffset;
-            newPos.z -= delta * 1.8;
+            newPos.z -= delta * 2;
             break;
           default:
-            newPos.z -= delta * 2;
+            newPos.z -= delta * 2.5;
         }
         
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
