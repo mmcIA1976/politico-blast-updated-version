@@ -25,12 +25,15 @@ export function ScrollingBackground() {
     if (texture) {
       texture.offset.y = scrollPosition * 0.1;
     }
+    if (groupRef.current) {
+      groupRef.current.position.z = scrollPosition;
+    }
   });
   
   return (
     <group ref={groupRef}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[30, 40]} />
+        <planeGeometry args={[40, 60]} />
         <meshStandardMaterial map={texture} />
       </mesh>
     </group>
