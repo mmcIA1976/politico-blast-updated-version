@@ -5,7 +5,7 @@ import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function Camera() {
   const { camera } = useThree();
-  const { playerPosition, phase } = useArcadeGame();
+  const { playerPosition, phase, scrollPosition } = useArcadeGame();
   
   useFrame(() => {
     if (phase !== "playing") return;
@@ -13,11 +13,11 @@ export function Camera() {
     const targetPosition = new THREE.Vector3(
       playerPosition.x * 0.25,
       12,
-      playerPosition.z - 6
+      -scrollPosition - 6
     );
     
     camera.position.lerp(targetPosition, 0.15);
-    camera.lookAt(playerPosition.x * 0.15, 0, playerPosition.z + 5);
+    camera.lookAt(playerPosition.x * 0.15, 0, -scrollPosition + 5);
   });
   
   return null;

@@ -126,7 +126,7 @@ export function GameManager() {
       const bossId = `boss-${Date.now()}`;
       enemiesToSpawn.push({
         id: bossId,
-        position: { x: 0, y: 0.7, z: 10 },
+        position: { x: 0, y: 0.7, z: -newScrollPosition + 15 },
         health: 20,
         type: "boss",
         shootTimer: 1,
@@ -151,7 +151,7 @@ export function GameManager() {
           
           enemiesToSpawn.push({
             id: enemyId,
-            position: { x: xPos, y: 0.5, z: 12 },
+            position: { x: xPos, y: 0.5, z: -newScrollPosition + 15 },
             health: 3,
             type: "politician",
             shootTimer: (currentTime % 3) + 1,
