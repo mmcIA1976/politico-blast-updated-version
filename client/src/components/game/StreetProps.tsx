@@ -92,25 +92,25 @@ function Car({ position, color }: { position: [number, number, number]; color: s
 }
 
 export function StreetProps() {
-  const { level, scrollPosition } = useArcadeGame();
+  const { level } = useArcadeGame();
   
   const props = useMemo(() => {
     const items: Array<{ type: 'lamp' | 'bench' | 'car'; position: [number, number, number]; color?: string }> = [];
     
     if (level === 1 || level === 2) {
-      for (let z = 0; z < 50; z += 6) {
+      for (let z = -10; z < 80; z += 6) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
         items.push({ type: 'lamp', position: [15, 0, z] });
       }
       
       const carColors = ['#ff0000', '#0000ff', '#ffff00', '#ffffff', '#000000', '#00ff00'];
-      for (let z = 5; z < 50; z += 12) {
+      for (let z = -5; z < 80; z += 12) {
         const side = z % 24 === 5 ? -12 : 12;
         const colorIndex = Math.floor(z / 12) % carColors.length;
         items.push({ type: 'car', position: [side, 0, z], color: carColors[colorIndex] });
       }
       
-      for (let z = 8; z < 50; z += 15) {
+      for (let z = -2; z < 80; z += 15) {
         const side = z % 30 === 8 ? -13 : 13;
         items.push({ type: 'bench', position: [side, 0, z] });
       }
@@ -122,7 +122,7 @@ export function StreetProps() {
   if (level !== 1 && level !== 2) return null;
   
   return (
-    <group position={[0, 0, scrollPosition]}>
+    <group>
       {props.map((prop, index) => {
         if (prop.type === 'lamp') {
           return <StreetLamp key={`lamp-${index}`} position={prop.position} />;
