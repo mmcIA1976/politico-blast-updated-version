@@ -17,9 +17,9 @@ export function Enemies() {
                 <meshStandardMaterial color="#3b82f6" />
               </mesh>
               
-              <mesh position={[0, 1.1, 0]} rotation={[0, Math.PI, 0]}>
-                <boxGeometry args={[0.6, 0.6, 0.6]} />
-                <meshStandardMaterial map={faceTexture} />
+              <mesh position={[0, 1.1, 0.36]}>
+                <planeGeometry args={[0.6, 0.7]} />
+                <meshStandardMaterial map={faceTexture} side={THREE.DoubleSide} />
               </mesh>
             </>
           ) : (
@@ -29,17 +29,17 @@ export function Enemies() {
                 <meshStandardMaterial color="#ef4444" />
               </mesh>
               
-              <mesh position={[0, 1.6, 0]} rotation={[0, Math.PI, 0]}>
-                <boxGeometry args={[0.9, 0.9, 0.9]} />
-                <meshStandardMaterial map={faceTexture} />
+              <mesh position={[0, 1.6, 0.61]}>
+                <planeGeometry args={[1.0, 1.2]} />
+                <meshStandardMaterial map={faceTexture} side={THREE.DoubleSide} />
               </mesh>
               
-              <mesh position={[-0.5, 2.1, 0]}>
+              <mesh position={[-0.5, 2.3, 0]}>
                 <coneGeometry args={[0.15, 0.4, 8]} />
                 <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
               </mesh>
               
-              <mesh position={[0.5, 2.1, 0]}>
+              <mesh position={[0.5, 2.3, 0]}>
                 <coneGeometry args={[0.15, 0.4, 8]} />
                 <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
               </mesh>
