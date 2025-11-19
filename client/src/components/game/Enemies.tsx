@@ -3,8 +3,9 @@ import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 export function Enemies() {
-  const { enemies } = useArcadeGame();
+  const { enemies, level } = useArcadeGame();
   const faceTexture = useTexture("/textures/politician_face.jpg");
+  const faceTexture2 = useTexture("/textures/politician_face_2.jpg");
   const bossFaceTexture = useTexture("/textures/boss_face.jpg");
   
   return (
@@ -20,7 +21,7 @@ export function Enemies() {
               
               <mesh position={[0, 1.3, -0.4]} rotation={[0, Math.PI, 0]}>
                 <circleGeometry args={[0.8, 32]} />
-                <meshStandardMaterial map={faceTexture} />
+                <meshStandardMaterial map={level >= 4 && level <= 6 ? faceTexture2 : faceTexture} />
               </mesh>
             </>
           ) : (
