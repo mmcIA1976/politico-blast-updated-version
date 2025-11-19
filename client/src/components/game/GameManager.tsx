@@ -128,7 +128,6 @@ export function GameManager() {
     }> = [];
     
     if (level === 7 && lastLevel.current !== 7) {
-      console.log("Just entered level 7! Spawning boss now");
       const bossId = `boss-${Date.now()}`;
       const bossZ = Math.max(playerPosition.z + 15, scrollPosition + 15);
       enemiesToSpawn.push({
@@ -142,7 +141,6 @@ export function GameManager() {
         initialX: 0,
       });
       bossSpawned.current = true;
-      console.log("Boss spawned! Player Z:", playerPosition.z, "Boss Z:", bossZ);
     }
     
     lastLevel.current = level;
@@ -327,22 +325,16 @@ export function GameManager() {
     }
     
     if (scrollPosition > 25 && level === 1) {
-      console.log("Level change: 1 -> 2");
       setLevel(2);
     } else if (scrollPosition > 50 && level === 2) {
-      console.log("Level change: 2 -> 3");
       setLevel(3);
     } else if (scrollPosition > 75 && level === 3) {
-      console.log("Level change: 3 -> 4");
       setLevel(4);
     } else if (scrollPosition > 100 && level === 4) {
-      console.log("Level change: 4 -> 5");
       setLevel(5);
     } else if (scrollPosition > 125 && level === 5) {
-      console.log("Level change: 5 -> 6");
       setLevel(6);
     } else if (scrollPosition > 150 && level === 6) {
-      console.log("Level change: 6 -> 7");
       setLevel(7);
     }
   });
