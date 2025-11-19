@@ -42,8 +42,14 @@ export function Player() {
         z: playerPosition.z + movement.z * speed * delta
       };
       
+      const { level } = useArcadeGame.getState();
       newPosition.x = Math.max(-12, Math.min(12, newPosition.x));
-      newPosition.z = Math.max(-5, newPosition.z);
+      
+      if (level === 7) {
+        newPosition.z = Math.max(150, Math.min(180, newPosition.z));
+      } else {
+        newPosition.z = Math.max(-5, newPosition.z);
+      }
       
       setPlayerPosition(newPosition);
       meshRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);

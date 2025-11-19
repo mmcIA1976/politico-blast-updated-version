@@ -233,12 +233,39 @@ export function GameManager() {
             newPos.z -= delta * 1.5;
             break;
           case "circular":
-            const radius = enemy.type === "boss" ? 6 : 4;
-            const angularSpeed = enemy.type === "boss" ? 0.8 : 1.5;
-            newPos.x = enemy.initialX + Math.cos(age * angularSpeed) * radius;
             if (enemy.type === "boss") {
-              newPos.z = enemy.position.z;
+              const distanceToPlayer = Math.sqrt(
+                Math.pow(playerPosition.x - enemy.position.x, 2) + 
+                Math.pow(playerPosition.z - enemy.position.z, 2)
+              );
+              
+              const minDistance = 8;
+              const maxDistance = 12;
+              
+              if (distanceToPlayer < minDistance) {
+                const dx = enemy.position.x - playerPosition.x;
+                const dz = enemy.position.z - playerPosition.z;
+                const magnitude = Math.sqrt(dx * dx + dz * dz);
+                newPos.x += (dx / magnitude) * delta * 3;
+                newPos.z += (dz / magnitude) * delta * 3;
+              } else if (distanceToPlayer > maxDistance) {
+                const dx = playerPosition.x - enemy.position.x;
+                const dz = playerPosition.z - enemy.position.z;
+                const magnitude = Math.sqrt(dx * dx + dz * dz);
+                newPos.x += (dx / magnitude) * delta * 4;
+                newPos.z += (dz / magnitude) * delta * 4;
+              } else {
+                const radius = 3;
+                const angularSpeed = 1.2;
+                newPos.x += Math.cos(age * angularSpeed) * delta * 5;
+              }
+              
+              newPos.x = Math.max(-12, Math.min(12, newPos.x));
+              newPos.z = Math.max(playerPosition.z - 5, Math.min(playerPosition.z + 20, newPos.z));
             } else {
+              const radius = 4;
+              const angularSpeed = 1.5;
+              newPos.x = enemy.initialX + Math.cos(age * angularSpeed) * radius;
               newPos.z = 12 - age * 1.5 + Math.sin(age * angularSpeed) * radius;
             }
             break;
@@ -269,7 +296,7 @@ export function GameManager() {
           
           return {
             ...enemy,
-            shootTimer: enemy.type === "boss" ? 0.8 : 2 + Math.random() * 2,
+            shootTimer: enemy.type === "boss" ? 0.5 : 2 + Math.random() * 2,
             position: newPos,
           };
         }

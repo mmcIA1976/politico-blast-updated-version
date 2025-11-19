@@ -12,6 +12,7 @@ export function ScrollingBackground() {
     if (level === 1 || level === 2) return "/textures/asphalt.png";
     if (level === 3 || level === 4) return "/textures/grass.png";
     if (level === 5 || level === 6) return "/textures/asphalt.png";
+    if (level === 7) return "/textures/grass.png";
     return "/textures/grass.png";
   }, [level]);
   
