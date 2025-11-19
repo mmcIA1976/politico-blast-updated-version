@@ -6,6 +6,7 @@ import { Bullets } from "./Bullets";
 import { Enemies } from "./Enemies";
 import { PowerUps } from "./PowerUps";
 import { ScrollingBackground } from "./ScrollingBackground";
+import { StreetProps } from "./StreetProps";
 import { GameManager } from "./GameManager";
 import { Lights } from "./Lights";
 import { Camera } from "./Camera";
@@ -51,6 +52,7 @@ export function Game() {
           
           <Suspense fallback={null}>
             <ScrollingBackground />
+            <StreetProps />
             <Player />
             <Bullets />
             <Enemies />
