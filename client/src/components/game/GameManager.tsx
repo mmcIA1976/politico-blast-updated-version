@@ -55,6 +55,7 @@ export function GameManager() {
   const { playHit } = useAudio();
   const enemySpawnTimer = useRef(0);
   const bossSpawned = useRef(false);
+  const lastLevel = useRef(1);
   
   useFrame((state, delta) => {
     if (phase !== "playing") return;
@@ -126,24 +127,24 @@ export function GameManager() {
       initialX: number;
     }> = [];
     
-    if (level === 7) {
-      console.log("Level 7! Boss spawned status:", bossSpawned.current);
-      if (!bossSpawned.current) {
-        const bossId = `boss-${Date.now()}`;
-        enemiesToSpawn.push({
-          id: bossId,
-          position: { x: 0, y: 0.7, z: playerPosition.z + 20 },
-          health: 30,
-          type: "boss",
-          shootTimer: 1,
-          movePattern: "circular",
-          spawnTime: currentTime,
-          initialX: 0,
-        });
-        bossSpawned.current = true;
-        console.log("Boss spawned!");
-      }
+    if (level === 7 && lastLevel.current !== 7) {
+      console.log("Just entered level 7! Spawning boss now");
+      const bossId = `boss-${Date.now()}`;
+      enemiesToSpawn.push({
+        id: bossId,
+        position: { x: 0, y: 0.7, z: playerPosition.z + 20 },
+        health: 30,
+        type: "boss",
+        shootTimer: 1,
+        movePattern: "circular",
+        spawnTime: currentTime,
+        initialX: 0,
+      });
+      bossSpawned.current = true;
+      console.log("Boss spawned at position:", playerPosition.z + 20);
     }
+    
+    lastLevel.current = level;
     
     if (level < 7) {
       enemySpawnTimer.current += delta;
@@ -336,8 +337,7 @@ export function GameManager() {
       console.log("Level change: 5 -> 6");
       setLevel(6);
     } else if (scrollPosition > 150 && level === 6) {
-      console.log("Level change: 6 -> 7, resetting boss");
-      bossSpawned.current = false;
+      console.log("Level change: 6 -> 7");
       setLevel(7);
     }
   });
