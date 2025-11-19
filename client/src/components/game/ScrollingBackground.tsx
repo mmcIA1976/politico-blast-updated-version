@@ -24,10 +24,10 @@ export function ScrollingBackground() {
   useFrame(() => {
     const { playerPosition } = useArcadeGame.getState();
     if (texture) {
-      texture.offset.y = playerPosition.z * 0.1;
+      texture.offset.y = -playerPosition.z * 0.1;
     }
     if (groupRef.current) {
-      groupRef.current.position.z = playerPosition.z;
+      groupRef.current.position.z = 0;
     }
   });
   
