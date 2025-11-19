@@ -133,7 +133,7 @@ export function GameManager() {
       enemiesToSpawn.push({
         id: bossId,
         position: { x: 0, y: 0.7, z: bossZ },
-        health: 30,
+        health: 15,
         type: "boss",
         shootTimer: 1,
         movePattern: "circular",
@@ -260,7 +260,7 @@ export function GameManager() {
                 newPos.x += Math.cos(age * angularSpeed) * delta * 5;
               }
               
-              newPos.x = Math.max(-12, Math.min(12, newPos.x));
+              newPos.x = Math.max(-18, Math.min(18, newPos.x));
               newPos.z = Math.max(playerPosition.z - 5, Math.min(playerPosition.z + 20, newPos.z));
             } else {
               const radius = 4;

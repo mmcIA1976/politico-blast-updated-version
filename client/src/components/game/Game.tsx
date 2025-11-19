@@ -10,6 +10,7 @@ import { GameManager } from "./GameManager";
 import { Lights } from "./Lights";
 import { Camera } from "./Camera";
 import { HUD } from "./HUD";
+import { BossHealthBar } from "./BossHealthBar";
 
 enum Controls {
   forward = "forward",
@@ -60,6 +61,7 @@ export function Game() {
         </Canvas>
         
         <HUD />
+        <BossHealthBar />
       </KeyboardControls>
     </>
   );

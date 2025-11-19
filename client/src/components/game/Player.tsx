@@ -43,7 +43,7 @@ export function Player() {
       };
       
       const { level } = useArcadeGame.getState();
-      newPosition.x = Math.max(-12, Math.min(12, newPosition.x));
+      newPosition.x = Math.max(-18, Math.min(18, newPosition.x));
       
       if (level === 7) {
         newPosition.z = Math.max(150, Math.min(180, newPosition.z));
