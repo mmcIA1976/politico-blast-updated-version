@@ -5,6 +5,7 @@ import * as THREE from "three";
 export function Enemies() {
   const { enemies } = useArcadeGame();
   const faceTexture = useTexture("/textures/politician_face.jpg");
+  const bossFaceTexture = useTexture("/textures/boss_face.jpg");
   
   return (
     <group>
@@ -29,18 +30,18 @@ export function Enemies() {
                 <meshStandardMaterial color="#ef4444" />
               </mesh>
               
-              <mesh position={[0, 1.8, -0.7]} rotation={[0, Math.PI, 0]}>
-                <circleGeometry args={[1.2, 32]} />
-                <meshStandardMaterial map={faceTexture} />
+              <mesh position={[0, 2.0, -0.8]} rotation={[0, Math.PI, 0]}>
+                <circleGeometry args={[1.6, 32]} />
+                <meshStandardMaterial map={bossFaceTexture} />
               </mesh>
               
-              <mesh position={[-0.6, 2.5, -0.4]}>
-                <coneGeometry args={[0.2, 0.5, 8]} />
+              <mesh position={[-0.8, 3.0, -0.5]}>
+                <coneGeometry args={[0.25, 0.6, 8]} />
                 <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
               </mesh>
               
-              <mesh position={[0.6, 2.5, -0.4]}>
-                <coneGeometry args={[0.2, 0.5, 8]} />
+              <mesh position={[0.8, 3.0, -0.5]}>
+                <coneGeometry args={[0.25, 0.6, 8]} />
                 <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
               </mesh>
             </>
