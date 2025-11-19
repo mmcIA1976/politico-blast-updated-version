@@ -76,6 +76,8 @@ export function GameManager() {
       const basePos = vec3ToThree(playerPosition).add(direction.clone().multiplyScalar(0.5));
       
       const hasTripleShot = hasActivePowerUp("tripleShot");
+      const hasPowerShot = hasActivePowerUp("powerShot");
+      const bulletDamage = hasPowerShot ? 2 : 1;
       
       if (hasTripleShot) {
         const angleSpread = Math.PI / 12;
@@ -99,6 +101,7 @@ export function GameManager() {
             direction: threeToVec3(rotatedDirection),
             speed: 15,
             fromPlayer: true,
+            damage: bulletDamage,
           });
         });
       } else {
@@ -110,6 +113,7 @@ export function GameManager() {
           direction: threeToVec3(direction),
           speed: 15,
           fromPlayer: true,
+          damage: bulletDamage,
         });
       }
       
@@ -313,7 +317,8 @@ export function GameManager() {
             if (!enemiesToRemove.includes(enemy.id)) {
               const distance = vec3Distance(bullet.position, enemy.position);
               if (distance < 1 && !bulletsToRemove.includes(bullet.id)) {
-                enemies[index] = { ...enemy, health: enemy.health - 1 };
+                const damage = bullet.damage || 1;
+                enemies[index] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
                 playHit();
                 

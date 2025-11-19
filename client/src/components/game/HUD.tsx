@@ -207,8 +207,16 @@ export function HUD() {
             💪 POWER-UPS ACTIVOS:
           </div>
           {activePowerUps.map((powerUp, index) => {
-            const icon = powerUp.type === "tripleShot" ? "🔥" : "⚡";
-            const label = powerUp.type === "tripleShot" ? "Disparo Triple" : "Velocidad Aumentada";
+            let icon = "⚡";
+            let label = "Velocidad Aumentada";
+            
+            if (powerUp.type === "tripleShot") {
+              icon = "🔥";
+              label = "Disparo Triple";
+            } else if (powerUp.type === "powerShot") {
+              icon = "💥";
+              label = "Disparo Potente x2";
+            }
             
             return (
               <div key={index} style={{ marginBottom: "4px" }}>

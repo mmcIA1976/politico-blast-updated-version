@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
 
-function PowerUpMesh({ type }: { type: "tripleShot" | "speedBoost" }) {
+function PowerUpMesh({ type }: { type: "tripleShot" | "speedBoost" | "powerShot" }) {
   const meshRef = useRef<THREE.Mesh>(null);
   
   useFrame((state, delta) => {
@@ -12,12 +12,18 @@ function PowerUpMesh({ type }: { type: "tripleShot" | "speedBoost" }) {
     }
   });
   
+  const getColor = () => {
+    if (type === "tripleShot") return "#ff0000";
+    if (type === "speedBoost") return "#00ff00";
+    return "#ff6600";
+  };
+  
   return (
     <mesh ref={meshRef} rotation={[0, Math.PI / 4, 0]}>
       <boxGeometry args={[0.6, 0.6, 0.6]} />
       <meshStandardMaterial 
-        color={type === "tripleShot" ? "#ff0000" : "#00ff00"}
-        emissive={type === "tripleShot" ? "#ff0000" : "#00ff00"}
+        color={getColor()}
+        emissive={getColor()}
         emissiveIntensity={0.5}
       />
     </mesh>
@@ -43,8 +49,9 @@ export function PowerUps() {
   
   const spawnTimer = useRef(0);
   const lastSpawnPosition = useRef(0);
-  const nextPowerUpType = useRef<"tripleShot" | "speedBoost">("tripleShot");
+  const nextPowerUpType = useRef<"tripleShot" | "speedBoost" | "powerShot">("tripleShot");
   const nextPowerUpX = useRef(0);
+  const powerUpRotation = useRef(0);
   
   useFrame((state, delta) => {
     spawnTimer.current += delta;
@@ -60,7 +67,9 @@ export function PowerUps() {
         collected: false,
       });
       
-      nextPowerUpType.current = nextPowerUpType.current === "tripleShot" ? "speedBoost" : "tripleShot";
+      const types: Array<"tripleShot" | "speedBoost" | "powerShot"> = ["tripleShot", "speedBoost", "powerShot"];
+      powerUpRotation.current = (powerUpRotation.current + 1) % types.length;
+      nextPowerUpType.current = types[powerUpRotation.current];
       nextPowerUpX.current = ((state.clock.getElapsedTime() * 137) % 24) - 12;
     }
     
@@ -69,7 +78,11 @@ export function PowerUps() {
         const distance = vec3Distance(powerUp.position, playerPosition);
         
         if (distance < 1) {
-          const duration = powerUp.type === "tripleShot" ? 10 : 8;
+          let duration = 10;
+          if (powerUp.type === "tripleShot") duration = 10;
+          else if (powerUp.type === "speedBoost") duration = 8;
+          else if (powerUp.type === "powerShot") duration = 12;
+          
           activatePowerUp(powerUp.type, duration, state.clock.getElapsedTime());
           removePowerUp(powerUp.id);
         }
@@ -89,8 +102,16 @@ export function PowerUps() {
           <mesh position={[0, 0.5, 0]}>
             <sphereGeometry args={[0.2, 8, 8]} />
             <meshStandardMaterial 
-              color={powerUp.type === "tripleShot" ? "#ffff00" : "#ffffff"}
-              emissive={powerUp.type === "tripleShot" ? "#ffff00" : "#ffffff"}
+              color={
+                powerUp.type === "tripleShot" ? "#ffff00" : 
+                powerUp.type === "speedBoost" ? "#ffffff" : 
+                "#ff9900"
+              }
+              emissive={
+                powerUp.type === "tripleShot" ? "#ffff00" : 
+                powerUp.type === "speedBoost" ? "#ffffff" : 
+                "#ff9900"
+              }
               emissiveIntensity={0.8}
             />
           </mesh>

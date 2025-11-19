@@ -16,6 +16,7 @@ export interface Bullet {
   direction: Vec3;
   speed: number;
   fromPlayer: boolean;
+  damage?: number;
 }
 
 export interface Enemy {
@@ -32,12 +33,12 @@ export interface Enemy {
 export interface PowerUp {
   id: string;
   position: Vec3;
-  type: "tripleShot" | "speedBoost";
+  type: "tripleShot" | "speedBoost" | "powerShot";
   collected: boolean;
 }
 
 export interface ActivePowerUp {
-  type: "tripleShot" | "speedBoost";
+  type: "tripleShot" | "speedBoost" | "powerShot";
   expiresAt: number;
   startedAt: number;
   duration: number;
@@ -72,10 +73,10 @@ interface ArcadeGameState {
   addPowerUp: (powerUp: PowerUp) => void;
   removePowerUp: (id: string) => void;
   mutatePowerUps: (mutator: (powerUps: PowerUp[]) => PowerUp[]) => void;
-  activatePowerUp: (type: "tripleShot" | "speedBoost", duration: number, currentTime: number) => void;
+  activatePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot", duration: number, currentTime: number) => void;
   updateActivePowerUps: (currentTime: number) => void;
-  hasActivePowerUp: (type: "tripleShot" | "speedBoost") => boolean;
-  getTimeRemaining: (type: "tripleShot" | "speedBoost", currentTime: number) => number;
+  hasActivePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot") => boolean;
+  getTimeRemaining: (type: "tripleShot" | "speedBoost" | "powerShot", currentTime: number) => number;
   setLastShootTime: (time: number) => void;
   loseLife: () => void;
   restart: () => void;
@@ -87,7 +88,7 @@ const initialPlayerDirection: Vec3 = { x: 0, y: 0, z: 1 };
 export const useArcadeGame = create<ArcadeGameState>()(
   subscribeWithSelector((set, get) => ({
     phase: "menu",
-    lives: 3,
+    lives: 4,
     score: 0,
     level: 1,
     scrollPosition: 0,
@@ -191,7 +192,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     
     restart: () => set({
       phase: "menu",
-      lives: 3,
+      lives: 4,
       score: 0,
       level: 1,
       scrollPosition: 0,
