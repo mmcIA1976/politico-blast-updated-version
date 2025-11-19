@@ -212,7 +212,7 @@ export function StreetProps() {
   const props = useMemo(() => {
     const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
     
-    if (level === 1 || level === 2 || level === 5 || level === 6) {
+    if (level === 1 || level === 3 || level === 5 || level === 7) {
       for (let z = -10; z < 200; z += 6) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
         items.push({ type: 'lamp', position: [15, 0, z] });
@@ -229,7 +229,7 @@ export function StreetProps() {
         const side = z % 30 === 8 ? -13 : 13;
         items.push({ type: 'bench', position: [side, 0, z] });
       }
-    } else if (level === 3 || level === 4 || level === 7) {
+    } else if (level === 2 || level === 4 || level === 6) {
       for (let z = -10; z < 200; z += 8) {
         items.push({ type: 'planter', position: [-14, 0, z] });
         items.push({ type: 'planter', position: [14, 0, z] });

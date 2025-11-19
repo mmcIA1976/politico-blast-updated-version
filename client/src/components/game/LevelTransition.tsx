@@ -15,7 +15,7 @@ export function LevelTransition() {
 
       const timer = setTimeout(() => {
         setShowTransition(false);
-      }, 2500);
+      }, 1500);
 
       return () => clearTimeout(timer);
     } else if (level === 1) {
@@ -46,28 +46,24 @@ export function LevelTransition() {
         transform: "translate(-50%, -50%)",
         zIndex: 1000,
         pointerEvents: "none",
-        animation: "levelFadeInOut 2.5s ease-in-out",
+        animation: "levelFadeInOut 1.5s ease-in-out",
       }}
     >
       <div
         style={{
-          fontSize: "4rem",
+          fontSize: "2rem",
           fontWeight: "bold",
           color: "#ffd700",
           textShadow: `
+            0 0 5px #ffd700,
             0 0 10px #ffd700,
-            0 0 20px #ffd700,
-            0 0 30px #ffd700,
-            0 0 40px #ff8c00,
-            0 0 70px #ff8c00,
-            0 0 80px #ff8c00,
-            0 0 100px #ff8c00,
-            0 0 150px #ff8c00
+            0 0 15px #ff8c00,
+            0 0 20px #ff8c00
           `,
-          letterSpacing: "0.2em",
+          letterSpacing: "0.15em",
           textAlign: "center",
           fontFamily: "Arial, sans-serif",
-          WebkitTextStroke: "2px #000",
+          WebkitTextStroke: "1px #000",
         }}
       >
         {getLevelName(displayLevel)}
@@ -77,13 +73,13 @@ export function LevelTransition() {
           @keyframes levelFadeInOut {
             0% {
               opacity: 0;
-              transform: translate(-50%, -50%) scale(0.5);
+              transform: translate(-50%, -50%) scale(0.8);
             }
-            20% {
+            30% {
               opacity: 1;
-              transform: translate(-50%, -50%) scale(1.1);
+              transform: translate(-50%, -50%) scale(1);
             }
-            80% {
+            70% {
               opacity: 1;
               transform: translate(-50%, -50%) scale(1);
             }

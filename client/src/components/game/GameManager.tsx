@@ -359,17 +359,17 @@ export function GameManager() {
       setPhase("victory");
     }
     
-    if (scrollPosition > 25 && level === 1) {
+    if (scrollPosition > 45 && level === 1) {
       setLevel(2);
-    } else if (scrollPosition > 50 && level === 2) {
+    } else if (scrollPosition > 90 && level === 2) {
       setLevel(3);
-    } else if (scrollPosition > 75 && level === 3) {
+    } else if (scrollPosition > 135 && level === 3) {
       setLevel(4);
-    } else if (scrollPosition > 100 && level === 4) {
+    } else if (scrollPosition > 180 && level === 4) {
       setLevel(5);
-    } else if (scrollPosition > 125 && level === 5) {
+    } else if (scrollPosition > 225 && level === 5) {
       setLevel(6);
-    } else if (scrollPosition > 150 && level === 6) {
+    } else if (scrollPosition > 270 && level === 6) {
       setLevel(7);
     }
   });
