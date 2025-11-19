@@ -19,8 +19,8 @@ export function Enemies() {
                 <meshStandardMaterial color="#3b82f6" />
               </mesh>
               
-              <mesh position={[0, 1.3, -0.4]} rotation={[0, Math.PI, 0]}>
-                <circleGeometry args={[0.8, 32]} />
+              <mesh position={[0, 1.4, -0.5]} rotation={[0, Math.PI, 0]}>
+                <circleGeometry args={[1.0, 32]} />
                 <meshStandardMaterial map={level >= 4 && level <= 6 ? faceTexture2 : faceTexture} />
               </mesh>
             </>
