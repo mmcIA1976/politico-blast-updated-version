@@ -26,8 +26,8 @@ export function Player() {
     const speed = baseSpeed * speedMultiplier;
     const movement = new THREE.Vector3();
     
-    if (keys.forward) movement.z += 1;
-    if (keys.back) movement.z -= 1;
+    if (keys.forward) movement.z -= 1;
+    if (keys.back) movement.z += 1;
     if (keys.left) movement.x += 1;
     if (keys.right) movement.x -= 1;
     
