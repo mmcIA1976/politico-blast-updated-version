@@ -90,13 +90,25 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
+      // Primero el grito de dolor
+      const painScream = new SpeechSynthesisUtterance("aaayyyyy");
+      painScream.lang = 'es-ES';
+      painScream.rate = 1.0;
+      painScream.pitch = 1.5;
+      painScream.volume = 0.8;
+      
+      // Luego la frase política
       const utterance = new SpeechSynthesisUtterance(randomPhrase);
       utterance.lang = 'es-ES';
       utterance.rate = 1.3;
       utterance.pitch = 1.2;
       utterance.volume = 0.7;
       
-      window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(painScream);
+      
+      painScream.onend = () => {
+        window.speechSynthesis.speak(utterance);
+      };
     }
   }
 }));
