@@ -126,19 +126,23 @@ export function GameManager() {
       initialX: number;
     }> = [];
     
-    if (level === 7 && !bossSpawned.current) {
-      const bossId = `boss-${Date.now()}`;
-      enemiesToSpawn.push({
-        id: bossId,
-        position: { x: 0, y: 0.7, z: playerPosition.z + 20 },
-        health: 30,
-        type: "boss",
-        shootTimer: 1,
-        movePattern: "circular",
-        spawnTime: currentTime,
-        initialX: 0,
-      });
-      bossSpawned.current = true;
+    if (level === 7) {
+      console.log("Level 7! Boss spawned status:", bossSpawned.current);
+      if (!bossSpawned.current) {
+        const bossId = `boss-${Date.now()}`;
+        enemiesToSpawn.push({
+          id: bossId,
+          position: { x: 0, y: 0.7, z: playerPosition.z + 20 },
+          health: 30,
+          type: "boss",
+          shootTimer: 1,
+          movePattern: "circular",
+          spawnTime: currentTime,
+          initialX: 0,
+        });
+        bossSpawned.current = true;
+        console.log("Boss spawned!");
+      }
     }
     
     if (level < 7) {
@@ -317,16 +321,23 @@ export function GameManager() {
     }
     
     if (scrollPosition > 25 && level === 1) {
+      console.log("Level change: 1 -> 2");
       setLevel(2);
     } else if (scrollPosition > 50 && level === 2) {
+      console.log("Level change: 2 -> 3");
       setLevel(3);
     } else if (scrollPosition > 75 && level === 3) {
+      console.log("Level change: 3 -> 4");
       setLevel(4);
     } else if (scrollPosition > 100 && level === 4) {
+      console.log("Level change: 4 -> 5");
       setLevel(5);
     } else if (scrollPosition > 125 && level === 5) {
+      console.log("Level change: 5 -> 6");
       setLevel(6);
     } else if (scrollPosition > 150 && level === 6) {
+      console.log("Level change: 6 -> 7, resetting boss");
+      bossSpawned.current = false;
       setLevel(7);
     }
   });
