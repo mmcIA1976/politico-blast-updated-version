@@ -2,11 +2,45 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
-import { useTexture } from "@react-three/drei";
+
+function Rose3D() {
+  return (
+    <group>
+      <mesh rotation={[0, 0, 0]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#e30613" emissive="#e30613" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[0.1, 0.1, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <sphereGeometry args={[0.12, 6, 6]} />
+        <meshStandardMaterial color="#ff1744" emissive="#ff1744" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[-0.1, 0.1, 0]} rotation={[0, 0, -Math.PI / 4]}>
+        <sphereGeometry args={[0.12, 6, 6]} />
+        <meshStandardMaterial color="#ff1744" emissive="#ff1744" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[0, -0.1, 0]}>
+        <sphereGeometry args={[0.1, 6, 6]} />
+        <meshStandardMaterial color="#c62828" emissive="#c62828" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[0.1, -0.05, 0]}>
+        <sphereGeometry args={[0.08, 6, 6]} />
+        <meshStandardMaterial color="#ff1744" emissive="#ff1744" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[-0.1, -0.05, 0]}>
+        <sphereGeometry args={[0.08, 6, 6]} />
+        <meshStandardMaterial color="#ff1744" emissive="#ff1744" emissiveIntensity={0.5} />
+      </mesh>
+    </group>
+  );
+}
 
 export function Bullets() {
   const { bullets, updateBullets, removeBullet, playerPosition } = useArcadeGame();
-  const roseTexture = useTexture("/textures/rose_bullet.png");
   
   useFrame((state, delta) => {
     const updatedBullets = bullets.map(bullet => {
@@ -43,12 +77,7 @@ export function Bullets() {
               />
             </mesh>
           ) : (
-            <sprite scale={[0.8, 0.8, 0.8]}>
-              <spriteMaterial 
-                map={roseTexture}
-                transparent={true}
-              />
-            </sprite>
+            <Rose3D />
           )}
         </group>
       ))}
