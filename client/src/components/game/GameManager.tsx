@@ -128,12 +128,13 @@ export function GameManager() {
       initialX: number;
     }> = [];
     
-    if (newScrollPosition > 50 && !bossSpawned.current) {
+    const bossThreshold = 80 + (level - 1) * 30;
+    if (newScrollPosition > bossThreshold && !bossSpawned.current) {
       const bossId = `boss-${Date.now()}`;
       enemiesToSpawn.push({
         id: bossId,
         position: { x: 0, y: 0.7, z: newScrollPosition + 15 },
-        health: 20,
+        health: 20 + level * 5,
         type: "boss",
         shootTimer: 1,
         movePattern: "circular",
@@ -141,31 +142,31 @@ export function GameManager() {
         initialX: 0,
       });
       bossSpawned.current = true;
-    } else if (newScrollPosition < 50) {
-      enemySpawnTimer.current += delta;
+    }
+    
+    enemySpawnTimer.current += delta;
+    
+    if (enemySpawnTimer.current > 2.5) {
+      enemySpawnTimer.current = 0;
       
-      if (enemySpawnTimer.current > 3) {
-        enemySpawnTimer.current = 0;
+      const numEnemies = Math.min(3, 1 + level);
+      const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
+      const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
+      
+      for (let i = 0; i < numEnemies; i++) {
+        const enemyId = `enemy-${currentTime}-${i}`;
+        const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
         
-        const numEnemies = Math.min(2, Math.floor(newScrollPosition / 15) + 1);
-        const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
-        const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
-        
-        for (let i = 0; i < numEnemies; i++) {
-          const enemyId = `enemy-${currentTime}-${i}`;
-          const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
-          
-          enemiesToSpawn.push({
-            id: enemyId,
-            position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
-            health: 3,
-            type: "politician",
-            shootTimer: (currentTime % 3) + 1,
-            movePattern: patterns[patternIndex],
-            spawnTime: currentTime,
-            initialX: xPos,
-          });
-        }
+        enemiesToSpawn.push({
+          id: enemyId,
+          position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
+          health: 2 + level,
+          type: "politician",
+          shootTimer: (currentTime % 3) + 1,
+          movePattern: patterns[patternIndex],
+          spawnTime: currentTime,
+          initialX: xPos,
+        });
       }
     }
     
@@ -294,12 +295,18 @@ export function GameManager() {
       setPhase("victory");
     }
     
-    if (scrollPosition > 20 && level === 1) {
+    if (scrollPosition > 30 && level === 1) {
       console.log("Level change: 1 -> 2");
       setLevel(2);
-    } else if (scrollPosition > 35 && level === 2) {
+      bossSpawned.current = false;
+    } else if (scrollPosition > 60 && level === 2) {
       console.log("Level change: 2 -> 3");
       setLevel(3);
+      bossSpawned.current = false;
+    } else if (scrollPosition > 90 && level === 3) {
+      console.log("Level change: 3 -> 4");
+      setLevel(4);
+      bossSpawned.current = false;
     }
   });
   
