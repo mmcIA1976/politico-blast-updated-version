@@ -9,9 +9,9 @@ export function ScrollingBackground() {
   const { scrollPosition, level } = useArcadeGame();
   
   const texturePath = useMemo(() => {
-    if (level === 1) return "/textures/asphalt.png";
-    if (level === 2) return "/textures/grass.png";
-    if (level === 3) return "/textures/asphalt.png";
+    if (level === 1 || level === 2) return "/textures/asphalt.png";
+    if (level === 3 || level === 4) return "/textures/grass.png";
+    if (level === 5 || level === 6) return "/textures/asphalt.png";
     return "/textures/grass.png";
   }, [level]);
   

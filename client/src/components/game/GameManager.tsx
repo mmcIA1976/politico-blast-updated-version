@@ -126,13 +126,12 @@ export function GameManager() {
       initialX: number;
     }> = [];
     
-    const bossThreshold = 80 + (level - 1) * 30;
-    if (newScrollPosition > bossThreshold && !bossSpawned.current) {
+    if (level === 7 && !bossSpawned.current) {
       const bossId = `boss-${Date.now()}`;
       enemiesToSpawn.push({
         id: bossId,
         position: { x: 0, y: 0.7, z: newScrollPosition + 15 },
-        health: 20 + level * 5,
+        health: 30,
         type: "boss",
         shootTimer: 1,
         movePattern: "circular",
@@ -144,10 +143,32 @@ export function GameManager() {
     
     enemySpawnTimer.current += delta;
     
-    if (enemySpawnTimer.current > 2.5) {
+    if (enemySpawnTimer.current > 2) {
       enemySpawnTimer.current = 0;
       
-      const numEnemies = Math.min(3, 1 + level);
+      let numEnemies = 2;
+      let enemyHealth = 1;
+      
+      if (level === 1) {
+        numEnemies = 3;
+        enemyHealth = 1;
+      } else if (level === 2) {
+        numEnemies = 4;
+        enemyHealth = 1;
+      } else if (level === 3) {
+        numEnemies = 5;
+        enemyHealth = 2;
+      } else if (level === 4) {
+        numEnemies = 5;
+        enemyHealth = 2;
+      } else if (level === 5) {
+        numEnemies = 6;
+        enemyHealth = 3;
+      } else if (level >= 6) {
+        numEnemies = 6;
+        enemyHealth = 3;
+      }
+      
       const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
       const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
       
@@ -158,7 +179,7 @@ export function GameManager() {
         enemiesToSpawn.push({
           id: enemyId,
           position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
-          health: 2 + level,
+          health: enemyHealth,
           type: "politician",
           shootTimer: (currentTime % 3) + 1,
           movePattern: patterns[patternIndex],
@@ -293,15 +314,18 @@ export function GameManager() {
       setPhase("victory");
     }
     
-    if (scrollPosition > 30 && level === 1) {
+    if (scrollPosition > 25 && level === 1) {
       setLevel(2);
-      bossSpawned.current = false;
-    } else if (scrollPosition > 60 && level === 2) {
+    } else if (scrollPosition > 50 && level === 2) {
       setLevel(3);
-      bossSpawned.current = false;
-    } else if (scrollPosition > 90 && level === 3) {
+    } else if (scrollPosition > 75 && level === 3) {
       setLevel(4);
-      bossSpawned.current = false;
+    } else if (scrollPosition > 100 && level === 4) {
+      setLevel(5);
+    } else if (scrollPosition > 125 && level === 5) {
+      setLevel(6);
+    } else if (scrollPosition > 150 && level === 6) {
+      setLevel(7);
     }
   });
   
