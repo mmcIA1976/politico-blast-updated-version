@@ -1,21 +1,12 @@
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import { useMemo } from "react";
 
 export function Enemies() {
   const { enemies, level } = useArcadeGame();
   const faceTexture = useTexture("/textures/politician_face.jpg");
-  const faceTexture2Raw = useTexture("/textures/politician_face_2.jpg");
+  const faceTexture2 = useTexture("/textures/politician_face_2.jpg");
   const bossFaceTexture = useTexture("/textures/boss_face.jpg");
-  
-  const faceTexture2 = useMemo(() => {
-    const texture = faceTexture2Raw.clone();
-    texture.needsUpdate = true;
-    texture.repeat.set(1.5, 1.5);
-    texture.offset.set(-0.25, -0.35);
-    return texture;
-  }, [faceTexture2Raw]);
   
   return (
     <group>
