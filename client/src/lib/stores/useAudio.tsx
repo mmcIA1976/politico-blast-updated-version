@@ -15,7 +15,8 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
-  playEnemyScream: () => void;
+  playEnemyScream: (isBoss?: boolean) => void;
+  playBossEntrance: () => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -73,7 +74,7 @@ export const useAudio = create<AudioState>((set, get) => ({
     }
   },
   
-  playEnemyScream: () => {
+  playEnemyScream: (isBoss = false) => {
     const { isMuted } = get();
     if (isMuted) {
       console.log("Enemy scream skipped (muted)");
@@ -83,31 +84,69 @@ export const useAudio = create<AudioState>((set, get) => ({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
-      const phrases = [
-        "¡La ultra derecha nos ataca!",
-        "¡¡Detener a los fascistas!!"
-      ];
+      let phrases: string[];
+      
+      if (isBoss) {
+        phrases = ["¡¡Vas a saber lo que es hacienda!!"];
+      } else {
+        phrases = [
+          "¡La ultra derecha nos ataca!",
+          "¡¡Detener a los fascistas!!"
+        ];
+      }
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
       // Primero el grito de dolor
       const painScream = new SpeechSynthesisUtterance("aaayyyyy");
       painScream.lang = 'es-ES';
-      painScream.rate = 1.0;
-      painScream.pitch = 1.5;
+      painScream.rate = isBoss ? 0.8 : 1.0;
+      painScream.pitch = isBoss ? 0.8 : 1.5;
       painScream.volume = 0.8;
       
       // Luego la frase política
       const utterance = new SpeechSynthesisUtterance(randomPhrase);
       utterance.lang = 'es-ES';
-      utterance.rate = 1.3;
-      utterance.pitch = 1.2;
+      utterance.rate = isBoss ? 1.0 : 1.3;
+      utterance.pitch = isBoss ? 0.9 : 1.2;
       utterance.volume = 0.7;
       
       window.speechSynthesis.speak(painScream);
       
       painScream.onend = () => {
         window.speechSynthesis.speak(utterance);
+      };
+    }
+  },
+  
+  playBossEntrance: () => {
+    const { isMuted } = get();
+    if (isMuted) {
+      console.log("Boss entrance skipped (muted)");
+      return;
+    }
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const phrase = "¡¡Te voy a subir los impuestos quiero tu dinero!!";
+      
+      const utterance1 = new SpeechSynthesisUtterance(phrase);
+      utterance1.lang = 'es-ES';
+      utterance1.rate = 1.0;
+      utterance1.pitch = 0.8;
+      utterance1.volume = 0.9;
+      
+      const utterance2 = new SpeechSynthesisUtterance(phrase);
+      utterance2.lang = 'es-ES';
+      utterance2.rate = 1.0;
+      utterance2.pitch = 0.8;
+      utterance2.volume = 0.9;
+      
+      window.speechSynthesis.speak(utterance1);
+      
+      utterance1.onend = () => {
+        window.speechSynthesis.speak(utterance2);
       };
     }
   }
