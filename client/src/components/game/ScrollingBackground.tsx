@@ -18,7 +18,7 @@ export function ScrollingBackground() {
   
   useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(4, 8);
+    texture.repeat.set(8, 20);
   }, [texture]);
   
   useFrame(() => {
@@ -27,14 +27,14 @@ export function ScrollingBackground() {
       texture.offset.y = -playerPosition.z * 0.1;
     }
     if (groupRef.current) {
-      groupRef.current.position.z = 0;
+      groupRef.current.position.z = playerPosition.z;
     }
   });
   
   return (
     <group ref={groupRef}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[40, 60]} />
+        <planeGeometry args={[60, 120]} />
         <meshStandardMaterial map={texture} />
       </mesh>
     </group>
