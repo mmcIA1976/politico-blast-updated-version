@@ -43,7 +43,7 @@ export function Player() {
       };
       
       newPosition.x = Math.max(-12, Math.min(12, newPosition.x));
-      newPosition.z = Math.max(-5, Math.min(50, newPosition.z));
+      newPosition.z = Math.max(-5, newPosition.z);
       
       setPlayerPosition(newPosition);
       meshRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);

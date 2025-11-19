@@ -64,7 +64,11 @@ export function GameManager() {
     
     const keys = getKeys();
     if (keys.shoot && currentTime - lastShootTime > 0.3) {
-      const direction = vec3ToThree(playerDirection).normalize();
+      const direction = vec3ToThree(playerDirection);
+      if (direction.length() === 0) {
+        direction.set(0, 0, 1);
+      }
+      direction.normalize();
       const basePos = vec3ToThree(playerPosition).add(direction.clone().multiplyScalar(0.5));
       
       const hasTripleShot = hasActivePowerUp("tripleShot");
