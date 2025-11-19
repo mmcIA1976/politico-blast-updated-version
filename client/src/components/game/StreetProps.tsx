@@ -212,39 +212,39 @@ export function StreetProps() {
   const props = useMemo(() => {
     const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
     
-    if (level === 1 || level === 2) {
-      for (let z = -10; z < 80; z += 6) {
+    if (level === 1 || level === 2 || level === 5 || level === 6) {
+      for (let z = -10; z < 200; z += 6) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
         items.push({ type: 'lamp', position: [15, 0, z] });
       }
       
       const carColors = ['#ff0000', '#0000ff', '#ffff00', '#ffffff', '#000000', '#00ff00'];
-      for (let z = -5; z < 80; z += 12) {
+      for (let z = -5; z < 200; z += 12) {
         const side = z % 24 === 5 ? -12 : 12;
         const colorIndex = Math.floor(z / 12) % carColors.length;
         items.push({ type: 'car', position: [side, 0, z], color: carColors[colorIndex] });
       }
       
-      for (let z = -2; z < 80; z += 15) {
+      for (let z = -2; z < 200; z += 15) {
         const side = z % 30 === 8 ? -13 : 13;
         items.push({ type: 'bench', position: [side, 0, z] });
       }
-    } else if (level === 3 || level === 4) {
-      for (let z = -10; z < 80; z += 8) {
+    } else if (level === 3 || level === 4 || level === 7) {
+      for (let z = -10; z < 200; z += 8) {
         items.push({ type: 'planter', position: [-14, 0, z] });
         items.push({ type: 'planter', position: [14, 0, z] });
       }
       
-      for (let z = 0; z < 80; z += 20) {
+      for (let z = 0; z < 200; z += 20) {
         items.push({ type: 'fountain', position: [0, 0, z] });
       }
       
-      for (let z = -5; z < 80; z += 12) {
+      for (let z = -5; z < 200; z += 12) {
         const side = z % 24 === 5 ? -11 : 11;
         items.push({ type: 'parkbench', position: [side, 0, z] });
       }
       
-      for (let z = 5; z < 80; z += 10) {
+      for (let z = 5; z < 200; z += 10) {
         const side = z % 20 === 5 ? -8 : 8;
         items.push({ type: 'planter', position: [side, 0, z] });
       }
@@ -253,7 +253,7 @@ export function StreetProps() {
     return items;
   }, [level]);
   
-  if (level < 1 || level > 4) return null;
+  if (level < 1 || level > 7) return null;
   
   return (
     <group>
