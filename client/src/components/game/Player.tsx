@@ -21,7 +21,7 @@ export function Player() {
     if (phase !== "playing" || !meshRef.current) return;
     
     const keys = getKeys();
-    const baseSpeed = 7;
+    const baseSpeed = 8.4;
     const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.5 : 1;
     const speed = baseSpeed * speedMultiplier;
     const movement = new THREE.Vector3();

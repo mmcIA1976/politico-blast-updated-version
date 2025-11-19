@@ -130,7 +130,7 @@ export function GameManager() {
       const bossId = `boss-${Date.now()}`;
       enemiesToSpawn.push({
         id: bossId,
-        position: { x: 0, y: 0.7, z: newScrollPosition + 15 },
+        position: { x: 0, y: 0.7, z: playerPosition.z + 20 },
         health: 30,
         type: "boss",
         shootTimer: 1,
@@ -141,9 +141,11 @@ export function GameManager() {
       bossSpawned.current = true;
     }
     
-    enemySpawnTimer.current += delta;
+    if (level < 7) {
+      enemySpawnTimer.current += delta;
+    }
     
-    if (enemySpawnTimer.current > 2) {
+    if (level < 7 && enemySpawnTimer.current > 2) {
       enemySpawnTimer.current = 0;
       
       let numEnemies = 2;
