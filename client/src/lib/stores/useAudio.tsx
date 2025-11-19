@@ -83,7 +83,14 @@ export const useAudio = create<AudioState>((set, get) => ({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance("¡La ultra derecha nos ataca!");
+      const phrases = [
+        "¡La ultra derecha nos ataca!",
+        "¡¡Detener a los fascistas!!"
+      ];
+      
+      const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+      
+      const utterance = new SpeechSynthesisUtterance(randomPhrase);
       utterance.lang = 'es-ES';
       utterance.rate = 1.3;
       utterance.pitch = 1.2;
