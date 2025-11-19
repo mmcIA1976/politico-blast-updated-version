@@ -62,6 +62,9 @@ export function GameManager() {
     const currentTime = state.clock.getElapsedTime();
     updateActivePowerUps(currentTime);
     
+    const newScrollPosition = Math.max(scrollPosition, playerPosition.z);
+    setScrollPosition(newScrollPosition);
+    
     const keys = getKeys();
     if (keys.shoot && currentTime - lastShootTime > 0.3) {
       const direction = vec3ToThree(playerDirection);
@@ -113,9 +116,6 @@ export function GameManager() {
       
       setLastShootTime(currentTime);
     }
-    
-    const newScrollPosition = Math.max(scrollPosition, playerPosition.z);
-    setScrollPosition(newScrollPosition);
     
     const enemiesToSpawn: Array<{
       id: string;
