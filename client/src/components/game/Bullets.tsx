@@ -2,9 +2,11 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
+import { useTexture } from "@react-three/drei";
 
 export function Bullets() {
   const { bullets, updateBullets, removeBullet, playerPosition } = useArcadeGame();
+  const roseTexture = useTexture("/textures/psoe_rose.png");
   
   useFrame((state, delta) => {
     const updatedBullets = bullets.map(bullet => {
@@ -30,14 +32,26 @@ export function Bullets() {
   return (
     <group>
       {bullets.map((bullet) => (
-        <mesh key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
-          <sphereGeometry args={[0.2, 8, 8]} />
-          <meshStandardMaterial 
-            color={bullet.fromPlayer ? "#ffff00" : "#ff0000"} 
-            emissive={bullet.fromPlayer ? "#ffff00" : "#ff0000"}
-            emissiveIntensity={1.0}
-          />
-        </mesh>
+        <group key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
+          {bullet.fromPlayer ? (
+            <mesh>
+              <sphereGeometry args={[0.2, 8, 8]} />
+              <meshStandardMaterial 
+                color="#ffff00"
+                emissive="#ffff00"
+                emissiveIntensity={1.0}
+              />
+            </mesh>
+          ) : (
+            <sprite scale={[0.5, 0.5, 0.5]}>
+              <spriteMaterial 
+                map={roseTexture}
+                transparent={true}
+                opacity={1.0}
+              />
+            </sprite>
+          )}
+        </group>
       ))}
     </group>
   );
