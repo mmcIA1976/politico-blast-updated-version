@@ -12,6 +12,7 @@ import { Lights } from "./Lights";
 import { Camera } from "./Camera";
 import { HUD } from "./HUD";
 import { BossHealthBar } from "./BossHealthBar";
+import { LevelTransition } from "./LevelTransition";
 
 enum Controls {
   forward = "forward",
@@ -46,7 +47,7 @@ export function Game() {
             powerPreference: "default",
           }}
         >
-          <color attach="background" args={["#87ceeb"]} />
+          <color attach="background" args={["#87CEEB"]} />
           
           <Lights />
           
@@ -64,6 +65,7 @@ export function Game() {
         
         <HUD />
         <BossHealthBar />
+        <LevelTransition />
       </KeyboardControls>
     </>
   );

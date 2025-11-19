@@ -17,6 +17,7 @@ export function ScrollingBackground() {
   }, [level]);
   
   const texture = useTexture(texturePath);
+  const prevTextureRef = useRef<THREE.Texture | null>(null);
   
   useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -26,7 +27,12 @@ export function ScrollingBackground() {
   useFrame(() => {
     const { playerPosition } = useArcadeGame.getState();
     if (texture) {
+      if (prevTextureRef.current && prevTextureRef.current !== texture) {
+        const prevOffset = prevTextureRef.current.offset.y;
+        texture.offset.y = prevOffset;
+      }
       texture.offset.y = -playerPosition.z * 0.1;
+      prevTextureRef.current = texture;
     }
     if (groupRef.current) {
       groupRef.current.position.z = playerPosition.z;
