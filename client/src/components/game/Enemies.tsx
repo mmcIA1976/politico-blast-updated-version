@@ -1,7 +1,10 @@
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { useTexture } from "@react-three/drei";
+import * as THREE from "three";
 
 export function Enemies() {
   const { enemies } = useArcadeGame();
+  const faceTexture = useTexture("/textures/politician_face.jpg");
   
   return (
     <group>
@@ -14,14 +17,9 @@ export function Enemies() {
                 <meshStandardMaterial color="#3b82f6" />
               </mesh>
               
-              <mesh position={[0, 1.1, 0]}>
-                <sphereGeometry args={[0.35, 16, 16]} />
-                <meshStandardMaterial color="#ffd700" />
-              </mesh>
-              
-              <mesh position={[0, 1.3, 0.2]}>
-                <boxGeometry args={[0.2, 0.1, 0.05]} />
-                <meshStandardMaterial color="#000000" />
+              <mesh position={[0, 1.1, 0]} rotation={[0, Math.PI, 0]}>
+                <boxGeometry args={[0.6, 0.6, 0.6]} />
+                <meshStandardMaterial map={faceTexture} />
               </mesh>
             </>
           ) : (
@@ -31,19 +29,19 @@ export function Enemies() {
                 <meshStandardMaterial color="#ef4444" />
               </mesh>
               
-              <mesh position={[0, 1.6, 0]}>
-                <sphereGeometry args={[0.5, 16, 16]} />
-                <meshStandardMaterial color="#ffd700" />
+              <mesh position={[0, 1.6, 0]} rotation={[0, Math.PI, 0]}>
+                <boxGeometry args={[0.9, 0.9, 0.9]} />
+                <meshStandardMaterial map={faceTexture} />
               </mesh>
               
-              <mesh position={[-0.5, 1.8, 0]}>
+              <mesh position={[-0.5, 2.1, 0]}>
                 <coneGeometry args={[0.15, 0.4, 8]} />
-                <meshStandardMaterial color="#000000" />
+                <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
               </mesh>
               
-              <mesh position={[0.5, 1.8, 0]}>
+              <mesh position={[0.5, 2.1, 0]}>
                 <coneGeometry args={[0.15, 0.4, 8]} />
-                <meshStandardMaterial color="#000000" />
+                <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
               </mesh>
             </>
           )}
