@@ -50,6 +50,121 @@ function Bench({ position }: { position: [number, number, number] }) {
   );
 }
 
+function Planter({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[1.0, 0.6, 1.0]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      
+      <mesh position={[0, 0.7, 0]}>
+        <boxGeometry args={[0.9, 0.1, 0.9]} />
+        <meshStandardMaterial color="#654321" />
+      </mesh>
+      
+      <mesh position={[0.3, 1.0, 0.3]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#ff69b4" emissive="#ff69b4" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[-0.3, 1.0, 0.3]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#ff1493" emissive="#ff1493" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[0.3, 1.0, -0.3]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#ffff00" emissive="#ffff00" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[-0.3, 1.0, -0.3]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#ff4500" emissive="#ff4500" emissiveIntensity={0.5} />
+      </mesh>
+      
+      <mesh position={[0, 1.1, 0]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#ff69b4" emissive="#ff69b4" emissiveIntensity={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+function Fountain({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.2, 0]}>
+        <cylinderGeometry args={[1.5, 1.5, 0.4, 16]} />
+        <meshStandardMaterial color="#e0e0e0" />
+      </mesh>
+      
+      <mesh position={[0, 0.4, 0]}>
+        <cylinderGeometry args={[1.3, 1.3, 0.1, 16]} />
+        <meshStandardMaterial color="#87ceeb" transparent opacity={0.7} />
+      </mesh>
+      
+      <mesh position={[0, 0.7, 0]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.6, 16]} />
+        <meshStandardMaterial color="#c0c0c0" />
+      </mesh>
+      
+      <mesh position={[0, 1.2, 0]}>
+        <sphereGeometry args={[0.35, 16, 16]} />
+        <meshStandardMaterial color="#c0c0c0" />
+      </mesh>
+      
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+        const angle = (i * Math.PI * 2) / 8;
+        return (
+          <mesh key={i} position={[Math.cos(angle) * 0.3, 1.3 + Math.random() * 0.5, Math.sin(angle) * 0.3]}>
+            <sphereGeometry args={[0.08, 8, 8]} />
+            <meshStandardMaterial color="#87ceeb" transparent opacity={0.8} />
+          </mesh>
+        );
+      })}
+      
+      <pointLight position={[0, 1.5, 0]} intensity={1} distance={5} color="#87ceeb" />
+    </group>
+  );
+}
+
+function ParkBench({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[1.5, 0.1, 0.6]} />
+        <meshStandardMaterial color="#228B22" />
+      </mesh>
+      
+      <mesh position={[0, 0.7, -0.25]}>
+        <boxGeometry args={[1.5, 0.6, 0.1]} />
+        <meshStandardMaterial color="#228B22" />
+      </mesh>
+      
+      <mesh position={[-0.6, 0.15, 0]}>
+        <boxGeometry args={[0.1, 0.3, 0.5]} />
+        <meshStandardMaterial color="#2F4F2F" />
+      </mesh>
+      
+      <mesh position={[0.6, 0.15, 0]}>
+        <boxGeometry args={[0.1, 0.3, 0.5]} />
+        <meshStandardMaterial color="#2F4F2F" />
+      </mesh>
+      
+      <mesh position={[-0.75, 0.5, -0.25]}>
+        <boxGeometry args={[0.1, 0.6, 0.1]} />
+        <meshStandardMaterial color="#2F4F2F" />
+      </mesh>
+      
+      <mesh position={[0.75, 0.5, -0.25]}>
+        <boxGeometry args={[0.1, 0.6, 0.1]} />
+        <meshStandardMaterial color="#2F4F2F" />
+      </mesh>
+    </group>
+  );
+}
+
 function Car({ position, color }: { position: [number, number, number]; color: string }) {
   return (
     <group position={position}>
@@ -95,9 +210,9 @@ export function StreetProps() {
   const { level } = useArcadeGame();
   
   const props = useMemo(() => {
-    const items: Array<{ type: 'lamp' | 'bench' | 'car'; position: [number, number, number]; color?: string }> = [];
+    const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
     
-    if (level === 1 || level === 2) {
+    if (level === 1) {
       for (let z = -10; z < 80; z += 6) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
         items.push({ type: 'lamp', position: [15, 0, z] });
@@ -113,6 +228,25 @@ export function StreetProps() {
       for (let z = -2; z < 80; z += 15) {
         const side = z % 30 === 8 ? -13 : 13;
         items.push({ type: 'bench', position: [side, 0, z] });
+      }
+    } else if (level === 2) {
+      for (let z = -10; z < 80; z += 8) {
+        items.push({ type: 'planter', position: [-14, 0, z] });
+        items.push({ type: 'planter', position: [14, 0, z] });
+      }
+      
+      for (let z = 0; z < 80; z += 20) {
+        items.push({ type: 'fountain', position: [0, 0, z] });
+      }
+      
+      for (let z = -5; z < 80; z += 12) {
+        const side = z % 24 === 5 ? -11 : 11;
+        items.push({ type: 'parkbench', position: [side, 0, z] });
+      }
+      
+      for (let z = 5; z < 80; z += 10) {
+        const side = z % 20 === 5 ? -8 : 8;
+        items.push({ type: 'planter', position: [side, 0, z] });
       }
     }
     
@@ -130,6 +264,12 @@ export function StreetProps() {
           return <Bench key={`bench-${index}`} position={prop.position} />;
         } else if (prop.type === 'car') {
           return <Car key={`car-${index}`} position={prop.position} color={prop.color || '#ff0000'} />;
+        } else if (prop.type === 'planter') {
+          return <Planter key={`planter-${index}`} position={prop.position} />;
+        } else if (prop.type === 'fountain') {
+          return <Fountain key={`fountain-${index}`} position={prop.position} />;
+        } else if (prop.type === 'parkbench') {
+          return <ParkBench key={`parkbench-${index}`} position={prop.position} />;
         }
         return null;
       })}
