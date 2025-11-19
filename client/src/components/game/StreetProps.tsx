@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { useMemo, useEffect } from "react";
+import { useArcadeGame, type Obstacle } from "@/lib/stores/useArcadeGame";
 import * as THREE from "three";
 
 function StreetLamp({ position }: { position: [number, number, number] }) {
@@ -207,7 +207,7 @@ function Car({ position, color }: { position: [number, number, number]; color: s
 }
 
 export function StreetProps() {
-  const { level } = useArcadeGame();
+  const { level, setObstacles } = useArcadeGame();
   
   const props = useMemo(() => {
     const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
@@ -252,6 +252,41 @@ export function StreetProps() {
     
     return items;
   }, [level]);
+  
+  useEffect(() => {
+    const obstacles: Obstacle[] = props.map(prop => {
+      const [x, y, z] = prop.position;
+      let size = { x: 1, y: 1, z: 1 };
+      
+      switch (prop.type) {
+        case 'lamp':
+          size = { x: 0.3, y: 3.5, z: 0.3 };
+          break;
+        case 'bench':
+          size = { x: 1.2, y: 1, z: 0.6 };
+          break;
+        case 'car':
+          size = { x: 1.5, y: 1, z: 3 };
+          break;
+        case 'planter':
+          size = { x: 1, y: 1.2, z: 1 };
+          break;
+        case 'fountain':
+          size = { x: 3, y: 1.5, z: 3 };
+          break;
+        case 'parkbench':
+          size = { x: 1.5, y: 1, z: 0.7 };
+          break;
+      }
+      
+      return {
+        position: { x, y, z },
+        size
+      };
+    });
+    
+    setObstacles(obstacles);
+  }, [props, setObstacles]);
   
   if (level < 1 || level > 7) return null;
   

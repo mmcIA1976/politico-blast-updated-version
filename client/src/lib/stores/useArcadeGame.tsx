@@ -44,6 +44,11 @@ export interface ActivePowerUp {
   duration: number;
 }
 
+export interface Obstacle {
+  position: Vec3;
+  size: Vec3;
+}
+
 interface ArcadeGameState {
   phase: GamePhase;
   lives: number;
@@ -56,6 +61,7 @@ interface ArcadeGameState {
   enemies: Enemy[];
   powerUps: PowerUp[];
   activePowerUps: ActivePowerUp[];
+  obstacles: Obstacle[];
   lastShootTime: number;
   
   setPhase: (phase: GamePhase) => void;
@@ -77,6 +83,7 @@ interface ArcadeGameState {
   updateActivePowerUps: (currentTime: number) => void;
   hasActivePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot") => boolean;
   getTimeRemaining: (type: "tripleShot" | "speedBoost" | "powerShot", currentTime: number) => number;
+  setObstacles: (obstacles: Obstacle[]) => void;
   setLastShootTime: (time: number) => void;
   loseLife: () => void;
   restart: () => void;
@@ -98,6 +105,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     enemies: [],
     powerUps: [],
     activePowerUps: [],
+    obstacles: [],
     lastShootTime: 0,
     
     setPhase: (phase) => set({ phase }),
@@ -180,6 +188,8 @@ export const useArcadeGame = create<ArcadeGameState>()(
       return Math.max(0, powerUp.expiresAt - currentTime);
     },
     
+    setObstacles: (obstacles) => set({ obstacles }),
+    
     setLastShootTime: (time) => set({ lastShootTime: time }),
     
     loseLife: () => set((state) => {
@@ -202,6 +212,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       enemies: [],
       powerUps: [],
       activePowerUps: [],
+      obstacles: [],
       lastShootTime: 0,
     }),
   }))

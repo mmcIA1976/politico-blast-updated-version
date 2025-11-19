@@ -12,9 +12,25 @@ enum Controls {
   shoot = "shoot",
 }
 
+function checkCollision(pos: Vec3, obstacles: Array<{ position: Vec3; size: Vec3 }>): boolean {
+  const playerSize = { x: 0.8, y: 1, z: 0.8 };
+  
+  for (const obstacle of obstacles) {
+    const dx = Math.abs(pos.x - obstacle.position.x);
+    const dz = Math.abs(pos.z - obstacle.position.z);
+    
+    if (dx < (playerSize.x + obstacle.size.x) / 2 && 
+        dz < (playerSize.z + obstacle.size.z) / 2) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 export function Player() {
   const meshRef = useRef<THREE.Mesh>(null);
-  const { playerPosition, setPlayerPosition, setPlayerDirection, phase, hasActivePowerUp } = useArcadeGame();
+  const { playerPosition, setPlayerPosition, setPlayerDirection, phase, hasActivePowerUp, obstacles } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
   useFrame((state, delta) => {
@@ -51,8 +67,12 @@ export function Player() {
         newPosition.z = Math.max(-5, newPosition.z);
       }
       
-      setPlayerPosition(newPosition);
-      meshRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);
+      if (!checkCollision(newPosition, obstacles)) {
+        setPlayerPosition(newPosition);
+        meshRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);
+      } else {
+        meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
+      }
     } else {
       meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
     }
