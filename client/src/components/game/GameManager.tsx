@@ -130,9 +130,10 @@ export function GameManager() {
     if (level === 7 && lastLevel.current !== 7) {
       console.log("Just entered level 7! Spawning boss now");
       const bossId = `boss-${Date.now()}`;
+      const bossZ = Math.max(playerPosition.z + 15, scrollPosition + 15);
       enemiesToSpawn.push({
         id: bossId,
-        position: { x: 0, y: 0.7, z: playerPosition.z + 20 },
+        position: { x: 0, y: 0.7, z: bossZ },
         health: 30,
         type: "boss",
         shootTimer: 1,
@@ -141,7 +142,7 @@ export function GameManager() {
         initialX: 0,
       });
       bossSpawned.current = true;
-      console.log("Boss spawned at position:", playerPosition.z + 20);
+      console.log("Boss spawned! Player Z:", playerPosition.z, "Boss Z:", bossZ);
     }
     
     lastLevel.current = level;
@@ -234,10 +235,14 @@ export function GameManager() {
             newPos.z -= delta * 1.5;
             break;
           case "circular":
-            const radius = 4;
-            const angularSpeed = 1.5;
+            const radius = enemy.type === "boss" ? 6 : 4;
+            const angularSpeed = enemy.type === "boss" ? 0.8 : 1.5;
             newPos.x = enemy.initialX + Math.cos(age * angularSpeed) * radius;
-            newPos.z = 12 - age * 1.5 + Math.sin(age * angularSpeed) * radius;
+            if (enemy.type === "boss") {
+              newPos.z = enemy.position.z;
+            } else {
+              newPos.z = 12 - age * 1.5 + Math.sin(age * angularSpeed) * radius;
+            }
             break;
           case "formation":
             const waveOffset = Math.sin(age * 2) * 2;
