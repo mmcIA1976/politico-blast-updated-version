@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
 
 export function Bullets() {
-  const { bullets, updateBullets, removeBullet } = useArcadeGame();
+  const { bullets, updateBullets, removeBullet, playerPosition } = useArcadeGame();
   
   useFrame((state, delta) => {
     const updatedBullets = bullets.map(bullet => {
@@ -20,7 +20,8 @@ export function Bullets() {
       };
     }).filter(bullet => {
       const pos = bullet.position;
-      return Math.abs(pos.x) < 20 && Math.abs(pos.z) < 30 && Math.abs(pos.y) < 20;
+      const distanceFromPlayer = Math.abs(pos.z - playerPosition.z);
+      return Math.abs(pos.x) < 20 && distanceFromPlayer < 50 && Math.abs(pos.y) < 20;
     });
     
     updateBullets(updatedBullets);
@@ -30,11 +31,11 @@ export function Bullets() {
     <group>
       {bullets.map((bullet) => (
         <mesh key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
-          <sphereGeometry args={[0.15, 8, 8]} />
+          <sphereGeometry args={[0.2, 8, 8]} />
           <meshStandardMaterial 
             color={bullet.fromPlayer ? "#ffff00" : "#ff0000"} 
             emissive={bullet.fromPlayer ? "#ffff00" : "#ff0000"}
-            emissiveIntensity={0.5}
+            emissiveIntensity={1.0}
           />
         </mesh>
       ))}
