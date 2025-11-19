@@ -1,30 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function LevelTransition() {
   const { level } = useArcadeGame();
   const [showTransition, setShowTransition] = useState(false);
   const [displayLevel, setDisplayLevel] = useState(1);
-  const [prevLevel, setPrevLevel] = useState(1);
+  const prevLevelRef = useRef(1);
 
   useEffect(() => {
-    if (level !== prevLevel && level > 1) {
+    if (level !== prevLevelRef.current && level > 1) {
       setDisplayLevel(level);
       setShowTransition(true);
-      setPrevLevel(level);
+      prevLevelRef.current = level;
 
       const timer = setTimeout(() => {
         setShowTransition(false);
-      }, 1500);
+      }, 2000);
 
       return () => {
         clearTimeout(timer);
       };
-    } else if (level === 1 && prevLevel !== 1) {
-      setPrevLevel(1);
+    } else if (level === 1) {
+      prevLevelRef.current = 1;
       setShowTransition(false);
     }
-  }, [level, prevLevel]);
+  }, [level]);
 
   if (!showTransition) return null;
 
@@ -49,7 +49,7 @@ export function LevelTransition() {
         transform: "translate(-50%, -50%)",
         zIndex: 1000,
         pointerEvents: "none",
-        animation: "levelFadeInOut 1.5s ease-in-out",
+        animation: "levelFadeInOut 2s ease-in-out",
       }}
     >
       <div
@@ -78,11 +78,11 @@ export function LevelTransition() {
               opacity: 0;
               transform: translate(-50%, -50%) scale(0.8);
             }
-            30% {
+            25% {
               opacity: 1;
               transform: translate(-50%, -50%) scale(1);
             }
-            70% {
+            75% {
               opacity: 1;
               transform: translate(-50%, -50%) scale(1);
             }
