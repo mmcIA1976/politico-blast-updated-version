@@ -134,7 +134,7 @@ export function GameManager() {
     
     if (level === 7 && lastLevel.current !== 7) {
       const bossId = `boss-${Date.now()}`;
-      const bossZ = Math.max(playerPosition.z + 15, scrollPosition + 15);
+      const bossZ = 295;
       enemiesToSpawn.push({
         id: bossId,
         position: { x: 0, y: 0.7, z: bossZ },
@@ -245,8 +245,8 @@ export function GameManager() {
                 Math.pow(playerPosition.z - enemy.position.z, 2)
               );
               
-              const minDistance = 8;
-              const maxDistance = 12;
+              const minDistance = 10;
+              const maxDistance = 18;
               
               if (distanceToPlayer < minDistance) {
                 const dx = enemy.position.x - playerPosition.x;
@@ -261,13 +261,13 @@ export function GameManager() {
                 newPos.x += (dx / magnitude) * delta * 4;
                 newPos.z += (dz / magnitude) * delta * 4;
               } else {
-                const radius = 3;
+                const radius = 4;
                 const angularSpeed = 1.2;
                 newPos.x += Math.cos(age * angularSpeed) * delta * 5;
               }
               
-              newPos.x = Math.max(-18, Math.min(18, newPos.x));
-              newPos.z = Math.max(playerPosition.z - 5, Math.min(playerPosition.z + 20, newPos.z));
+              newPos.x = Math.max(-25, Math.min(25, newPos.x));
+              newPos.z = Math.max(270, Math.min(320, newPos.z));
             } else {
               const radius = 4;
               const angularSpeed = 1.5;

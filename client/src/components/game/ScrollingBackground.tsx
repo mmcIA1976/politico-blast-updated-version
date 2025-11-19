@@ -42,10 +42,15 @@ export function ScrollingBackground() {
     }
   });
   
+  const planeSize = useMemo(() => {
+    if (level === 7) return [60, 80];
+    return [40, 60];
+  }, [level]);
+  
   return (
     <group ref={groupRef}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[40, 60]} />
+        <planeGeometry args={planeSize as [number, number]} />
         <meshStandardMaterial map={texture} />
       </mesh>
     </group>
