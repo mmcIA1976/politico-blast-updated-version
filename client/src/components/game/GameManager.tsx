@@ -52,7 +52,7 @@ export function GameManager() {
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
-  const { playHit } = useAudio();
+  const { playHit, playEnemyScream } = useAudio();
   const enemySpawnTimer = useRef(0);
   const bossSpawned = useRef(false);
   const lastLevel = useRef(1);
@@ -322,6 +322,7 @@ export function GameManager() {
                 enemies[index] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
                 playHit();
+                playEnemyScream();
                 
                 if (enemies[index].health <= 0) {
                   scoreToAdd += enemy.type === "boss" ? 500 : 100;

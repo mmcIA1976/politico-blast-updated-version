@@ -15,6 +15,7 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playEnemyScream: () => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -69,6 +70,26 @@ export const useAudio = create<AudioState>((set, get) => ({
       successSound.play().catch(error => {
         console.log("Success sound play prevented:", error);
       });
+    }
+  },
+  
+  playEnemyScream: () => {
+    const { isMuted } = get();
+    if (isMuted) {
+      console.log("Enemy scream skipped (muted)");
+      return;
+    }
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance("¡La ultra derecha nos ataca!");
+      utterance.lang = 'es-ES';
+      utterance.rate = 1.3;
+      utterance.pitch = 1.2;
+      utterance.volume = 0.7;
+      
+      window.speechSynthesis.speak(utterance);
     }
   }
 }));
