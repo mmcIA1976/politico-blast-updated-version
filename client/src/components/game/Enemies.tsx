@@ -16,7 +16,7 @@ export function Enemies() {
             <>
               <mesh position={[0, 0.5, 0]} castShadow>
                 <boxGeometry args={[0.7, 1, 0.7]} />
-                <meshStandardMaterial color="#3b82f6" />
+                <meshStandardMaterial color="#ef4444" />
               </mesh>
               
               <mesh position={[0, 1.4, -0.5]} rotation={[0, Math.PI, 0]}>

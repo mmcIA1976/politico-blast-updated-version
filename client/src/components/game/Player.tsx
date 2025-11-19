@@ -67,7 +67,7 @@ export function Player() {
   return (
     <mesh ref={meshRef} position={[playerPosition.x, 0.5, playerPosition.z]} castShadow>
       <boxGeometry args={[0.8, 1, 0.8]} />
-      <meshStandardMaterial color="#ff6b6b" />
+      <meshStandardMaterial color="#1e40af" />
       
       <mesh position={[0, 0.6, 0]}>
         <sphereGeometry args={[0.3, 16, 16]} />
@@ -83,6 +83,23 @@ export function Player() {
         <boxGeometry args={[0.15, 0.6, 0.15]} />
         <meshStandardMaterial color="#ffcc99" />
       </mesh>
+      
+      <group position={[0, 0.5, -0.41]}>
+        <mesh position={[0, 0.2, 0]}>
+          <boxGeometry args={[0.5, 0.15, 0.02]} />
+          <meshStandardMaterial color="#c60b1e" />
+        </mesh>
+        
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.5, 0.15, 0.02]} />
+          <meshStandardMaterial color="#ffc400" />
+        </mesh>
+        
+        <mesh position={[0, -0.2, 0]}>
+          <boxGeometry args={[0.5, 0.15, 0.02]} />
+          <meshStandardMaterial color="#c60b1e" />
+        </mesh>
+      </group>
     </mesh>
   );
 }
