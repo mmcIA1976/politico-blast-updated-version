@@ -66,9 +66,11 @@ export function GameManager() {
     if (keys.shoot && currentTime - lastShootTime > 0.3) {
       const direction = vec3ToThree(playerDirection);
       if (direction.length() === 0) {
+        console.log("Direction was zero, setting default");
         direction.set(0, 0, 1);
       }
       direction.normalize();
+      console.log("Shooting - Direction:", direction, "Level:", level, "Scroll:", newScrollPosition);
       const basePos = vec3ToThree(playerPosition).add(direction.clone().multiplyScalar(0.5));
       
       const hasTripleShot = hasActivePowerUp("tripleShot");
@@ -293,8 +295,10 @@ export function GameManager() {
     }
     
     if (scrollPosition > 20 && level === 1) {
+      console.log("Level change: 1 -> 2");
       setLevel(2);
     } else if (scrollPosition > 35 && level === 2) {
+      console.log("Level change: 2 -> 3");
       setLevel(3);
     }
   });
