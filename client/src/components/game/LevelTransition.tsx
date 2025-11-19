@@ -17,9 +17,12 @@ export function LevelTransition() {
         setShowTransition(false);
       }, 1500);
 
-      return () => clearTimeout(timer);
-    } else if (level === 1) {
+      return () => {
+        clearTimeout(timer);
+      };
+    } else if (level === 1 && prevLevel !== 1) {
       setPrevLevel(1);
+      setShowTransition(false);
     }
   }, [level, prevLevel]);
 
