@@ -81,9 +81,9 @@ export function Bullets() {
             <mesh>
               <sphereGeometry args={[0.2, 8, 8]} />
               <meshStandardMaterial 
-                color="#ffff00"
-                emissive="#ffff00"
-                emissiveIntensity={1.0}
+                color="#8B4513"
+                emissive="#A0522D"
+                emissiveIntensity={0.5}
               />
             </mesh>
           ) : (

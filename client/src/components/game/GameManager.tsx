@@ -117,6 +117,7 @@ export function GameManager() {
         });
       }
       
+      playHit();
       setLastShootTime(currentTime);
     }
     
