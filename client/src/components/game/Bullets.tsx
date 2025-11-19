@@ -6,7 +6,7 @@ import { useTexture } from "@react-three/drei";
 
 export function Bullets() {
   const { bullets, updateBullets, removeBullet, playerPosition } = useArcadeGame();
-  const roseTexture = useTexture("/textures/psoe_rose.png");
+  const roseTexture = useTexture("/textures/rose_bullet.png");
   
   useFrame((state, delta) => {
     const updatedBullets = bullets.map(bullet => {
@@ -43,11 +43,10 @@ export function Bullets() {
               />
             </mesh>
           ) : (
-            <sprite scale={[0.5, 0.5, 0.5]}>
+            <sprite scale={[0.8, 0.8, 0.8]}>
               <spriteMaterial 
                 map={roseTexture}
                 transparent={true}
-                opacity={1.0}
               />
             </sprite>
           )}
