@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -30,61 +30,59 @@ function checkCollision(pos: Vec3, obstacles: Array<{ position: Vec3; size: Vec3
 
 export function Player() {
   const meshRef = useRef<THREE.Mesh>(null);
+  const velocityRef = useRef(new THREE.Vector3(0, 0, 0));
   const { playerPosition, setPlayerPosition, setPlayerDirection, phase, hasActivePowerUp, obstacles } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
   useFrame((state, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
+    const clampedDelta = Math.min(delta, 0.05);
+    
     const keys = getKeys();
-    const { touchControls } = useArcadeGame.getState();
+    const { touchControls, level } = useArcadeGame.getState();
     const baseSpeed = 8.4;
     const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.5 : 1;
     const speed = baseSpeed * speedMultiplier;
-    const movement = new THREE.Vector3();
     
-    if (keys.forward || touchControls.forward) movement.z += 1;
-    if (keys.back || touchControls.back) movement.z -= 1;
-    if (keys.left || touchControls.left) movement.x += 1;
-    if (keys.right || touchControls.right) movement.x -= 1;
+    const targetVelocity = new THREE.Vector3(0, 0, 0);
     
-    if (movement.length() > 0) {
-      movement.normalize();
-      const dirVec3: Vec3 = { x: movement.x, y: movement.y, z: movement.z };
+    if (keys.forward || touchControls.forward) targetVelocity.z += 1;
+    if (keys.back || touchControls.back) targetVelocity.z -= 1;
+    if (keys.left || touchControls.left) targetVelocity.x += 1;
+    if (keys.right || touchControls.right) targetVelocity.x -= 1;
+    
+    if (targetVelocity.length() > 0) {
+      targetVelocity.normalize();
+    }
+    
+    velocityRef.current.lerp(targetVelocity, 0.25);
+    
+    if (velocityRef.current.length() > 0.01) {
+      const dirVec3: Vec3 = { x: velocityRef.current.x, y: 0, z: velocityRef.current.z };
       setPlayerDirection(dirVec3);
       
       const newPosition: Vec3 = {
-        x: playerPosition.x + movement.x * speed * delta,
+        x: playerPosition.x + velocityRef.current.x * speed * clampedDelta,
         y: playerPosition.y,
-        z: playerPosition.z + movement.z * speed * delta
+        z: playerPosition.z + velocityRef.current.z * speed * clampedDelta
       };
       
-      const { level } = useArcadeGame.getState();
-      
       if (level === 7) {
-        newPosition.x = Math.max(-20, Math.min(20, newPosition.x));
-        newPosition.z = Math.max(270, Math.min(320, newPosition.z));
+        newPosition.x = Math.max(-18, Math.min(18, newPosition.x));
+        newPosition.z = Math.max(270, Math.min(340, newPosition.z));
       } else {
-        newPosition.x = Math.max(-12, Math.min(12, newPosition.x));
+        newPosition.x = Math.max(-18, Math.min(18, newPosition.x));
         newPosition.z = Math.max(-5, newPosition.z);
       }
       
       if (!checkCollision(newPosition, obstacles)) {
         setPlayerPosition(newPosition);
-        meshRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);
-      } else {
-        meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
       }
-    } else {
-      meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
     }
+    
+    meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
   });
-  
-  useEffect(() => {
-    if (meshRef.current) {
-      meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
-    }
-  }, [playerPosition]);
   
   return (
     <mesh ref={meshRef} position={[playerPosition.x, 0.5, playerPosition.z]} castShadow>
