@@ -94,10 +94,10 @@ export function Player() {
       let newZ = localPos.current.z + dz * speed * dt;
       
       if (level === 7) {
-        newX = Math.max(-14, Math.min(14, newX));
+        newX = Math.max(-28, Math.min(28, newX));
         newZ = Math.max(270, Math.min(340, newZ));
       } else {
-        newX = Math.max(-14, Math.min(14, newX));
+        newX = Math.max(-18, Math.min(18, newX));
         newZ = Math.max(-5, newZ);
       }
       
