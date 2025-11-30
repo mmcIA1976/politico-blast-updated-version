@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
+import { updatePlayerWorldPosition, updatePlayerWorldDirection } from "@/lib/stores/playerPositionRef";
 
 enum Controls {
   forward = "forward",
@@ -30,21 +31,24 @@ function checkCollision(pos: Vec3, obstacles: Array<{ position: Vec3; size: Vec3
 
 export function Player() {
   const meshRef = useRef<THREE.Mesh>(null);
-  const localPosition = useRef<Vec3>({ x: 0, y: 0.5, z: 0 });
+  const localPos = useRef({ x: 0, y: 0.5, z: 0 });
+  const localDir = useRef({ x: 0, y: 0, z: 1 });
   const frameCount = useRef(0);
-  const lastDirection = useRef<Vec3>({ x: 0, y: 0, z: 1 });
+  const initialized = useRef(false);
   
   const { phase, hasActivePowerUp, obstacles, setPlayerPosition, setPlayerDirection, playerPosition } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
-  if (localPosition.current.x === 0 && localPosition.current.z === 0 && playerPosition.z !== 0) {
-    localPosition.current = { ...playerPosition };
+  if (!initialized.current && playerPosition.z !== 0) {
+    localPos.current = { ...playerPosition };
+    updatePlayerWorldPosition(playerPosition.x, playerPosition.y, playerPosition.z);
+    initialized.current = true;
   }
   
   useFrame((_, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
-    const clampedDelta = Math.min(Math.max(delta, 0.008), 0.033);
+    const dt = Math.min(Math.max(delta, 0.008), 0.04);
     
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();
@@ -56,19 +60,20 @@ export function Player() {
     let dx = 0;
     let dz = 0;
     
-    if (keys.forward || touchControls.forward) dz = 1;
-    if (keys.back || touchControls.back) dz = -1;
-    if (keys.left || touchControls.left) dx = 1;
-    if (keys.right || touchControls.right) dx = -1;
+    const forward = keys.forward || touchControls.forward;
+    const back = keys.back || touchControls.back;
+    const left = keys.left || touchControls.left;
+    const right = keys.right || touchControls.right;
     
-    if (keys.forward || touchControls.forward) {
-      if (keys.left || touchControls.left) { dx = 1; dz = 1; }
-      if (keys.right || touchControls.right) { dx = -1; dz = 1; }
-    }
-    if (keys.back || touchControls.back) {
-      if (keys.left || touchControls.left) { dx = 1; dz = -1; }
-      if (keys.right || touchControls.right) { dx = -1; dz = -1; }
-    }
+    if (forward) dz = 1;
+    if (back) dz = -1;
+    if (left) dx = 1;
+    if (right) dx = -1;
+    
+    if (forward && left) { dx = 1; dz = 1; }
+    if (forward && right) { dx = -1; dz = 1; }
+    if (back && left) { dx = 1; dz = -1; }
+    if (back && right) { dx = -1; dz = -1; }
     
     const hasMovement = dx !== 0 || dz !== 0;
     
@@ -77,39 +82,39 @@ export function Player() {
       dx /= length;
       dz /= length;
       
-      lastDirection.current = { x: dx, y: 0, z: dz };
+      localDir.current = { x: dx, y: 0, z: dz };
+      updatePlayerWorldDirection(dx, 0, dz);
       
-      const newX = localPosition.current.x + dx * speed * clampedDelta;
-      const newZ = localPosition.current.z + dz * speed * clampedDelta;
-      
-      let clampedX: number;
-      let clampedZ: number;
+      let newX = localPos.current.x + dx * speed * dt;
+      let newZ = localPos.current.z + dz * speed * dt;
       
       if (level === 7) {
-        clampedX = Math.max(-18, Math.min(18, newX));
-        clampedZ = Math.max(270, Math.min(340, newZ));
+        newX = Math.max(-18, Math.min(18, newX));
+        newZ = Math.max(270, Math.min(340, newZ));
       } else {
-        clampedX = Math.max(-18, Math.min(18, newX));
-        clampedZ = Math.max(-5, newZ);
+        newX = Math.max(-18, Math.min(18, newX));
+        newZ = Math.max(-5, newZ);
       }
       
-      const testPos: Vec3 = { x: clampedX, y: localPosition.current.y, z: clampedZ };
+      const testPos: Vec3 = { x: newX, y: localPos.current.y, z: newZ };
       
       if (!checkCollision(testPos, obstacles)) {
-        localPosition.current.x = clampedX;
-        localPosition.current.z = clampedZ;
+        localPos.current.x = newX;
+        localPos.current.z = newZ;
       }
     }
     
-    meshRef.current.position.x = localPosition.current.x;
-    meshRef.current.position.y = localPosition.current.y;
-    meshRef.current.position.z = localPosition.current.z;
+    meshRef.current.position.x = localPos.current.x;
+    meshRef.current.position.y = localPos.current.y;
+    meshRef.current.position.z = localPos.current.z;
+    
+    updatePlayerWorldPosition(localPos.current.x, localPos.current.y, localPos.current.z);
     
     frameCount.current++;
-    if (frameCount.current % 3 === 0) {
-      setPlayerPosition({ ...localPosition.current });
+    if (frameCount.current % 5 === 0) {
+      setPlayerPosition({ ...localPos.current });
       if (hasMovement) {
-        setPlayerDirection({ ...lastDirection.current });
+        setPlayerDirection({ ...localDir.current });
       }
     }
   });
