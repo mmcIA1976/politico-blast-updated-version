@@ -30,62 +30,92 @@ function checkCollision(pos: Vec3, obstacles: Array<{ position: Vec3; size: Vec3
 
 export function Player() {
   const meshRef = useRef<THREE.Mesh>(null);
-  const velocityRef = useRef(new THREE.Vector3(0, 0, 0));
-  const { playerPosition, setPlayerPosition, setPlayerDirection, phase, hasActivePowerUp, obstacles } = useArcadeGame();
+  const localPosition = useRef<Vec3>({ x: 0, y: 0.5, z: 0 });
+  const frameCount = useRef(0);
+  const lastDirection = useRef<Vec3>({ x: 0, y: 0, z: 1 });
+  
+  const { phase, hasActivePowerUp, obstacles, setPlayerPosition, setPlayerDirection, playerPosition } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
-  useFrame((state, delta) => {
+  if (localPosition.current.x === 0 && localPosition.current.z === 0 && playerPosition.z !== 0) {
+    localPosition.current = { ...playerPosition };
+  }
+  
+  useFrame((_, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
-    const clampedDelta = Math.min(delta, 0.05);
+    const clampedDelta = Math.min(Math.max(delta, 0.008), 0.033);
     
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();
-    const baseSpeed = 8.4;
+    
+    const baseSpeed = 10;
     const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.5 : 1;
     const speed = baseSpeed * speedMultiplier;
     
-    const targetVelocity = new THREE.Vector3(0, 0, 0);
+    let dx = 0;
+    let dz = 0;
     
-    if (keys.forward || touchControls.forward) targetVelocity.z += 1;
-    if (keys.back || touchControls.back) targetVelocity.z -= 1;
-    if (keys.left || touchControls.left) targetVelocity.x += 1;
-    if (keys.right || touchControls.right) targetVelocity.x -= 1;
+    if (keys.forward || touchControls.forward) dz = 1;
+    if (keys.back || touchControls.back) dz = -1;
+    if (keys.left || touchControls.left) dx = 1;
+    if (keys.right || touchControls.right) dx = -1;
     
-    if (targetVelocity.length() > 0) {
-      targetVelocity.normalize();
+    if (keys.forward || touchControls.forward) {
+      if (keys.left || touchControls.left) { dx = 1; dz = 1; }
+      if (keys.right || touchControls.right) { dx = -1; dz = 1; }
+    }
+    if (keys.back || touchControls.back) {
+      if (keys.left || touchControls.left) { dx = 1; dz = -1; }
+      if (keys.right || touchControls.right) { dx = -1; dz = -1; }
     }
     
-    velocityRef.current.lerp(targetVelocity, 0.25);
+    const hasMovement = dx !== 0 || dz !== 0;
     
-    if (velocityRef.current.length() > 0.01) {
-      const dirVec3: Vec3 = { x: velocityRef.current.x, y: 0, z: velocityRef.current.z };
-      setPlayerDirection(dirVec3);
+    if (hasMovement) {
+      const length = Math.sqrt(dx * dx + dz * dz);
+      dx /= length;
+      dz /= length;
       
-      const newPosition: Vec3 = {
-        x: playerPosition.x + velocityRef.current.x * speed * clampedDelta,
-        y: playerPosition.y,
-        z: playerPosition.z + velocityRef.current.z * speed * clampedDelta
-      };
+      lastDirection.current = { x: dx, y: 0, z: dz };
+      
+      const newX = localPosition.current.x + dx * speed * clampedDelta;
+      const newZ = localPosition.current.z + dz * speed * clampedDelta;
+      
+      let clampedX: number;
+      let clampedZ: number;
       
       if (level === 7) {
-        newPosition.x = Math.max(-18, Math.min(18, newPosition.x));
-        newPosition.z = Math.max(270, Math.min(340, newPosition.z));
+        clampedX = Math.max(-18, Math.min(18, newX));
+        clampedZ = Math.max(270, Math.min(340, newZ));
       } else {
-        newPosition.x = Math.max(-18, Math.min(18, newPosition.x));
-        newPosition.z = Math.max(-5, newPosition.z);
+        clampedX = Math.max(-18, Math.min(18, newX));
+        clampedZ = Math.max(-5, newZ);
       }
       
-      if (!checkCollision(newPosition, obstacles)) {
-        setPlayerPosition(newPosition);
+      const testPos: Vec3 = { x: clampedX, y: localPosition.current.y, z: clampedZ };
+      
+      if (!checkCollision(testPos, obstacles)) {
+        localPosition.current.x = clampedX;
+        localPosition.current.z = clampedZ;
       }
     }
     
-    meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
+    meshRef.current.position.x = localPosition.current.x;
+    meshRef.current.position.y = localPosition.current.y;
+    meshRef.current.position.z = localPosition.current.z;
+    
+    frameCount.current++;
+    if (frameCount.current % 3 === 0) {
+      setPlayerPosition({ ...localPosition.current });
+      if (hasMovement) {
+        setPlayerDirection({ ...lastDirection.current });
+      }
+    }
   });
   
   return (
-    <mesh ref={meshRef} position={[playerPosition.x, 0.5, playerPosition.z]} castShadow>
+    <mesh ref={meshRef} position={[0, 0.5, 0]} castShadow>
       <boxGeometry args={[0.8, 1, 0.8]} />
       <meshStandardMaterial color="#1e40af" />
       
