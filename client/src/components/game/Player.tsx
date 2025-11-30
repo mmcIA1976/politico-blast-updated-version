@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -34,21 +34,26 @@ export function Player() {
   const localPos = useRef({ x: 0, y: 0.5, z: 0 });
   const localDir = useRef({ x: 0, y: 0, z: 1 });
   const frameCount = useRef(0);
-  const initialized = useRef(false);
+  const lastSyncedZ = useRef(0);
   
-  const { phase, hasActivePowerUp, obstacles, setPlayerPosition, setPlayerDirection, playerPosition } = useArcadeGame();
+  const { phase, hasActivePowerUp, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
-  if (!initialized.current && playerPosition.z !== 0) {
-    localPos.current = { ...playerPosition };
-    updatePlayerWorldPosition(playerPosition.x, playerPosition.y, playerPosition.z);
-    initialized.current = true;
-  }
+  useEffect(() => {
+    const distanceFromLocal = Math.abs(playerPosition.z - localPos.current.z);
+    if (distanceFromLocal > 10) {
+      localPos.current = { ...playerPosition };
+      updatePlayerWorldPosition(playerPosition.x, playerPosition.y, playerPosition.z);
+      if (meshRef.current) {
+        meshRef.current.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
+      }
+    }
+  }, [playerPosition.z, lives]);
   
   useFrame((_, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
-    const dt = Math.min(Math.max(delta, 0.008), 0.04);
+    const dt = Math.min(Math.max(delta, 0.016), 0.1);
     
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();
@@ -89,10 +94,10 @@ export function Player() {
       let newZ = localPos.current.z + dz * speed * dt;
       
       if (level === 7) {
-        newX = Math.max(-18, Math.min(18, newX));
+        newX = Math.max(-14, Math.min(14, newX));
         newZ = Math.max(270, Math.min(340, newZ));
       } else {
-        newX = Math.max(-18, Math.min(18, newX));
+        newX = Math.max(-14, Math.min(14, newX));
         newZ = Math.max(-5, newZ);
       }
       
