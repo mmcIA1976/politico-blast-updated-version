@@ -49,6 +49,14 @@ export interface Obstacle {
   size: Vec3;
 }
 
+export interface TouchControls {
+  forward: boolean;
+  back: boolean;
+  left: boolean;
+  right: boolean;
+  shooting: boolean;
+}
+
 interface ArcadeGameState {
   phase: GamePhase;
   lives: number;
@@ -63,8 +71,10 @@ interface ArcadeGameState {
   activePowerUps: ActivePowerUp[];
   obstacles: Obstacle[];
   lastShootTime: number;
+  touchControls: TouchControls;
   
   setPhase: (phase: GamePhase) => void;
+  setTouchControl: (control: keyof TouchControls, value: boolean) => void;
   setLives: (lives: number) => void;
   addScore: (points: number) => void;
   setScore: (score: number) => void;
@@ -107,8 +117,13 @@ export const useArcadeGame = create<ArcadeGameState>()(
     activePowerUps: [],
     obstacles: [],
     lastShootTime: 0,
+    touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
     
     setPhase: (phase) => set({ phase }),
+    
+    setTouchControl: (control, value) => set((state) => ({
+      touchControls: { ...state.touchControls, [control]: value }
+    })),
     
     setLives: (lives) => set({ lives }),
     
@@ -214,6 +229,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       activePowerUps: [],
       obstacles: [],
       lastShootTime: 0,
+      touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
     }),
   }))
 );

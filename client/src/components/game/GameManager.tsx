@@ -67,11 +67,29 @@ export function GameManager() {
     setScrollPosition(newScrollPosition);
     
     const keys = getKeys();
-    if (keys.shoot && currentTime - lastShootTime > 0.3) {
-      const direction = vec3ToThree(playerDirection);
-      if (direction.length() === 0) {
-        direction.set(0, 0, 1);
+    const { touchControls } = useArcadeGame.getState();
+    const isShooting = keys.shoot || touchControls.shooting;
+    
+    if (isShooting && currentTime - lastShootTime > 0.3) {
+      const direction = new THREE.Vector3(0, 0, 1);
+      
+      const moveForward = keys.forward || touchControls.forward;
+      const moveBack = keys.back || touchControls.back;
+      const moveLeft = keys.left || touchControls.left;
+      const moveRight = keys.right || touchControls.right;
+      
+      let dx = 0;
+      let dz = 0;
+      
+      if (moveForward) dz += 1;
+      if (moveBack) dz -= 1;
+      if (moveLeft) dx += 1;
+      if (moveRight) dx -= 1;
+      
+      if (dx !== 0 || dz !== 0) {
+        direction.set(dx, 0, dz);
       }
+      
       direction.normalize();
       const basePos = vec3ToThree(playerPosition).add(direction.clone().multiplyScalar(0.5));
       

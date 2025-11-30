@@ -37,15 +37,16 @@ export function Player() {
     if (phase !== "playing" || !meshRef.current) return;
     
     const keys = getKeys();
+    const { touchControls } = useArcadeGame.getState();
     const baseSpeed = 8.4;
     const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.5 : 1;
     const speed = baseSpeed * speedMultiplier;
     const movement = new THREE.Vector3();
     
-    if (keys.forward) movement.z += 1;
-    if (keys.back) movement.z -= 1;
-    if (keys.left) movement.x += 1;
-    if (keys.right) movement.x -= 1;
+    if (keys.forward || touchControls.forward) movement.z += 1;
+    if (keys.back || touchControls.back) movement.z -= 1;
+    if (keys.left || touchControls.left) movement.x += 1;
+    if (keys.right || touchControls.right) movement.x -= 1;
     
     if (movement.length() > 0) {
       movement.normalize();
@@ -61,10 +62,10 @@ export function Player() {
       const { level } = useArcadeGame.getState();
       
       if (level === 7) {
-        newPosition.x = Math.max(-25, Math.min(25, newPosition.x));
+        newPosition.x = Math.max(-20, Math.min(20, newPosition.x));
         newPosition.z = Math.max(270, Math.min(320, newPosition.z));
       } else {
-        newPosition.x = Math.max(-18, Math.min(18, newPosition.x));
+        newPosition.x = Math.max(-12, Math.min(12, newPosition.x));
         newPosition.z = Math.max(-5, newPosition.z);
       }
       

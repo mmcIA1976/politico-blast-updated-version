@@ -6,6 +6,20 @@ export function HUD() {
   const { lives, score, level, phase, setPhase, restart, activePowerUps } = useArcadeGame();
   const { isMuted, toggleMute } = useAudio();
   const [, setTick] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth <= 1024
+      );
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   
   useEffect(() => {
     if (activePowerUps.length > 0) {
@@ -32,22 +46,44 @@ export function HUD() {
         color: "white",
         fontFamily: "Inter, sans-serif",
         zIndex: 1000,
+        padding: "20px",
+        boxSizing: "border-box",
       }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "#ffff00" }}>
+        <h1 style={{ 
+          fontSize: isMobile ? "1.8rem" : "3rem", 
+          marginBottom: "1rem", 
+          color: "#ffff00",
+          textAlign: "center",
+        }}>
           COMMANDO POLÍTICO
         </h1>
-        <p style={{ fontSize: "1.2rem", marginBottom: "2rem", textAlign: "center", maxWidth: "600px" }}>
+        <p style={{ 
+          fontSize: isMobile ? "0.9rem" : "1.2rem", 
+          marginBottom: "1.5rem", 
+          textAlign: "center", 
+          maxWidth: "600px",
+          padding: "0 10px",
+        }}>
           ¡Defiéndete de los políticos corruptos en las calles de España!
         </p>
-        <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-          <p style={{ marginBottom: "0.5rem" }}>🎮 WASD o Flechas - Mover</p>
-          <p>🔫 Espacio - Disparar</p>
+        <div style={{ marginBottom: "1.5rem", textAlign: "center", fontSize: isMobile ? "0.85rem" : "1rem" }}>
+          {isMobile ? (
+            <>
+              <p style={{ marginBottom: "0.5rem" }}>👆 Usa los controles en pantalla</p>
+              <p>🔴 Pulsa FUEGO para disparar</p>
+            </>
+          ) : (
+            <>
+              <p style={{ marginBottom: "0.5rem" }}>🎮 WASD o Flechas - Mover</p>
+              <p>🔫 Espacio - Disparar</p>
+            </>
+          )}
         </div>
         <button
           onClick={() => setPhase("playing")}
           style={{
-            padding: "1rem 2rem",
-            fontSize: "1.5rem",
+            padding: isMobile ? "0.8rem 1.5rem" : "1rem 2rem",
+            fontSize: isMobile ? "1.2rem" : "1.5rem",
             background: "#ff6b6b",
             color: "white",
             border: "none",
@@ -78,18 +114,20 @@ export function HUD() {
         color: "white",
         fontFamily: "Inter, sans-serif",
         zIndex: 1000,
+        padding: "20px",
+        boxSizing: "border-box",
       }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "#ff0000" }}>
+        <h1 style={{ fontSize: isMobile ? "2rem" : "3rem", marginBottom: "1rem", color: "#ff0000" }}>
           GAME OVER
         </h1>
-        <p style={{ fontSize: "1.5rem", marginBottom: "2rem" }}>
+        <p style={{ fontSize: isMobile ? "1.1rem" : "1.5rem", marginBottom: "2rem" }}>
           Puntuación Final: {score}
         </p>
         <button
           onClick={() => restart()}
           style={{
-            padding: "1rem 2rem",
-            fontSize: "1.5rem",
+            padding: isMobile ? "0.8rem 1.5rem" : "1rem 2rem",
+            fontSize: isMobile ? "1.2rem" : "1.5rem",
             background: "#ff6b6b",
             color: "white",
             border: "none",
@@ -120,18 +158,20 @@ export function HUD() {
         color: "white",
         fontFamily: "Inter, sans-serif",
         zIndex: 1000,
+        padding: "20px",
+        boxSizing: "border-box",
       }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "#00ff00" }}>
+        <h1 style={{ fontSize: isMobile ? "2rem" : "3rem", marginBottom: "1rem", color: "#00ff00" }}>
           ¡VICTORIA!
         </h1>
-        <p style={{ fontSize: "1.5rem", marginBottom: "2rem" }}>
+        <p style={{ fontSize: isMobile ? "1.1rem" : "1.5rem", marginBottom: "2rem", textAlign: "center" }}>
           ¡Has derrotado al jefe final! Puntuación: {score}
         </p>
         <button
           onClick={() => restart()}
           style={{
-            padding: "1rem 2rem",
-            fontSize: "1.5rem",
+            padding: isMobile ? "0.8rem 1.5rem" : "1rem 2rem",
+            fontSize: isMobile ? "1.2rem" : "1.5rem",
             background: "#ff6b6b",
             color: "white",
             border: "none",
@@ -150,24 +190,24 @@ export function HUD() {
     <>
       <div style={{
         position: "fixed",
-        top: "20px",
-        left: "20px",
+        top: isMobile ? "10px" : "20px",
+        left: isMobile ? "10px" : "20px",
         background: "rgba(0, 0, 0, 0.7)",
         color: "white",
-        padding: "15px 25px",
+        padding: isMobile ? "8px 12px" : "15px 25px",
         borderRadius: "8px",
         fontFamily: "Inter, sans-serif",
-        fontSize: "1.2rem",
+        fontSize: isMobile ? "0.85rem" : "1.2rem",
         zIndex: 100,
       }}>
-        <div style={{ marginBottom: "8px" }}>
-          ❤️ Vidas: {lives}
+        <div style={{ marginBottom: isMobile ? "4px" : "8px" }}>
+          ❤️ {lives}
         </div>
-        <div style={{ marginBottom: "8px" }}>
-          ⭐ Puntos: {score}
+        <div style={{ marginBottom: isMobile ? "4px" : "8px" }}>
+          ⭐ {score}
         </div>
         <div>
-          📍 Nivel: {level}
+          📍 {level}
         </div>
       </div>
       
@@ -175,15 +215,15 @@ export function HUD() {
         onClick={toggleMute}
         style={{
           position: "fixed",
-          top: "20px",
-          right: "20px",
+          top: isMobile ? "10px" : "20px",
+          right: isMobile ? "10px" : "20px",
           background: "rgba(0, 0, 0, 0.7)",
           color: "white",
-          padding: "10px 15px",
+          padding: isMobile ? "6px 10px" : "10px 15px",
           borderRadius: "8px",
           border: "2px solid white",
           cursor: "pointer",
-          fontSize: "1.5rem",
+          fontSize: isMobile ? "1.2rem" : "1.5rem",
           zIndex: 100,
         }}
       >
@@ -193,29 +233,29 @@ export function HUD() {
       {activePowerUps.length > 0 && (
         <div style={{
           position: "fixed",
-          top: "80px",
-          right: "20px",
+          top: isMobile ? "55px" : "80px",
+          right: isMobile ? "10px" : "20px",
           background: "rgba(0, 0, 0, 0.7)",
           color: "white",
-          padding: "15px 25px",
+          padding: isMobile ? "8px 12px" : "15px 25px",
           borderRadius: "8px",
           fontFamily: "Inter, sans-serif",
-          fontSize: "1rem",
+          fontSize: isMobile ? "0.75rem" : "1rem",
           zIndex: 100,
         }}>
-          <div style={{ fontWeight: "bold", marginBottom: "8px" }}>
-            💪 POWER-UPS ACTIVOS:
+          <div style={{ fontWeight: "bold", marginBottom: isMobile ? "4px" : "8px" }}>
+            💪 POWER-UPS:
           </div>
           {activePowerUps.map((powerUp, index) => {
             let icon = "⚡";
-            let label = "Velocidad Aumentada";
+            let label = isMobile ? "Veloz" : "Velocidad";
             
             if (powerUp.type === "tripleShot") {
               icon = "🔥";
-              label = "Disparo Triple";
+              label = isMobile ? "Triple" : "Disparo Triple";
             } else if (powerUp.type === "powerShot") {
               icon = "💥";
-              label = "Disparo Potente x2";
+              label = isMobile ? "Potente" : "Potente x2";
             }
             
             return (
