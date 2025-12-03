@@ -7,8 +7,9 @@ type AllControls = keyof TouchControlsType | DiagonalControl;
 export function MobileControls() {
   const { phase, setTouchControl } = useArcadeGame();
   const [isMobile, setIsMobile] = useState(false);
-  const [activeControls, setActiveControls] = useState<Set<string>>(new Set());
-  const activeTouches = useRef<Map<number, AllControls>>(new Map());
+  const activeControlsRef = useRef<Set<string>>(new Set());
+  const [, forceRender] = useState(0);
+  const lastUpdateRef = useRef(0);
   
   useEffect(() => {
     const checkMobile = () => {
@@ -32,6 +33,14 @@ export function MobileControls() {
       setTouchControl("shooting", false);
     };
   }, [setTouchControl]);
+  
+  const scheduleRender = useCallback(() => {
+    const now = performance.now();
+    if (now - lastUpdateRef.current > 50) {
+      lastUpdateRef.current = now;
+      forceRender(n => n + 1);
+    }
+  }, []);
   
   const activateDiagonal = useCallback((diagonal: DiagonalControl) => {
     if (diagonal === "forward-left") {
@@ -65,9 +74,11 @@ export function MobileControls() {
     }
   }, [setTouchControl]);
   
-  const handlePointerDown = useCallback((control: AllControls, pointerId: number) => {
-    activeTouches.current.set(pointerId, control);
-    setActiveControls(prev => new Set(prev).add(control));
+  const handlePointerDown = useCallback((control: AllControls) => {
+    if (activeControlsRef.current.has(control)) return;
+    
+    activeControlsRef.current.add(control);
+    scheduleRender();
     
     if (control === "forward-left" || control === "forward-right" || 
         control === "back-left" || control === "back-right") {
@@ -75,15 +86,13 @@ export function MobileControls() {
     } else {
       setTouchControl(control as keyof TouchControlsType, true);
     }
-  }, [setTouchControl, activateDiagonal]);
+  }, [setTouchControl, activateDiagonal, scheduleRender]);
   
-  const handlePointerUp = useCallback((control: AllControls, pointerId: number) => {
-    activeTouches.current.delete(pointerId);
-    setActiveControls(prev => {
-      const next = new Set(prev);
-      next.delete(control);
-      return next;
-    });
+  const handlePointerUp = useCallback((control: AllControls) => {
+    if (!activeControlsRef.current.has(control)) return;
+    
+    activeControlsRef.current.delete(control);
+    scheduleRender();
     
     if (control === "forward-left" || control === "forward-right" || 
         control === "back-left" || control === "back-right") {
@@ -91,18 +100,14 @@ export function MobileControls() {
     } else {
       setTouchControl(control as keyof TouchControlsType, false);
     }
-  }, [setTouchControl, deactivateDiagonal]);
-  
-  const handlePointerLeave = useCallback((control: AllControls, pointerId: number) => {
-    if (activeTouches.current.get(pointerId) === control) {
-      handlePointerUp(control, pointerId);
-    }
-  }, [handlePointerUp]);
+  }, [setTouchControl, deactivateDiagonal, scheduleRender]);
   
   if (!isMobile || phase !== "playing") return null;
   
+  const isActive = (control: AllControls) => activeControlsRef.current.has(control);
+  
   const getButtonStyle = (control: AllControls, size: "normal" | "small" = "normal") => {
-    const isActive = activeControls.has(control);
+    const active = isActive(control);
     const btnSize = size === "small" ? "44px" : "52px";
     const fontSize = size === "small" ? "16px" : "20px";
     
@@ -110,8 +115,8 @@ export function MobileControls() {
       width: btnSize,
       height: btnSize,
       borderRadius: "50%",
-      backgroundColor: isActive ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.35)",
-      border: isActive ? "3px solid rgba(255, 255, 255, 1)" : "2px solid rgba(255, 255, 255, 0.6)",
+      backgroundColor: active ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.35)",
+      border: active ? "3px solid rgba(255, 255, 255, 1)" : "2px solid rgba(255, 255, 255, 0.6)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -129,21 +134,19 @@ export function MobileControls() {
     style: getButtonStyle(control, size),
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault();
-      e.stopPropagation();
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-      handlePointerDown(control, e.pointerId);
+      handlePointerDown(control);
     },
     onPointerUp: (e: React.PointerEvent) => {
       e.preventDefault();
-      handlePointerUp(control, e.pointerId);
+      handlePointerUp(control);
     },
     onPointerCancel: (e: React.PointerEvent) => {
       e.preventDefault();
-      handlePointerUp(control, e.pointerId);
+      handlePointerUp(control);
     },
     onPointerLeave: (e: React.PointerEvent) => {
       e.preventDefault();
-      handlePointerLeave(control, e.pointerId);
+      handlePointerUp(control);
     },
     onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
   });
@@ -193,8 +196,8 @@ export function MobileControls() {
           borderRadius: "50%",
           fontSize: "12px",
           fontWeight: "bold",
-          backgroundColor: activeControls.has("shooting") ? "rgba(255, 80, 80, 0.9)" : "rgba(255, 50, 50, 0.6)",
-          border: activeControls.has("shooting") ? "4px solid rgba(255, 180, 180, 1)" : "3px solid rgba(255, 100, 100, 0.8)",
+          backgroundColor: isActive("shooting") ? "rgba(255, 80, 80, 0.9)" : "rgba(255, 50, 50, 0.6)",
+          border: isActive("shooting") ? "4px solid rgba(255, 180, 180, 1)" : "3px solid rgba(255, 100, 100, 0.8)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -207,21 +210,19 @@ export function MobileControls() {
         }}
         onPointerDown={(e) => {
           e.preventDefault();
-          e.stopPropagation();
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
-          handlePointerDown("shooting", e.pointerId);
+          handlePointerDown("shooting");
         }}
         onPointerUp={(e) => {
           e.preventDefault();
-          handlePointerUp("shooting", e.pointerId);
+          handlePointerUp("shooting");
         }}
         onPointerCancel={(e) => {
           e.preventDefault();
-          handlePointerUp("shooting", e.pointerId);
+          handlePointerUp("shooting");
         }}
         onPointerLeave={(e) => {
           e.preventDefault();
-          handlePointerLeave("shooting", e.pointerId);
+          handlePointerUp("shooting");
         }}
         onContextMenu={(e) => e.preventDefault()}
       >
