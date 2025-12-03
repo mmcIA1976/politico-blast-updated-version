@@ -396,6 +396,18 @@ export function StreetProps() {
     
     const maxZ = (level === 7 || level === 14) ? 260 : 280;
     
+    const getZooOffset = () => {
+      if (level === 8) return 315;
+      if (level === 9) return 360;
+      if (level === 10) return 405;
+      if (level === 11) return 450;
+      if (level === 12) return 495;
+      if (level === 13) return 540;
+      if (level === 14) return 585;
+      return 0;
+    };
+    const zooOffset = getZooOffset();
+    
     if (level === 7) {
       for (let z = -10; z < 260; z += 20) {
         items.push({ type: 'lamp', position: [-25, 0, z] });
@@ -450,61 +462,61 @@ export function StreetProps() {
         items.push({ type: 'planter', position: [side, 0, z] });
       }
     } else if (level === 8 || level === 10 || level === 12) {
-      for (let z = -5; z < maxZ; z += 25) {
-        items.push({ type: 'zoocage', position: [-12, 0, z] });
-        items.push({ type: 'zoocage', position: [12, 0, z] });
+      for (let z = -5; z < 50; z += 12) {
+        items.push({ type: 'zoocage', position: [-14, 0, zooOffset + z] });
+        items.push({ type: 'zoocage', position: [14, 0, zooOffset + z] });
       }
       
-      for (let z = 10; z < maxZ; z += 30) {
-        items.push({ type: 'zoorock', position: [-8, 0, z] });
-        items.push({ type: 'zoorock', position: [8, 0, z] });
+      for (let z = 5; z < 50; z += 15) {
+        items.push({ type: 'zoorock', position: [-8, 0, zooOffset + z] });
+        items.push({ type: 'zoorock', position: [8, 0, zooOffset + z] });
       }
       
-      for (let z = 0; z < maxZ; z += 40) {
-        items.push({ type: 'zooanimal', position: [-12, 0, z + 5], animalType: 'lion' });
-        items.push({ type: 'zooanimal', position: [12, 0, z + 5], animalType: 'elephant' });
+      for (let z = 0; z < 50; z += 20) {
+        items.push({ type: 'zooanimal', position: [-14, 0, zooOffset + z + 3], animalType: 'lion' });
+        items.push({ type: 'zooanimal', position: [14, 0, zooOffset + z + 3], animalType: 'elephant' });
       }
       
-      for (let z = -10; z < maxZ; z += 15) {
-        items.push({ type: 'tropicalplant', position: [-15, 0, z] });
-        items.push({ type: 'tropicalplant', position: [15, 0, z] });
+      for (let z = -10; z < 55; z += 8) {
+        items.push({ type: 'tropicalplant', position: [-18, 0, zooOffset + z] });
+        items.push({ type: 'tropicalplant', position: [18, 0, zooOffset + z] });
       }
     } else if (level === 9 || level === 11 || level === 13) {
-      for (let z = 0; z < maxZ; z += 35) {
-        items.push({ type: 'zoopond', position: [0, 0, z] });
+      for (let z = 5; z < 50; z += 18) {
+        items.push({ type: 'zoopond', position: [0, 0, zooOffset + z] });
       }
       
-      for (let z = 5; z < maxZ; z += 20) {
-        items.push({ type: 'zooanimal', position: [-6, 0, z], animalType: 'penguin' });
-        items.push({ type: 'zooanimal', position: [6, 0, z], animalType: 'penguin' });
+      for (let z = 0; z < 50; z += 12) {
+        items.push({ type: 'zooanimal', position: [-8, 0, zooOffset + z], animalType: 'penguin' });
+        items.push({ type: 'zooanimal', position: [8, 0, zooOffset + z], animalType: 'penguin' });
       }
       
-      for (let z = -5; z < maxZ; z += 12) {
-        items.push({ type: 'tropicalplant', position: [-14, 0, z] });
-        items.push({ type: 'tropicalplant', position: [14, 0, z] });
+      for (let z = -5; z < 55; z += 8) {
+        items.push({ type: 'tropicalplant', position: [-16, 0, zooOffset + z] });
+        items.push({ type: 'tropicalplant', position: [16, 0, zooOffset + z] });
       }
       
-      for (let z = 15; z < maxZ; z += 25) {
-        items.push({ type: 'zoorock', position: [-10, 0, z] });
-        items.push({ type: 'zoorock', position: [10, 0, z] });
+      for (let z = 10; z < 50; z += 15) {
+        items.push({ type: 'zoorock', position: [-12, 0, zooOffset + z] });
+        items.push({ type: 'zoorock', position: [12, 0, zooOffset + z] });
       }
     } else if (level === 14) {
-      for (let z = -10; z < 260; z += 25) {
-        items.push({ type: 'bossarenatree', position: [-25, 0, z] });
-        items.push({ type: 'bossarenatree', position: [25, 0, z] });
+      for (let z = -10; z < 50; z += 15) {
+        items.push({ type: 'bossarenatree', position: [-25, 0, zooOffset + z] });
+        items.push({ type: 'bossarenatree', position: [25, 0, zooOffset + z] });
       }
       
-      items.push({ type: 'zoopond', position: [0, 0, 295] });
+      items.push({ type: 'zoopond', position: [0, 0, zooOffset + 55] });
       
-      items.push({ type: 'zoorock', position: [-20, 0, 285] });
-      items.push({ type: 'zoorock', position: [20, 0, 285] });
-      items.push({ type: 'zoorock', position: [-20, 0, 305] });
-      items.push({ type: 'zoorock', position: [20, 0, 305] });
+      items.push({ type: 'zoorock', position: [-20, 0, zooOffset + 45] });
+      items.push({ type: 'zoorock', position: [20, 0, zooOffset + 45] });
+      items.push({ type: 'zoorock', position: [-20, 0, zooOffset + 65] });
+      items.push({ type: 'zoorock', position: [20, 0, zooOffset + 65] });
       
-      items.push({ type: 'tropicalplant', position: [-22, 0, 275] });
-      items.push({ type: 'tropicalplant', position: [22, 0, 275] });
-      items.push({ type: 'tropicalplant', position: [-22, 0, 315] });
-      items.push({ type: 'tropicalplant', position: [22, 0, 315] });
+      items.push({ type: 'tropicalplant', position: [-22, 0, zooOffset + 35] });
+      items.push({ type: 'tropicalplant', position: [22, 0, zooOffset + 35] });
+      items.push({ type: 'tropicalplant', position: [-22, 0, zooOffset + 75] });
+      items.push({ type: 'tropicalplant', position: [22, 0, zooOffset + 75] });
     }
     
     return items;
