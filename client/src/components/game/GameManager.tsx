@@ -266,37 +266,23 @@ export function GameManager() {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-              const bossSpeed = 5;
+              const bossSpeed = 6;
               
-              let dodgeX = 0;
-              for (let bi = 0; bi < bullets.length; bi++) {
-                const b = bullets[bi];
-                if (b.fromPlayer) {
-                  const bdx = b.position.x - enemy.position.x;
-                  const bdz = b.position.z - enemy.position.z;
-                  const bulletDist = Math.sqrt(bdx * bdx + bdz * bdz);
-                  if (bulletDist < 5 && Math.abs(bdx) < 2) {
-                    dodgeX += bdx > 0 ? -0.5 : 0.5;
-                  }
-                }
-              }
+              const strafePhase = Math.sin(age * 2) * 5;
+              const verticalPhase = Math.cos(age * 1.2) * 3;
               
-              const strafePhase = Math.sin(age * 1.5) * 3;
-              
-              if (dodgeX !== 0) {
-                newX += dodgeX * delta * bossSpeed * 2;
-              } else {
-                newX += (dx * 0.15 + strafePhase * 0.1) * delta * bossSpeed;
-              }
+              newX += (dx * 0.2 + strafePhase * 0.12) * delta * bossSpeed;
               
               if (distanceToPlayer < 8) {
-                newZ -= delta * 2;
-              } else if (distanceToPlayer > 15) {
-                newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.4;
+                newZ -= delta * 2.5;
+              } else if (distanceToPlayer > 14) {
+                newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.5;
+              } else {
+                newZ += verticalPhase * delta;
               }
               
               newX = Math.max(-24, Math.min(24, newX));
-              newZ = Math.max(270, Math.min(310, newZ));
+              newZ = Math.max(270, Math.min(312, newZ));
             } else {
               newX = enemy.initialX + Math.cos(age * 1.5) * 4;
               newZ = 12 - age * 1.5 + Math.sin(age * 1.5) * 4;

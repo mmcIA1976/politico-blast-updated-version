@@ -58,6 +58,9 @@ export function Player() {
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();
     
+    const playerScale = level === 7 ? 1.4 : 1;
+    meshRef.current.scale.set(playerScale, playerScale, playerScale);
+    
     const baseSpeed = 7;
     const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.4 : 1;
     const speed = baseSpeed * speedMultiplier;
