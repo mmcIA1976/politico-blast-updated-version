@@ -263,21 +263,22 @@ export function GameManager() {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
+              const bossSpeed = 6;
               
-              if (distanceToPlayer < 10) {
-                const mag = distanceToPlayer || 1;
-                newX -= (dx / mag) * delta * 3;
-                newZ -= (dz / mag) * delta * 3;
-              } else if (distanceToPlayer > 18) {
-                const mag = distanceToPlayer || 1;
-                newX += (dx / mag) * delta * 4;
-                newZ += (dz / mag) * delta * 4;
-              } else {
-                newX += Math.cos(age * 1.2) * delta * 5;
+              if (Math.abs(dx) > 2) {
+                newX += (dx > 0 ? 1 : -1) * delta * bossSpeed;
               }
               
-              newX = Math.max(-25, Math.min(25, newX));
-              newZ = Math.max(270, Math.min(320, newZ));
+              if (distanceToPlayer < 8) {
+                const mag = distanceToPlayer || 1;
+                newZ -= (dz / mag) * delta * 2;
+              } else if (distanceToPlayer > 15) {
+                const mag = distanceToPlayer || 1;
+                newZ += (dz / mag) * delta * 3;
+              }
+              
+              newX = Math.max(-28, Math.min(28, newX));
+              newZ = Math.max(265, Math.min(320, newZ));
             } else {
               newX = enemy.initialX + Math.cos(age * 1.5) * 4;
               newZ = 12 - age * 1.5 + Math.sin(age * 1.5) * 4;
