@@ -266,43 +266,37 @@ export function GameManager() {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-              const bossSpeed = 12;
+              const bossSpeed = 5;
               
               let dodgeX = 0;
-              let dodgeZ = 0;
               for (let bi = 0; bi < bullets.length; bi++) {
                 const b = bullets[bi];
                 if (b.fromPlayer) {
                   const bdx = b.position.x - enemy.position.x;
                   const bdz = b.position.z - enemy.position.z;
                   const bulletDist = Math.sqrt(bdx * bdx + bdz * bdz);
-                  if (bulletDist < 10) {
-                    dodgeX += bdx > 0 ? -1.5 : 1.5;
-                    dodgeZ += bdz > 0 ? -0.5 : 0.5;
+                  if (bulletDist < 5 && Math.abs(bdx) < 2) {
+                    dodgeX += bdx > 0 ? -0.5 : 0.5;
                   }
                 }
               }
               
-              const strafePhase = Math.sin(age * 3) * 8;
-              const verticalPhase = Math.cos(age * 2) * 4;
+              const strafePhase = Math.sin(age * 1.5) * 3;
               
-              if (dodgeX !== 0 || dodgeZ !== 0) {
-                newX += dodgeX * delta * bossSpeed * 1.5;
-                newZ += dodgeZ * delta * bossSpeed * 0.8;
+              if (dodgeX !== 0) {
+                newX += dodgeX * delta * bossSpeed * 2;
               } else {
-                newX += (dx * 0.3 + strafePhase * 0.15) * delta * bossSpeed;
-                
-                if (distanceToPlayer < 6) {
-                  newZ -= delta * 4;
-                } else if (distanceToPlayer > 12) {
-                  newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.6;
-                } else {
-                  newZ += verticalPhase * delta * 2;
-                }
+                newX += (dx * 0.15 + strafePhase * 0.1) * delta * bossSpeed;
               }
               
-              newX = Math.max(-26, Math.min(26, newX));
-              newZ = Math.max(268, Math.min(315, newZ));
+              if (distanceToPlayer < 8) {
+                newZ -= delta * 2;
+              } else if (distanceToPlayer > 15) {
+                newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.4;
+              }
+              
+              newX = Math.max(-24, Math.min(24, newX));
+              newZ = Math.max(270, Math.min(310, newZ));
             } else {
               newX = enemy.initialX + Math.cos(age * 1.5) * 4;
               newZ = 12 - age * 1.5 + Math.sin(age * 1.5) * 4;
