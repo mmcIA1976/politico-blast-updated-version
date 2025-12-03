@@ -249,13 +249,152 @@ function Car({ position, color }: { position: [number, number, number]; color: s
   );
 }
 
+function ZooCage({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.05, 0]}>
+        <boxGeometry args={[3, 0.1, 3]} />
+        <meshStandardMaterial color="#808080" />
+      </mesh>
+      
+      {[-1.2, -0.6, 0, 0.6, 1.2].map((x, i) => (
+        <mesh key={`bar-front-${i}`} position={[x, 1, 1.4]}>
+          <cylinderGeometry args={[0.05, 0.05, 2, 8]} />
+          <meshStandardMaterial color="#4a4a4a" />
+        </mesh>
+      ))}
+      
+      {[-1.2, -0.6, 0, 0.6, 1.2].map((x, i) => (
+        <mesh key={`bar-back-${i}`} position={[x, 1, -1.4]}>
+          <cylinderGeometry args={[0.05, 0.05, 2, 8]} />
+          <meshStandardMaterial color="#4a4a4a" />
+        </mesh>
+      ))}
+      
+      <mesh position={[0, 2.05, 0]}>
+        <boxGeometry args={[3.2, 0.1, 3.2]} />
+        <meshStandardMaterial color="#5a5a5a" />
+      </mesh>
+    </group>
+  );
+}
+
+function ZooRock({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.4, 0]}>
+        <dodecahedronGeometry args={[0.6, 0]} />
+        <meshStandardMaterial color="#6b6b6b" flatShading />
+      </mesh>
+      <mesh position={[0.5, 0.25, 0.3]}>
+        <dodecahedronGeometry args={[0.35, 0]} />
+        <meshStandardMaterial color="#7a7a7a" flatShading />
+      </mesh>
+    </group>
+  );
+}
+
+function ZooPond({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[2.5, 24]} />
+        <meshStandardMaterial color="#4a90d9" transparent opacity={0.8} />
+      </mesh>
+      
+      <mesh position={[0, 0.08, 0]}>
+        <torusGeometry args={[2.5, 0.15, 8, 24]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+    </group>
+  );
+}
+
+function TropicalPlant({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.4, 0]}>
+        <cylinderGeometry args={[0.08, 0.12, 0.8, 8]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      
+      {[0, 1, 2, 3, 4].map((i) => {
+        const angle = (i * Math.PI * 2) / 5;
+        return (
+          <mesh key={i} position={[Math.cos(angle) * 0.3, 0.9, Math.sin(angle) * 0.3]} rotation={[0.5, angle, 0]}>
+            <coneGeometry args={[0.25, 0.8, 4]} />
+            <meshStandardMaterial color="#228B22" />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+function ZooAnimal({ position, animalType }: { position: [number, number, number]; animalType: 'lion' | 'penguin' | 'elephant' }) {
+  const getColor = () => {
+    if (animalType === 'lion') return '#d4a574';
+    if (animalType === 'penguin') return '#1a1a1a';
+    return '#808080';
+  };
+  
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.6, 0.5, 0.8]} />
+        <meshStandardMaterial color={getColor()} />
+      </mesh>
+      
+      <mesh position={[0, 0.8, 0.3]}>
+        <sphereGeometry args={[0.25, 12, 12]} />
+        <meshStandardMaterial color={getColor()} />
+      </mesh>
+      
+      {animalType === 'penguin' && (
+        <mesh position={[0, 0.4, 0.01]}>
+          <boxGeometry args={[0.35, 0.4, 0.1]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+      )}
+      
+      {animalType === 'lion' && (
+        <mesh position={[0, 0.85, 0.3]}>
+          <sphereGeometry args={[0.35, 12, 12]} />
+          <meshStandardMaterial color="#c4944a" />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+function BossArenaTree({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.3, 0.4, 3, 8]} />
+        <meshStandardMaterial color="#5D4037" />
+      </mesh>
+      
+      <mesh position={[0, 3.5, 0]}>
+        <sphereGeometry args={[1.5, 12, 12]} />
+        <meshStandardMaterial color="#2E7D32" />
+      </mesh>
+    </group>
+  );
+}
+
 export function StreetProps() {
   const { level, setObstacles } = useArcadeGame();
   
   const props = useMemo(() => {
-    const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench' | 'bigfountain'; position: [number, number, number]; color?: string }> = [];
+    const items: Array<{ 
+      type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench' | 'bigfountain' | 'zoocage' | 'zoorock' | 'zoopond' | 'tropicalplant' | 'zooanimal' | 'bossarenatree'; 
+      position: [number, number, number]; 
+      color?: string;
+      animalType?: 'lion' | 'penguin' | 'elephant';
+    }> = [];
     
-    const maxZ = level === 7 ? 260 : 280;
+    const maxZ = (level === 7 || level === 14) ? 260 : 280;
     
     if (level === 7) {
       for (let z = -10; z < 260; z += 20) {
@@ -310,6 +449,62 @@ export function StreetProps() {
         const side = z % 32 === 5 ? -8 : 8;
         items.push({ type: 'planter', position: [side, 0, z] });
       }
+    } else if (level === 8 || level === 10 || level === 12) {
+      for (let z = -5; z < maxZ; z += 25) {
+        items.push({ type: 'zoocage', position: [-12, 0, z] });
+        items.push({ type: 'zoocage', position: [12, 0, z] });
+      }
+      
+      for (let z = 10; z < maxZ; z += 30) {
+        items.push({ type: 'zoorock', position: [-8, 0, z] });
+        items.push({ type: 'zoorock', position: [8, 0, z] });
+      }
+      
+      for (let z = 0; z < maxZ; z += 40) {
+        items.push({ type: 'zooanimal', position: [-12, 0, z + 5], animalType: 'lion' });
+        items.push({ type: 'zooanimal', position: [12, 0, z + 5], animalType: 'elephant' });
+      }
+      
+      for (let z = -10; z < maxZ; z += 15) {
+        items.push({ type: 'tropicalplant', position: [-15, 0, z] });
+        items.push({ type: 'tropicalplant', position: [15, 0, z] });
+      }
+    } else if (level === 9 || level === 11 || level === 13) {
+      for (let z = 0; z < maxZ; z += 35) {
+        items.push({ type: 'zoopond', position: [0, 0, z] });
+      }
+      
+      for (let z = 5; z < maxZ; z += 20) {
+        items.push({ type: 'zooanimal', position: [-6, 0, z], animalType: 'penguin' });
+        items.push({ type: 'zooanimal', position: [6, 0, z], animalType: 'penguin' });
+      }
+      
+      for (let z = -5; z < maxZ; z += 12) {
+        items.push({ type: 'tropicalplant', position: [-14, 0, z] });
+        items.push({ type: 'tropicalplant', position: [14, 0, z] });
+      }
+      
+      for (let z = 15; z < maxZ; z += 25) {
+        items.push({ type: 'zoorock', position: [-10, 0, z] });
+        items.push({ type: 'zoorock', position: [10, 0, z] });
+      }
+    } else if (level === 14) {
+      for (let z = -10; z < 260; z += 25) {
+        items.push({ type: 'bossarenatree', position: [-25, 0, z] });
+        items.push({ type: 'bossarenatree', position: [25, 0, z] });
+      }
+      
+      items.push({ type: 'zoopond', position: [0, 0, 295] });
+      
+      items.push({ type: 'zoorock', position: [-20, 0, 285] });
+      items.push({ type: 'zoorock', position: [20, 0, 285] });
+      items.push({ type: 'zoorock', position: [-20, 0, 305] });
+      items.push({ type: 'zoorock', position: [20, 0, 305] });
+      
+      items.push({ type: 'tropicalplant', position: [-22, 0, 275] });
+      items.push({ type: 'tropicalplant', position: [22, 0, 275] });
+      items.push({ type: 'tropicalplant', position: [-22, 0, 315] });
+      items.push({ type: 'tropicalplant', position: [22, 0, 315] });
     }
     
     return items;
@@ -342,6 +537,24 @@ export function StreetProps() {
         case 'bigfountain':
           size = { x: 8, y: 3, z: 8 };
           break;
+        case 'zoocage':
+          size = { x: 3, y: 2, z: 3 };
+          break;
+        case 'zoorock':
+          size = { x: 1.2, y: 0.8, z: 1.2 };
+          break;
+        case 'zoopond':
+          size = { x: 5, y: 0.2, z: 5 };
+          break;
+        case 'tropicalplant':
+          size = { x: 0.6, y: 1.2, z: 0.6 };
+          break;
+        case 'zooanimal':
+          size = { x: 0.8, y: 1, z: 1 };
+          break;
+        case 'bossarenatree':
+          size = { x: 1, y: 4, z: 1 };
+          break;
       }
       
       return {
@@ -353,7 +566,7 @@ export function StreetProps() {
     setObstacles(obstacles);
   }, [props, setObstacles]);
   
-  if (level < 1 || level > 7) return null;
+  if (level < 1 || level > 14) return null;
   
   return (
     <group>
@@ -372,6 +585,18 @@ export function StreetProps() {
           return <ParkBench key={`parkbench-${index}`} position={prop.position} />;
         } else if (prop.type === 'bigfountain') {
           return <BigFountain key={`bigfountain-${index}`} position={prop.position} />;
+        } else if (prop.type === 'zoocage') {
+          return <ZooCage key={`zoocage-${index}`} position={prop.position} />;
+        } else if (prop.type === 'zoorock') {
+          return <ZooRock key={`zoorock-${index}`} position={prop.position} />;
+        } else if (prop.type === 'zoopond') {
+          return <ZooPond key={`zoopond-${index}`} position={prop.position} />;
+        } else if (prop.type === 'tropicalplant') {
+          return <TropicalPlant key={`tropicalplant-${index}`} position={prop.position} />;
+        } else if (prop.type === 'zooanimal') {
+          return <ZooAnimal key={`zooanimal-${index}`} position={prop.position} animalType={prop.animalType || 'lion'} />;
+        } else if (prop.type === 'bossarenatree') {
+          return <BossArenaTree key={`bossarenatree-${index}`} position={prop.position} />;
         }
         return null;
       })}
