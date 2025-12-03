@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { useArcadeGame, type Bullet } from "@/lib/stores/useArcadeGame";
 import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
-function SimpleBullet({ isPlayer, isBanana }: { isPlayer: boolean; isBanana: boolean }) {
+function SimpleBullet({ isPlayer, isBanana, isRose }: { isPlayer: boolean; isBanana: boolean; isRose: boolean }) {
   if (isPlayer) {
     return (
       <mesh>
@@ -24,6 +24,37 @@ function SimpleBullet({ isPlayer, isBanana }: { isPlayer: boolean; isBanana: boo
         <mesh position={[0.2, 0, 0]}>
           <boxGeometry args={[0.1, 0.18, 0.03]} />
           <meshBasicMaterial color="#8B4513" />
+        </mesh>
+      </group>
+    );
+  }
+  
+  if (isRose) {
+    return (
+      <group>
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[0.2, 8, 8]} />
+          <meshBasicMaterial color="#ff0040" />
+        </mesh>
+        <mesh position={[0, 0, 0.15]} rotation={[Math.PI / 6, 0, 0]}>
+          <coneGeometry args={[0.12, 0.15, 6]} />
+          <meshBasicMaterial color="#ff0040" />
+        </mesh>
+        <mesh position={[0, 0, -0.15]} rotation={[-Math.PI / 6, 0, 0]}>
+          <coneGeometry args={[0.12, 0.15, 6]} />
+          <meshBasicMaterial color="#ff0040" />
+        </mesh>
+        <mesh position={[0.15, 0, 0]} rotation={[0, 0, -Math.PI / 6]}>
+          <coneGeometry args={[0.12, 0.15, 6]} />
+          <meshBasicMaterial color="#ff0040" />
+        </mesh>
+        <mesh position={[-0.15, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
+          <coneGeometry args={[0.12, 0.15, 6]} />
+          <meshBasicMaterial color="#ff0040" />
+        </mesh>
+        <mesh position={[0, -0.25, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.4, 6]} />
+          <meshBasicMaterial color="#228B22" />
         </mesh>
       </group>
     );
@@ -82,7 +113,11 @@ export function Bullets() {
     <group>
       {bullets.map((bullet) => (
         <group key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
-          <SimpleBullet isPlayer={bullet.fromPlayer} isBanana={bullet.id.startsWith("banana")} />
+          <SimpleBullet 
+            isPlayer={bullet.fromPlayer} 
+            isBanana={bullet.id.startsWith("banana")} 
+            isRose={bullet.id.startsWith("rose")}
+          />
         </group>
       ))}
     </group>

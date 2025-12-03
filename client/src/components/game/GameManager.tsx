@@ -350,17 +350,19 @@ export function GameManager() {
         
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
         
-        const canShoot = enemy.type !== "penguin";
-        
-        if (newShootTimer <= 0 && canShoot) {
+        if (newShootTimer <= 0) {
           if (enemyBulletCount + enemyBulletsToAdd.length < maxEnemyBullets) {
             const dirX = playerPosition.x - enemy.position.x;
             const dirZ = playerPosition.z - enemy.position.z;
             const mag = Math.sqrt(dirX * dirX + dirZ * dirZ) || 1;
             
             bulletCounter++;
+            let bulletId = `eb${bulletCounter}`;
+            if (enemy.type === "gorilla") bulletId = `banana${bulletCounter}`;
+            else if (enemy.type === "penguin") bulletId = `rose${bulletCounter}`;
+            
             enemyBulletsToAdd.push({
-              id: enemy.type === "gorilla" ? `banana${bulletCounter}` : `eb${bulletCounter}`,
+              id: bulletId,
               position: { x: enemy.position.x, y: enemy.position.y, z: enemy.position.z },
               direction: { x: dirX / mag, y: 0, z: dirZ / mag },
               speed: enemy.type === "gorilla" ? 10 : 8,

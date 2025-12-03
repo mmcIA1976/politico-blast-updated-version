@@ -17,9 +17,21 @@ export function ScrollingBackground() {
     if (level === 5) return "/textures/asphalt.png";
     if (level === 6) return "/textures/grass.png";
     if (level === 7) return "/textures/sand.jpg";
-    if (level >= 8 && level <= 13) return "/textures/sand.jpg";
-    if (level === 14) return "/textures/sand.jpg";
+    if (level === 8 || level === 10 || level === 12) return "/textures/grass.png";
+    if (level === 9 || level === 11 || level === 13) return "/textures/sand.jpg";
+    if (level === 14) return "/textures/grass.png";
     return "/textures/asphalt.png";
+  }, [level]);
+  
+  const groundColor = useMemo(() => {
+    if (level === 8) return "#4a7c2a";
+    if (level === 9) return "#c2b280";
+    if (level === 10) return "#3d6b24";
+    if (level === 11) return "#d4c490";
+    if (level === 12) return "#2d5a1a";
+    if (level === 13) return "#b8a870";
+    if (level === 14) return "#1a4a10";
+    return undefined;
   }, [level]);
   
   const texture = useTexture(texturePath);
@@ -47,7 +59,7 @@ export function ScrollingBackground() {
     <group ref={groupRef}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={planeSize as [number, number]} />
-        <meshStandardMaterial map={texture} />
+        <meshStandardMaterial map={texture} color={groundColor} />
       </mesh>
     </group>
   );
