@@ -345,8 +345,10 @@ export function GameManager() {
             }
           }
         } else {
-          const distance = vec3Distance(bullet.position, playerPosition);
-          if (distance < 0.6 && !bulletsToRemove.includes(bullet.id)) {
+          const dx = bullet.position.x - playerPosition.x;
+          const dz = bullet.position.z - playerPosition.z;
+          const distance2D = Math.sqrt(dx * dx + dz * dz);
+          if (distance2D < 1.0 && !bulletsToRemove.includes(bullet.id)) {
             bulletsToRemove.push(bullet.id);
             loseLife();
             playPlayerDamage();

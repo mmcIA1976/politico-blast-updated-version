@@ -212,7 +212,7 @@ export function StreetProps() {
   const props = useMemo(() => {
     const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
     
-    const maxZ = level === 7 ? 330 : 200;
+    const maxZ = level === 7 ? 330 : 280;
     
     if (level === 1 || level === 3 || level === 5 || level === 7) {
       for (let z = -10; z < maxZ; z += 6) {
