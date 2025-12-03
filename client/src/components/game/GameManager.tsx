@@ -217,6 +217,12 @@ export function GameManager() {
     let scoreToAdd = 0;
     let shouldEndGame = false;
     
+    let enemyBulletCount = 0;
+    for (let i = 0; i < bullets.length; i++) {
+      if (!bullets[i].fromPlayer) enemyBulletCount++;
+    }
+    const maxEnemyBullets = level === 7 ? 8 : 15;
+    
     if (frameCounter.current % 2 === 0) {
       mutatePowerUps((currentPowerUps) => {
         let changed = false;
@@ -288,10 +294,7 @@ export function GameManager() {
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
         
         if (newShootTimer <= 0) {
-          const enemyBulletCount = bullets.filter(b => !b.fromPlayer).length;
-          const maxEnemyBullets = level === 7 ? 8 : 15;
-          
-          if (enemyBulletCount < maxEnemyBullets) {
+          if (enemyBulletCount + enemyBulletsToAdd.length < maxEnemyBullets) {
             const dirX = playerPosition.x - enemy.position.x;
             const dirZ = playerPosition.z - enemy.position.z;
             const mag = Math.sqrt(dirX * dirX + dirZ * dirZ) || 1;
