@@ -40,7 +40,7 @@ function BossEnemy({ bossFaceTexture }: { bossFaceTexture: THREE.Texture }) {
   );
 }
 
-function GorillaEnemy() {
+function GorillaEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   return (
     <>
       <mesh position={[0, 0.6, 0]} castShadow>
@@ -51,6 +51,10 @@ function GorillaEnemy() {
         <sphereGeometry args={[0.5, 12, 12]} />
         <meshStandardMaterial color="#2a1d0d" />
       </mesh>
+      <mesh position={[0, 1.5, 0.45]} rotation={[0, 0, 0]}>
+        <planeGeometry args={[0.6, 0.6]} />
+        <meshStandardMaterial map={faceTexture} />
+      </mesh>
       <mesh position={[-0.6, 0.4, 0]} castShadow>
         <boxGeometry args={[0.3, 0.9, 0.3]} />
         <meshStandardMaterial color="#3d2914" />
@@ -58,18 +62,6 @@ function GorillaEnemy() {
       <mesh position={[0.6, 0.4, 0]} castShadow>
         <boxGeometry args={[0.3, 0.9, 0.3]} />
         <meshStandardMaterial color="#3d2914" />
-      </mesh>
-      <mesh position={[0, 1.5, 0.35]}>
-        <boxGeometry args={[0.3, 0.15, 0.15]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      <mesh position={[-0.15, 1.6, 0.4]}>
-        <sphereGeometry args={[0.08, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-      <mesh position={[0.15, 1.6, 0.4]}>
-        <sphereGeometry args={[0.08, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
       </mesh>
     </>
   );
@@ -174,6 +166,7 @@ export function Enemies() {
   const faceTexture = useTexture("/textures/politician_face.jpg");
   const faceTexture2 = useTexture("/textures/politician_face_2.jpg");
   const bossFaceTexture = useTexture("/textures/boss_face.jpg");
+  const oscarPuenteFace = useTexture("/textures/oscar_puente_face.jpg");
   
   return (
     <group>
@@ -186,7 +179,7 @@ export function Enemies() {
             <BossEnemy bossFaceTexture={bossFaceTexture} />
           )}
           {enemy.type === "gorilla" && (
-            <GorillaEnemy />
+            <GorillaEnemy faceTexture={oscarPuenteFace} />
           )}
           {enemy.type === "penguin" && (
             <PenguinEnemy />
