@@ -1,11 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useArcadeGame, type TouchControls as TouchControlsType } from "@/lib/stores/useArcadeGame";
 
+type DiagonalControl = "forward-left" | "forward-right" | "back-left" | "back-right";
+type AllControls = keyof TouchControlsType | DiagonalControl;
+
 export function MobileControls() {
   const { phase, setTouchControl } = useArcadeGame();
   const [isMobile, setIsMobile] = useState(false);
   const [activeControls, setActiveControls] = useState<Set<string>>(new Set());
-  const activeTouches = useRef<Map<number, keyof TouchControlsType>>(new Map());
+  const activeTouches = useRef<Map<number, AllControls>>(new Map());
   
   useEffect(() => {
     const checkMobile = () => {
@@ -30,48 +33,89 @@ export function MobileControls() {
     };
   }, [setTouchControl]);
   
-  const handlePointerDown = useCallback((control: keyof TouchControlsType, pointerId: number) => {
-    activeTouches.current.set(pointerId, control);
-    setTouchControl(control, true);
-    setActiveControls(prev => new Set(prev).add(control));
+  const activateDiagonal = useCallback((diagonal: DiagonalControl) => {
+    if (diagonal === "forward-left") {
+      setTouchControl("forward", true);
+      setTouchControl("left", true);
+    } else if (diagonal === "forward-right") {
+      setTouchControl("forward", true);
+      setTouchControl("right", true);
+    } else if (diagonal === "back-left") {
+      setTouchControl("back", true);
+      setTouchControl("left", true);
+    } else if (diagonal === "back-right") {
+      setTouchControl("back", true);
+      setTouchControl("right", true);
+    }
   }, [setTouchControl]);
   
-  const handlePointerUp = useCallback((control: keyof TouchControlsType, pointerId: number) => {
+  const deactivateDiagonal = useCallback((diagonal: DiagonalControl) => {
+    if (diagonal === "forward-left") {
+      setTouchControl("forward", false);
+      setTouchControl("left", false);
+    } else if (diagonal === "forward-right") {
+      setTouchControl("forward", false);
+      setTouchControl("right", false);
+    } else if (diagonal === "back-left") {
+      setTouchControl("back", false);
+      setTouchControl("left", false);
+    } else if (diagonal === "back-right") {
+      setTouchControl("back", false);
+      setTouchControl("right", false);
+    }
+  }, [setTouchControl]);
+  
+  const handlePointerDown = useCallback((control: AllControls, pointerId: number) => {
+    activeTouches.current.set(pointerId, control);
+    setActiveControls(prev => new Set(prev).add(control));
+    
+    if (control === "forward-left" || control === "forward-right" || 
+        control === "back-left" || control === "back-right") {
+      activateDiagonal(control);
+    } else {
+      setTouchControl(control as keyof TouchControlsType, true);
+    }
+  }, [setTouchControl, activateDiagonal]);
+  
+  const handlePointerUp = useCallback((control: AllControls, pointerId: number) => {
     activeTouches.current.delete(pointerId);
-    setTouchControl(control, false);
     setActiveControls(prev => {
       const next = new Set(prev);
       next.delete(control);
       return next;
     });
-  }, [setTouchControl]);
-  
-  const handlePointerLeave = useCallback((control: keyof TouchControlsType, pointerId: number) => {
-    if (activeTouches.current.get(pointerId) === control) {
-      activeTouches.current.delete(pointerId);
-      setTouchControl(control, false);
-      setActiveControls(prev => {
-        const next = new Set(prev);
-        next.delete(control);
-        return next;
-      });
+    
+    if (control === "forward-left" || control === "forward-right" || 
+        control === "back-left" || control === "back-right") {
+      deactivateDiagonal(control);
+    } else {
+      setTouchControl(control as keyof TouchControlsType, false);
     }
-  }, [setTouchControl]);
+  }, [setTouchControl, deactivateDiagonal]);
+  
+  const handlePointerLeave = useCallback((control: AllControls, pointerId: number) => {
+    if (activeTouches.current.get(pointerId) === control) {
+      handlePointerUp(control, pointerId);
+    }
+  }, [handlePointerUp]);
   
   if (!isMobile || phase !== "playing") return null;
   
-  const getButtonStyle = (control: keyof TouchControlsType) => {
+  const getButtonStyle = (control: AllControls, size: "normal" | "small" = "normal") => {
     const isActive = activeControls.has(control);
+    const btnSize = size === "small" ? "44px" : "52px";
+    const fontSize = size === "small" ? "16px" : "20px";
+    
     return {
-      width: "56px",
-      height: "56px",
+      width: btnSize,
+      height: btnSize,
       borderRadius: "50%",
       backgroundColor: isActive ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.35)",
       border: isActive ? "3px solid rgba(255, 255, 255, 1)" : "2px solid rgba(255, 255, 255, 0.6)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontSize: "22px",
+      fontSize,
       color: "white",
       userSelect: "none" as const,
       WebkitUserSelect: "none" as const,
@@ -81,8 +125,8 @@ export function MobileControls() {
     };
   };
   
-  const createButtonProps = (control: keyof TouchControlsType) => ({
-    style: getButtonStyle(control),
+  const createButtonProps = (control: AllControls, size: "normal" | "small" = "normal") => ({
+    style: getButtonStyle(control, size),
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -111,43 +155,43 @@ export function MobileControls() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: "220px",
+        height: "200px",
         pointerEvents: "auto",
         zIndex: 1000,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "flex-end",
-        padding: "15px 20px",
+        padding: "12px 15px",
         touchAction: "none",
       }}
     >
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "56px 56px 56px",
-          gridTemplateRows: "56px 56px 56px",
-          gap: "4px",
+          gridTemplateColumns: "44px 52px 44px",
+          gridTemplateRows: "44px 52px 44px",
+          gap: "3px",
         }}
       >
-        <div />
+        <button {...createButtonProps("forward-left", "small")}>↖</button>
         <button {...createButtonProps("forward")}>▲</button>
-        <div />
+        <button {...createButtonProps("forward-right", "small")}>↗</button>
         
         <button {...createButtonProps("left")}>◄</button>
-        <div />
+        <div style={{ width: "52px", height: "52px" }} />
         <button {...createButtonProps("right")}>►</button>
         
-        <div />
+        <button {...createButtonProps("back-left", "small")}>↙</button>
         <button {...createButtonProps("back")}>▼</button>
-        <div />
+        <button {...createButtonProps("back-right", "small")}>↘</button>
       </div>
       
       <button
         style={{
-          width: "85px",
-          height: "85px",
+          width: "80px",
+          height: "80px",
           borderRadius: "50%",
-          fontSize: "13px",
+          fontSize: "12px",
           fontWeight: "bold",
           backgroundColor: activeControls.has("shooting") ? "rgba(255, 80, 80, 0.9)" : "rgba(255, 50, 50, 0.6)",
           border: activeControls.has("shooting") ? "4px solid rgba(255, 180, 180, 1)" : "3px solid rgba(255, 100, 100, 0.8)",
