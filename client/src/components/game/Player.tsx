@@ -53,7 +53,7 @@ export function Player() {
   useFrame((_, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
-    const dt = Math.min(Math.max(delta, 0.016), 0.1);
+    const dt = Math.min(delta, 0.1);
     
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();

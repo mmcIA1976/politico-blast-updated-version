@@ -3,10 +3,11 @@ import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
+import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
 export function ScrollingBackground() {
   const groupRef = useRef<THREE.Group>(null);
-  const { scrollPosition, level } = useArcadeGame();
+  const { level } = useArcadeGame();
   
   const texturePath = useMemo(() => {
     if (level === 1) return "/textures/asphalt.png";
@@ -20,36 +21,29 @@ export function ScrollingBackground() {
   }, [level]);
   
   const texture = useTexture(texturePath);
-  const prevTextureRef = useRef<THREE.Texture | null>(null);
   
   useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(4, 8);
+    texture.repeat.set(6, 12);
   }, [texture]);
   
   useFrame(() => {
-    const { playerPosition } = useArcadeGame.getState();
     if (texture) {
-      if (prevTextureRef.current && prevTextureRef.current !== texture) {
-        const prevOffset = prevTextureRef.current.offset.y;
-        texture.offset.y = prevOffset;
-      }
-      texture.offset.y = -playerPosition.z * 0.1;
-      prevTextureRef.current = texture;
+      texture.offset.y = -playerWorldPosition.z * 0.08;
     }
     if (groupRef.current) {
-      groupRef.current.position.z = playerPosition.z;
+      groupRef.current.position.z = playerWorldPosition.z;
     }
   });
   
   const planeSize = useMemo(() => {
-    if (level === 7) return [60, 80];
-    return [40, 60];
+    if (level === 7) return [100, 160];
+    return [80, 120];
   }, [level]);
   
   return (
     <group ref={groupRef}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={planeSize as [number, number]} />
         <meshStandardMaterial map={texture} />
       </mesh>

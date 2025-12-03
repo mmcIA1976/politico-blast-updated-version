@@ -10,9 +10,13 @@ export function Camera() {
   
   const smoothCamPos = useRef(new THREE.Vector3(0, 16, -11));
   const smoothLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const initialized = useRef(false);
   
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (phase !== "playing") return;
+    
+    const smoothDelta = Math.min(delta, 0.05);
+    const smoothFactor = 1 - Math.pow(0.001, smoothDelta);
     
     const cameraHeight = level === 7 ? 22 : 16;
     const cameraOffset = level === 7 ? -16 : -11;
@@ -24,17 +28,23 @@ export function Camera() {
     const targetCamY = cameraHeight;
     const targetCamZ = playerWorldPosition.z + cameraOffset;
     
-    smoothCamPos.current.x += (targetCamX - smoothCamPos.current.x) * 0.12;
-    smoothCamPos.current.y += (targetCamY - smoothCamPos.current.y) * 0.08;
-    smoothCamPos.current.z += (targetCamZ - smoothCamPos.current.z) * 0.12;
+    if (!initialized.current) {
+      smoothCamPos.current.set(targetCamX, targetCamY, targetCamZ);
+      smoothLookAt.current.set(clampedPlayerX, 0, playerWorldPosition.z + 5);
+      initialized.current = true;
+    }
+    
+    smoothCamPos.current.x += (targetCamX - smoothCamPos.current.x) * smoothFactor;
+    smoothCamPos.current.y += (targetCamY - smoothCamPos.current.y) * smoothFactor * 0.5;
+    smoothCamPos.current.z += (targetCamZ - smoothCamPos.current.z) * smoothFactor;
     
     const targetLookX = clampedPlayerX;
     const targetLookY = 0;
     const targetLookZ = playerWorldPosition.z + 5;
     
-    smoothLookAt.current.x += (targetLookX - smoothLookAt.current.x) * 0.15;
-    smoothLookAt.current.y += (targetLookY - smoothLookAt.current.y) * 0.1;
-    smoothLookAt.current.z += (targetLookZ - smoothLookAt.current.z) * 0.15;
+    smoothLookAt.current.x += (targetLookX - smoothLookAt.current.x) * smoothFactor;
+    smoothLookAt.current.y += (targetLookY - smoothLookAt.current.y) * smoothFactor;
+    smoothLookAt.current.z += (targetLookZ - smoothLookAt.current.z) * smoothFactor;
     
     camera.position.copy(smoothCamPos.current);
     camera.lookAt(smoothLookAt.current);

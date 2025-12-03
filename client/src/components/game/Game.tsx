@@ -48,7 +48,7 @@ export function Game() {
             powerPreference: "default",
           }}
         >
-          <color attach="background" args={["#6B8E23"]} />
+          <color attach="background" args={["#1a1a2e"]} />
           
           <Lights />
           
