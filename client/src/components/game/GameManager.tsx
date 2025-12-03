@@ -52,7 +52,7 @@ export function GameManager() {
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
-  const { playHit, playEnemyScream, playBossEntrance } = useAudio();
+  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance } = useAudio();
   const enemySpawnTimer = useRef(0);
   const bossSpawned = useRef(false);
   const lastLevel = useRef(1);
@@ -358,7 +358,7 @@ export function GameManager() {
           if (distance < 0.6 && !bulletsToRemove.includes(bullet.id)) {
             bulletsToRemove.push(bullet.id);
             loseLife();
-            playHit();
+            playPlayerDamage();
           }
         }
       });

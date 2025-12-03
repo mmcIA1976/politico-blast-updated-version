@@ -15,6 +15,7 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playPlayerDamage: () => void;
   playEnemyScream: (isBoss?: boolean) => void;
   playBossEntrance: () => void;
 }
@@ -61,7 +62,6 @@ export const useAudio = create<AudioState>((set, get) => ({
   playSuccess: () => {
     const { successSound, isMuted } = get();
     if (successSound) {
-      // If sound is muted, don't play anything
       if (isMuted) {
         console.log("Success sound skipped (muted)");
         return;
@@ -71,6 +71,23 @@ export const useAudio = create<AudioState>((set, get) => ({
       successSound.play().catch(error => {
         console.log("Success sound play prevented:", error);
       });
+    }
+  },
+  
+  playPlayerDamage: () => {
+    const { isMuted } = get();
+    if (isMuted) return;
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const painSound = new SpeechSynthesisUtterance("¡Ay!");
+      painSound.lang = 'es-ES';
+      painSound.rate = 1.5;
+      painSound.pitch = 1.0;
+      painSound.volume = 1.0;
+      
+      window.speechSynthesis.speak(painSound);
     }
   },
   

@@ -67,7 +67,12 @@ export function Bullets() {
     }).filter(bullet => {
       const pos = bullet.position;
       const distanceFromPlayer = Math.abs(pos.z - playerPosition.z);
-      return Math.abs(pos.x) < 20 && distanceFromPlayer < 50 && Math.abs(pos.y) < 20;
+      
+      if (bullet.fromPlayer) {
+        return Math.abs(pos.x) < 25 && distanceFromPlayer < 40 && Math.abs(pos.y) < 20;
+      } else {
+        return Math.abs(pos.x) < 25 && distanceFromPlayer < 25 && Math.abs(pos.y) < 20;
+      }
     });
     
     updateBullets(updatedBullets);

@@ -212,13 +212,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       if (newLives <= 0) {
         return { lives: 0, phase: "ended" as GamePhase };
       }
-      const levelStartZ = state.level === 7 ? 275 : (state.level - 1) * 50;
-      return { 
-        lives: newLives,
-        playerPosition: { x: 0, y: 0.5, z: levelStartZ },
-        bullets: [],
-        activePowerUps: [],
-      };
+      return { lives: newLives };
     }),
     
     restart: () => set({
