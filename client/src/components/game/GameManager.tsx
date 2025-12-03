@@ -148,7 +148,7 @@ export function GameManager() {
       id: string;
       position: Vec3;
       health: number;
-      type: "politician" | "boss";
+      type: "politician" | "boss" | "gorilla" | "penguin" | "toucan";
       shootTimer: number;
       movePattern: "straight" | "zigzag" | "circular" | "formation";
       spawnTime: number;
@@ -171,13 +171,32 @@ export function GameManager() {
       playBossEntrance();
     }
     
+    if (level === 14 && lastLevel.current !== 14) {
+      clearBattlefield();
+      bulletCounter++;
+      enemiesToSpawn.push({
+        id: `boss2${bulletCounter}`,
+        position: { x: 0, y: 0.8, z: 295 },
+        health: 20,
+        type: "toucan",
+        shootTimer: 1.2,
+        movePattern: "circular",
+        spawnTime: currentTime,
+        initialX: 0,
+      });
+      playBossEntrance();
+    }
+    
     lastLevel.current = level;
     
-    if (level < 7) {
+    const isPhase1 = level >= 1 && level < 7;
+    const isPhase2 = level >= 8 && level < 14;
+    
+    if (isPhase1 || isPhase2) {
       enemySpawnTimer.current += delta;
     }
     
-    if (level < 7 && enemySpawnTimer.current > 2) {
+    if (isPhase1 && enemySpawnTimer.current > 2) {
       enemySpawnTimer.current = 0;
       
       let numEnemies = 3;
@@ -209,6 +228,39 @@ export function GameManager() {
       }
     }
     
+    if (isPhase2 && enemySpawnTimer.current > 2) {
+      enemySpawnTimer.current = 0;
+      
+      let numEnemies = 3;
+      let enemyHealth = 2;
+      
+      if (level >= 10) enemyHealth = 3;
+      if (level >= 12) enemyHealth = 4;
+      if (level >= 9) numEnemies = 4;
+      if (level >= 11) numEnemies = 5;
+      if (level >= 13) numEnemies = 6;
+      
+      const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
+      const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
+      
+      for (let i = 0; i < numEnemies; i++) {
+        bulletCounter++;
+        const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
+        const enemyType = i % 2 === 0 ? "gorilla" : "penguin";
+        
+        enemiesToSpawn.push({
+          id: `z${bulletCounter}`,
+          position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
+          health: enemyHealth,
+          type: enemyType,
+          shootTimer: (currentTime % 3) + 1,
+          movePattern: patterns[patternIndex],
+          spawnTime: currentTime,
+          initialX: xPos,
+        });
+      }
+    }
+    
     const enemyBulletsToAdd: Array<{
       id: string;
       position: Vec3;
@@ -224,7 +276,7 @@ export function GameManager() {
     for (let i = 0; i < bullets.length; i++) {
       if (!bullets[i].fromPlayer) enemyBulletCount++;
     }
-    const maxEnemyBullets = level === 7 ? 8 : 15;
+    const maxEnemyBullets = (level === 7 || level === 14) ? 8 : 15;
     
     if (frameCounter.current % 2 === 0) {
       mutatePowerUps((currentPowerUps) => {
@@ -262,11 +314,11 @@ export function GameManager() {
             newZ -= delta * 1.5;
             break;
           case "circular":
-            if (enemy.type === "boss") {
+            if (enemy.type === "boss" || enemy.type === "toucan") {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-              const bossSpeed = 6;
+              const bossSpeed = enemy.type === "toucan" ? 7 : 6;
               
               const strafePhase = Math.sin(age * 2) * 5;
               const verticalPhase = Math.cos(age * 1.2) * 3;
@@ -314,9 +366,10 @@ export function GameManager() {
             });
           }
           
+          const isBossType = enemy.type === "boss" || enemy.type === "toucan";
           return {
             ...enemy,
-            shootTimer: enemy.type === "boss" ? 0.6 : 2 + Math.random() * 2,
+            shootTimer: isBossType ? 0.6 : 2 + Math.random() * 2,
             position: { x: newX, y: enemy.position.y, z: newZ },
           };
         }
@@ -340,12 +393,24 @@ export function GameManager() {
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
                 playHit();
-                playEnemyScream(enemy.type === "boss");
+                const isBossEnemy = enemy.type === "boss" || enemy.type === "toucan";
+                playEnemyScream(isBossEnemy);
                 
                 if (enemies[j].health <= 0) {
-                  scoreToAdd += enemy.type === "boss" ? 500 : 100;
                   if (enemy.type === "boss") {
+                    scoreToAdd += 500;
+                    setTimeout(() => {
+                      clearBattlefield();
+                      setScrollPosition(315);
+                      setLevel(8);
+                    }, 500);
+                  } else if (enemy.type === "toucan") {
+                    scoreToAdd += 1000;
                     shouldEndGame = true;
+                  } else if (enemy.type === "gorilla" || enemy.type === "penguin") {
+                    scoreToAdd += 150;
+                  } else {
+                    scoreToAdd += 100;
                   }
                   enemiesToRemove.push(enemy.id);
                 }
@@ -391,6 +456,12 @@ export function GameManager() {
     else if (scrollPosition > 180 && level === 4) setLevel(5);
     else if (scrollPosition > 225 && level === 5) setLevel(6);
     else if (scrollPosition > 270 && level === 6) setLevel(7);
+    else if (scrollPosition > 360 && level === 8) setLevel(9);
+    else if (scrollPosition > 405 && level === 9) setLevel(10);
+    else if (scrollPosition > 450 && level === 10) setLevel(11);
+    else if (scrollPosition > 495 && level === 11) setLevel(12);
+    else if (scrollPosition > 540 && level === 12) setLevel(13);
+    else if (scrollPosition > 585 && level === 13) setLevel(14);
   });
   
   return null;

@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { useArcadeGame, type Bullet } from "@/lib/stores/useArcadeGame";
 import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
-function SimpleBullet({ isPlayer }: { isPlayer: boolean }) {
+function SimpleBullet({ isPlayer, isZooPhase }: { isPlayer: boolean; isZooPhase: boolean }) {
   if (isPlayer) {
     return (
       <mesh>
@@ -13,6 +13,22 @@ function SimpleBullet({ isPlayer }: { isPlayer: boolean }) {
       </mesh>
     );
   }
+  
+  if (isZooPhase) {
+    return (
+      <group rotation={[0, 0, Math.PI / 4]}>
+        <mesh>
+          <capsuleGeometry args={[0.12, 0.4, 4, 8]} />
+          <meshBasicMaterial color="#ffdd00" />
+        </mesh>
+        <mesh position={[0.15, 0, 0]}>
+          <boxGeometry args={[0.08, 0.15, 0.02]} />
+          <meshBasicMaterial color="#8B4513" />
+        </mesh>
+      </group>
+    );
+  }
+  
   return (
     <mesh>
       <sphereGeometry args={[0.25, 6, 6]} />
@@ -22,8 +38,9 @@ function SimpleBullet({ isPlayer }: { isPlayer: boolean }) {
 }
 
 export function Bullets() {
-  const { bullets, updateBullets } = useArcadeGame();
+  const { bullets, updateBullets, level } = useArcadeGame();
   const frameCounter = useRef(0);
+  const isZooPhase = level >= 8 && level <= 14;
   
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
@@ -66,7 +83,7 @@ export function Bullets() {
     <group>
       {bullets.map((bullet) => (
         <group key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
-          <SimpleBullet isPlayer={bullet.fromPlayer} />
+          <SimpleBullet isPlayer={bullet.fromPlayer} isZooPhase={isZooPhase} />
         </group>
       ))}
     </group>

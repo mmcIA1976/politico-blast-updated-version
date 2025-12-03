@@ -58,7 +58,7 @@ export function Player() {
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();
     
-    const playerScale = level === 7 ? 1.4 : 1;
+    const playerScale = (level === 7 || level === 14) ? 1.4 : 1;
     meshRef.current.scale.set(playerScale, playerScale, playerScale);
     
     const baseSpeed = 7;
@@ -96,7 +96,7 @@ export function Player() {
       let newX = localPos.current.x + dx * speed * dt;
       let newZ = localPos.current.z + dz * speed * dt;
       
-      if (level === 7) {
+      if (level === 7 || level === 14) {
         newX = Math.max(-28, Math.min(28, newX));
         newZ = Math.max(270, Math.min(340, newZ));
       } else {
