@@ -17,6 +17,8 @@ export function ScrollingBackground() {
     if (level === 5) return "/textures/asphalt.png";
     if (level === 6) return "/textures/grass.png";
     if (level === 7) return "/textures/sand.jpg";
+    if (level >= 8 && level <= 13) return "/textures/sand.jpg";
+    if (level === 14) return "/textures/sand.jpg";
     return "/textures/asphalt.png";
   }, [level]);
   
@@ -37,7 +39,7 @@ export function ScrollingBackground() {
   });
   
   const planeSize = useMemo(() => {
-    if (level === 7) return [100, 160];
+    if (level === 7 || level === 14) return [100, 160];
     return [80, 120];
   }, [level]);
   

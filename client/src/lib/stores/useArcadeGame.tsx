@@ -23,7 +23,7 @@ export interface Enemy {
   id: string;
   position: Vec3;
   health: number;
-  type: "politician" | "boss";
+  type: "politician" | "boss" | "gorilla" | "penguin" | "toucan";
   shootTimer: number;
   movePattern: "straight" | "zigzag" | "circular" | "formation";
   spawnTime: number;
