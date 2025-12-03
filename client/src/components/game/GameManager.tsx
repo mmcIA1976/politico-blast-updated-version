@@ -78,7 +78,10 @@ export function GameManager() {
     const { touchControls } = useArcadeGame.getState();
     const isShooting = keys.shoot || touchControls.shooting;
     
-    if (isShooting && currentTime - lastShootTime > 0.3) {
+    const hasRapidFire = hasActivePowerUp("rapidFire");
+    const shootInterval = hasRapidFire ? 0.12 : 0.5;
+    
+    if (isShooting && currentTime - lastShootTime > shootInterval) {
       const moveForward = keys.forward || touchControls.forward;
       const moveBack = keys.back || touchControls.back;
       const moveLeft = keys.left || touchControls.left;

@@ -58,8 +58,8 @@ export function Player() {
     const keys = getKeys();
     const { touchControls, level } = useArcadeGame.getState();
     
-    const baseSpeed = 10;
-    const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.5 : 1;
+    const baseSpeed = 7;
+    const speedMultiplier = hasActivePowerUp("speedBoost") ? 1.4 : 1;
     const speed = baseSpeed * speedMultiplier;
     
     let dx = 0;

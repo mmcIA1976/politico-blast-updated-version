@@ -33,12 +33,12 @@ export interface Enemy {
 export interface PowerUp {
   id: string;
   position: Vec3;
-  type: "tripleShot" | "speedBoost" | "powerShot";
+  type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire";
   collected: boolean;
 }
 
 export interface ActivePowerUp {
-  type: "tripleShot" | "speedBoost" | "powerShot";
+  type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire";
   expiresAt: number;
   startedAt: number;
   duration: number;
@@ -89,10 +89,10 @@ interface ArcadeGameState {
   addPowerUp: (powerUp: PowerUp) => void;
   removePowerUp: (id: string) => void;
   mutatePowerUps: (mutator: (powerUps: PowerUp[]) => PowerUp[]) => void;
-  activatePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot", duration: number, currentTime: number) => void;
+  activatePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire", duration: number, currentTime: number) => void;
   updateActivePowerUps: (currentTime: number) => void;
-  hasActivePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot") => boolean;
-  getTimeRemaining: (type: "tripleShot" | "speedBoost" | "powerShot", currentTime: number) => number;
+  hasActivePowerUp: (type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire") => boolean;
+  getTimeRemaining: (type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire", currentTime: number) => number;
   setObstacles: (obstacles: Obstacle[]) => void;
   setLastShootTime: (time: number) => void;
   loseLife: () => void;

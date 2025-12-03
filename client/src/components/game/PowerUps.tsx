@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
 
-function PowerUpMesh({ type }: { type: "tripleShot" | "speedBoost" | "powerShot" }) {
+function PowerUpMesh({ type }: { type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire" }) {
   const meshRef = useRef<THREE.Mesh>(null);
   
   useFrame((state, delta) => {
@@ -15,6 +15,7 @@ function PowerUpMesh({ type }: { type: "tripleShot" | "speedBoost" | "powerShot"
   const getColor = () => {
     if (type === "tripleShot") return "#ff0000";
     if (type === "speedBoost") return "#00ff00";
+    if (type === "rapidFire") return "#ffff00";
     return "#ff6600";
   };
   
@@ -49,7 +50,7 @@ export function PowerUps() {
   
   const spawnTimer = useRef(0);
   const lastSpawnPosition = useRef(0);
-  const nextPowerUpType = useRef<"tripleShot" | "speedBoost" | "powerShot">("tripleShot");
+  const nextPowerUpType = useRef<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire">("tripleShot");
   const nextPowerUpX = useRef(0);
   const powerUpRotation = useRef(0);
   
@@ -67,7 +68,7 @@ export function PowerUps() {
         collected: false,
       });
       
-      const types: Array<"tripleShot" | "speedBoost" | "powerShot"> = ["tripleShot", "speedBoost", "powerShot"];
+      const types: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
       powerUpRotation.current = (powerUpRotation.current + 1) % types.length;
       nextPowerUpType.current = types[powerUpRotation.current];
       nextPowerUpX.current = ((state.clock.getElapsedTime() * 137) % 24) - 12;
@@ -82,6 +83,7 @@ export function PowerUps() {
           if (powerUp.type === "tripleShot") duration = 10;
           else if (powerUp.type === "speedBoost") duration = 8;
           else if (powerUp.type === "powerShot") duration = 12;
+          else if (powerUp.type === "rapidFire") duration = 8;
           
           activatePowerUp(powerUp.type, duration, state.clock.getElapsedTime());
           removePowerUp(powerUp.id);
@@ -105,11 +107,13 @@ export function PowerUps() {
               color={
                 powerUp.type === "tripleShot" ? "#ffff00" : 
                 powerUp.type === "speedBoost" ? "#ffffff" : 
+                powerUp.type === "rapidFire" ? "#ff00ff" :
                 "#ff9900"
               }
               emissive={
                 powerUp.type === "tripleShot" ? "#ffff00" : 
                 powerUp.type === "speedBoost" ? "#ffffff" : 
+                powerUp.type === "rapidFire" ? "#ff00ff" :
                 "#ff9900"
               }
               emissiveIntensity={0.8}
