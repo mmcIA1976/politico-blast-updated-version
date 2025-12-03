@@ -129,6 +129,49 @@ function Fountain({ position }: { position: [number, number, number] }) {
   );
 }
 
+function BigFountain({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.3, 0]}>
+        <cylinderGeometry args={[4, 4.5, 0.6, 24]} />
+        <meshStandardMaterial color="#d4d4d4" />
+      </mesh>
+      
+      <mesh position={[0, 0.65, 0]}>
+        <cylinderGeometry args={[3.5, 3.5, 0.15, 24]} />
+        <meshStandardMaterial color="#4a90d9" transparent opacity={0.7} />
+      </mesh>
+      
+      <mesh position={[0, 1.0, 0]}>
+        <cylinderGeometry args={[0.6, 0.6, 1.2, 16]} />
+        <meshStandardMaterial color="#c0c0c0" />
+      </mesh>
+      
+      <mesh position={[0, 1.8, 0]}>
+        <cylinderGeometry args={[1.5, 1.5, 0.3, 16]} />
+        <meshStandardMaterial color="#d4d4d4" />
+      </mesh>
+      
+      <mesh position={[0, 2.0, 0]}>
+        <cylinderGeometry args={[1.2, 1.2, 0.1, 16]} />
+        <meshStandardMaterial color="#4a90d9" transparent opacity={0.7} />
+      </mesh>
+      
+      <mesh position={[0, 2.3, 0]}>
+        <cylinderGeometry args={[0.25, 0.25, 0.6, 12]} />
+        <meshStandardMaterial color="#c0c0c0" />
+      </mesh>
+      
+      <mesh position={[0, 2.8, 0]}>
+        <sphereGeometry args={[0.4, 16, 16]} />
+        <meshStandardMaterial color="#c0c0c0" />
+      </mesh>
+      
+      <pointLight position={[0, 2, 0]} intensity={2} distance={10} color="#87ceeb" />
+    </group>
+  );
+}
+
 function ParkBench({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
@@ -210,15 +253,27 @@ export function StreetProps() {
   const { level, setObstacles } = useArcadeGame();
   
   const props = useMemo(() => {
-    const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
+    const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench' | 'bigfountain'; position: [number, number, number]; color?: string }> = [];
     
     const maxZ = level === 7 ? 260 : 280;
     
     if (level === 7) {
-      for (let z = -10; z < 260; z += 15) {
+      for (let z = -10; z < 260; z += 20) {
         items.push({ type: 'lamp', position: [-25, 0, z] });
         items.push({ type: 'lamp', position: [25, 0, z] });
       }
+      
+      items.push({ type: 'bigfountain', position: [0, 0, 295] });
+      
+      items.push({ type: 'parkbench', position: [-18, 0, 285] });
+      items.push({ type: 'parkbench', position: [18, 0, 285] });
+      items.push({ type: 'parkbench', position: [-18, 0, 305] });
+      items.push({ type: 'parkbench', position: [18, 0, 305] });
+      
+      items.push({ type: 'planter', position: [-22, 0, 280] });
+      items.push({ type: 'planter', position: [22, 0, 280] });
+      items.push({ type: 'planter', position: [-22, 0, 310] });
+      items.push({ type: 'planter', position: [22, 0, 310] });
     } else if (level === 1 || level === 3 || level === 5) {
       for (let z = -10; z < maxZ; z += 6) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
@@ -284,6 +339,9 @@ export function StreetProps() {
         case 'parkbench':
           size = { x: 1.5, y: 1, z: 0.7 };
           break;
+        case 'bigfountain':
+          size = { x: 8, y: 3, z: 8 };
+          break;
       }
       
       return {
@@ -312,6 +370,8 @@ export function StreetProps() {
           return <Fountain key={`fountain-${index}`} position={prop.position} />;
         } else if (prop.type === 'parkbench') {
           return <ParkBench key={`parkbench-${index}`} position={prop.position} />;
+        } else if (prop.type === 'bigfountain') {
+          return <BigFountain key={`bigfountain-${index}`} position={prop.position} />;
         }
         return null;
       })}
