@@ -43,24 +43,20 @@ function BossEnemy({ bossFaceTexture }: { bossFaceTexture: THREE.Texture }) {
 function GorillaEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   return (
     <>
-      <mesh position={[0, 0.6, 0]} castShadow>
-        <boxGeometry args={[1.0, 1.2, 0.9]} />
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <boxGeometry args={[0.8, 1.0, 0.8]} />
         <meshStandardMaterial color="#3d2914" />
       </mesh>
-      <mesh position={[0, 1.5, 0]} castShadow>
-        <sphereGeometry args={[0.5, 12, 12]} />
-        <meshStandardMaterial color="#2a1d0d" />
+      <mesh position={[0, 1.4, -0.5]} rotation={[0, Math.PI, 0]}>
+        <circleGeometry args={[1.0, 32]} />
+        <meshStandardMaterial map={faceTexture} />
       </mesh>
-      <mesh position={[0, 1.5, -0.45]} rotation={[0, Math.PI, 0]}>
-        <circleGeometry args={[0.5, 32]} />
-        <meshStandardMaterial map={faceTexture} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[-0.6, 0.4, 0]} castShadow>
-        <boxGeometry args={[0.3, 0.9, 0.3]} />
+      <mesh position={[-0.5, 0.3, 0]} castShadow>
+        <boxGeometry args={[0.25, 0.7, 0.25]} />
         <meshStandardMaterial color="#3d2914" />
       </mesh>
-      <mesh position={[0.6, 0.4, 0]} castShadow>
-        <boxGeometry args={[0.3, 0.9, 0.3]} />
+      <mesh position={[0.5, 0.3, 0]} castShadow>
+        <boxGeometry args={[0.25, 0.7, 0.25]} />
         <meshStandardMaterial color="#3d2914" />
       </mesh>
     </>
@@ -71,27 +67,23 @@ function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   return (
     <>
       <mesh position={[0, 0.5, 0]} castShadow>
-        <boxGeometry args={[0.5, 0.9, 0.4]} />
+        <boxGeometry args={[0.7, 1.0, 0.7]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      <mesh position={[0, 0.5, -0.15]} castShadow>
-        <boxGeometry args={[0.35, 0.7, 0.1]} />
+      <mesh position={[0, 0.5, -0.3]} castShadow>
+        <boxGeometry args={[0.5, 0.8, 0.1]} />
         <meshStandardMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[0, 1.1, 0]} castShadow>
-        <sphereGeometry args={[0.25, 12, 12]} />
+      <mesh position={[0, 1.4, -0.5]} rotation={[0, Math.PI, 0]}>
+        <circleGeometry args={[1.0, 32]} />
+        <meshStandardMaterial map={faceTexture} />
+      </mesh>
+      <mesh position={[-0.45, 0.4, 0]} rotation={[0, 0, -0.3]} castShadow>
+        <boxGeometry args={[0.3, 0.12, 0.2]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      <mesh position={[0, 1.15, -0.22]} rotation={[0, Math.PI, 0]}>
-        <circleGeometry args={[0.25, 32]} />
-        <meshStandardMaterial map={faceTexture} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[-0.35, 0.4, 0]} rotation={[0, 0, -0.3]} castShadow>
-        <boxGeometry args={[0.25, 0.1, 0.15]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      <mesh position={[0.35, 0.4, 0]} rotation={[0, 0, 0.3]} castShadow>
-        <boxGeometry args={[0.25, 0.1, 0.15]} />
+      <mesh position={[0.45, 0.4, 0]} rotation={[0, 0, 0.3]} castShadow>
+        <boxGeometry args={[0.3, 0.12, 0.2]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
     </>
@@ -101,41 +93,33 @@ function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
 function ToucanEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   return (
     <>
-      <mesh position={[0, 0.8, 0]} castShadow>
-        <boxGeometry args={[1.4, 1.6, 1.2]} />
+      <mesh position={[0, 0.7, 0]} castShadow>
+        <boxGeometry args={[1.2, 1.5, 1.2]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      <mesh position={[0, 0.8, -0.5]} castShadow>
-        <boxGeometry args={[1.0, 1.2, 0.3]} />
+      <mesh position={[0, 0.7, -0.5]} castShadow>
+        <boxGeometry args={[0.9, 1.1, 0.3]} />
         <meshStandardMaterial color="#ffffff" />
       </mesh>
-      <mesh position={[0, 1.9, 0]} castShadow>
-        <sphereGeometry args={[0.6, 12, 12]} />
-        <meshStandardMaterial color="#1a1a1a" />
+      <mesh position={[0, 2.0, -0.8]} rotation={[0, Math.PI, 0]}>
+        <circleGeometry args={[1.6, 32]} />
+        <meshStandardMaterial map={faceTexture} />
       </mesh>
-      <mesh position={[0, 2.0, -0.55]} rotation={[0, Math.PI, 0]}>
-        <circleGeometry args={[0.7, 32]} />
-        <meshStandardMaterial map={faceTexture} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, 1.8, -0.5]} rotation={[0.2, 0, 0]}>
-        <boxGeometry args={[0.3, 0.25, 0.9]} />
+      <mesh position={[0, 1.6, -0.9]} rotation={[0.2, 0, 0]}>
+        <boxGeometry args={[0.4, 0.3, 1.2]} />
         <meshStandardMaterial color="#ff6600" />
       </mesh>
-      <mesh position={[0, 1.85, -0.9]}>
-        <boxGeometry args={[0.25, 0.15, 0.15]} />
+      <mesh position={[0, 1.65, -1.4]}>
+        <boxGeometry args={[0.3, 0.2, 0.2]} />
         <meshStandardMaterial color="#ffff00" />
       </mesh>
-      <mesh position={[0, 1.7, -0.95]}>
-        <boxGeometry args={[0.2, 0.1, 0.1]} />
-        <meshStandardMaterial color="#1a1a1a" />
+      <mesh position={[-0.8, 3.0, -0.5]}>
+        <coneGeometry args={[0.25, 0.6, 8]} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
       </mesh>
-      <mesh position={[-0.8, 0.6, 0.3]} rotation={[0, 0, -0.5]} castShadow>
-        <boxGeometry args={[0.15, 0.8, 0.4]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      <mesh position={[0.8, 0.6, 0.3]} rotation={[0, 0, 0.5]} castShadow>
-        <boxGeometry args={[0.15, 0.8, 0.4]} />
-        <meshStandardMaterial color="#1a1a1a" />
+      <mesh position={[0.8, 3.0, -0.5]}>
+        <coneGeometry args={[0.25, 0.6, 8]} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
       </mesh>
     </>
   );
