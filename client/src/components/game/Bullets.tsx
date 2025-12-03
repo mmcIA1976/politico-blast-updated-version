@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { useArcadeGame, type Bullet } from "@/lib/stores/useArcadeGame";
 import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
-function SimpleBullet({ isPlayer, isZooPhase }: { isPlayer: boolean; isZooPhase: boolean }) {
+function SimpleBullet({ isPlayer, isBanana }: { isPlayer: boolean; isBanana: boolean }) {
   if (isPlayer) {
     return (
       <mesh>
@@ -14,15 +14,15 @@ function SimpleBullet({ isPlayer, isZooPhase }: { isPlayer: boolean; isZooPhase:
     );
   }
   
-  if (isZooPhase) {
+  if (isBanana) {
     return (
       <group rotation={[0, 0, Math.PI / 4]}>
         <mesh>
-          <capsuleGeometry args={[0.12, 0.4, 4, 8]} />
+          <capsuleGeometry args={[0.15, 0.5, 4, 8]} />
           <meshBasicMaterial color="#ffdd00" />
         </mesh>
-        <mesh position={[0.15, 0, 0]}>
-          <boxGeometry args={[0.08, 0.15, 0.02]} />
+        <mesh position={[0.2, 0, 0]}>
+          <boxGeometry args={[0.1, 0.18, 0.03]} />
           <meshBasicMaterial color="#8B4513" />
         </mesh>
       </group>
@@ -38,9 +38,8 @@ function SimpleBullet({ isPlayer, isZooPhase }: { isPlayer: boolean; isZooPhase:
 }
 
 export function Bullets() {
-  const { bullets, updateBullets, level } = useArcadeGame();
+  const { bullets, updateBullets } = useArcadeGame();
   const frameCounter = useRef(0);
-  const isZooPhase = level >= 8 && level <= 14;
   
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
@@ -83,7 +82,7 @@ export function Bullets() {
     <group>
       {bullets.map((bullet) => (
         <group key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
-          <SimpleBullet isPlayer={bullet.fromPlayer} isZooPhase={isZooPhase} />
+          <SimpleBullet isPlayer={bullet.fromPlayer} isBanana={bullet.id.startsWith("banana")} />
         </group>
       ))}
     </group>

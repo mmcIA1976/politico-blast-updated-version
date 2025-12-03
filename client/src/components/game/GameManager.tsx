@@ -350,7 +350,9 @@ export function GameManager() {
         
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
         
-        if (newShootTimer <= 0) {
+        const canShoot = enemy.type !== "penguin";
+        
+        if (newShootTimer <= 0 && canShoot) {
           if (enemyBulletCount + enemyBulletsToAdd.length < maxEnemyBullets) {
             const dirX = playerPosition.x - enemy.position.x;
             const dirZ = playerPosition.z - enemy.position.z;
@@ -358,10 +360,10 @@ export function GameManager() {
             
             bulletCounter++;
             enemyBulletsToAdd.push({
-              id: `eb${bulletCounter}`,
+              id: enemy.type === "gorilla" ? `banana${bulletCounter}` : `eb${bulletCounter}`,
               position: { x: enemy.position.x, y: enemy.position.y, z: enemy.position.z },
               direction: { x: dirX / mag, y: 0, z: dirZ / mag },
-              speed: 8,
+              speed: enemy.type === "gorilla" ? 10 : 8,
               fromPlayer: false,
             });
           }
@@ -369,7 +371,7 @@ export function GameManager() {
           const isBossType = enemy.type === "boss" || enemy.type === "toucan";
           return {
             ...enemy,
-            shootTimer: isBossType ? 0.6 : 2 + Math.random() * 2,
+            shootTimer: isBossType ? 0.6 : enemy.type === "gorilla" ? 1.5 + Math.random() : 2 + Math.random() * 2,
             position: { x: newX, y: enemy.position.y, z: newZ },
           };
         }
