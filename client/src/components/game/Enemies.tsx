@@ -126,35 +126,35 @@ function ToucanEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
         <meshStandardMaterial color="#ffffff" />
       </mesh>
       <mesh position={[0, 2.0, 0]} castShadow>
-        <sphereGeometry args={[0.6, 12, 12]} />
+        <sphereGeometry args={[0.7, 12, 12]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      <mesh position={[0, 2.3, -0.5]} rotation={[0, Math.PI, 0]}>
-        <circleGeometry args={[1.6, 32]} />
+      <mesh position={[0, 2.5, -0.6]} rotation={[0, Math.PI, 0]}>
+        <circleGeometry args={[2.0, 32]} />
         <meshStandardMaterial map={faceTexture} />
       </mesh>
-      <mesh position={[0, 1.8, -0.8]} rotation={[0.2, 0, 0]}>
-        <boxGeometry args={[0.4, 0.3, 1.2]} />
+      <mesh position={[0, 1.8, -1.0]} rotation={[0.2, 0, 0]}>
+        <boxGeometry args={[0.5, 0.35, 1.4]} />
         <meshStandardMaterial color="#ff6600" />
       </mesh>
-      <mesh position={[0, 1.85, -1.3]}>
-        <boxGeometry args={[0.3, 0.2, 0.2]} />
+      <mesh position={[0, 1.85, -1.6]}>
+        <boxGeometry args={[0.35, 0.25, 0.25]} />
         <meshStandardMaterial color="#ffff00" />
       </mesh>
       <mesh position={[-0.9, 0.6, 0]} rotation={[0, 0, -0.5]} castShadow>
-        <boxGeometry args={[0.2, 1.0, 0.5]} />
+        <boxGeometry args={[0.25, 1.2, 0.6]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
       <mesh position={[0.9, 0.6, 0]} rotation={[0, 0, 0.5]} castShadow>
-        <boxGeometry args={[0.2, 1.0, 0.5]} />
+        <boxGeometry args={[0.25, 1.2, 0.6]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      <mesh position={[-0.8, 3.3, -0.3]}>
-        <coneGeometry args={[0.25, 0.6, 8]} />
+      <mesh position={[-1.0, 3.8, -0.4]}>
+        <coneGeometry args={[0.3, 0.7, 8]} />
         <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
       </mesh>
-      <mesh position={[0.8, 3.3, -0.3]}>
-        <coneGeometry args={[0.25, 0.6, 8]} />
+      <mesh position={[1.0, 3.8, -0.4]}>
+        <coneGeometry args={[0.3, 0.7, 8]} />
         <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
       </mesh>
     </>

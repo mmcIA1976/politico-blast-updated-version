@@ -396,7 +396,8 @@ export function GameManager() {
                 bulletsToRemove.push(bullet.id);
                 playHit();
                 const isBossEnemy = enemy.type === "boss" || enemy.type === "toucan";
-                playEnemyScream(isBossEnemy);
+                const isZooPhase = level >= 8;
+                playEnemyScream(isBossEnemy, isZooPhase);
                 
                 if (enemies[j].health <= 0) {
                   if (enemy.type === "boss") {

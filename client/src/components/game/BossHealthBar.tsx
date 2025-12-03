@@ -1,14 +1,16 @@
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function BossHealthBar() {
-  const { enemies } = useArcadeGame();
+  const { enemies, level } = useArcadeGame();
   
-  const boss = enemies.find(e => e.type === "boss");
+  const boss = enemies.find(e => e.type === "boss" || e.type === "toucan");
   
   if (!boss) return null;
   
-  const maxHealth = 15;
+  const isToucan = boss.type === "toucan";
+  const maxHealth = isToucan ? 20 : 15;
   const healthPercentage = (boss.health / maxHealth) * 100;
+  const bossName = isToucan ? "YOLANDA DÍAZ" : "PEDRO SÁNCHEZ";
   
   return (
     <div style={{
@@ -32,7 +34,7 @@ export function BossHealthBar() {
         textTransform: "uppercase",
         letterSpacing: "2px"
       }}>
-        BOSS FINAL
+        {bossName}
       </div>
       <div style={{
         width: "100%",

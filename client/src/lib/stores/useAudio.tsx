@@ -16,7 +16,7 @@ interface AudioState {
   playHit: () => void;
   playSuccess: () => void;
   playPlayerDamage: () => void;
-  playEnemyScream: (isBoss?: boolean) => void;
+  playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean) => void;
   playBossEntrance: () => void;
 }
 
@@ -91,7 +91,7 @@ export const useAudio = create<AudioState>((set, get) => ({
     }
   },
   
-  playEnemyScream: (isBoss = false) => {
+  playEnemyScream: (isBoss = false, isZooPhase = false) => {
     const { isMuted } = get();
     if (isMuted) {
       console.log("Enemy scream skipped (muted)");
@@ -105,6 +105,11 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       if (isBoss) {
         phrases = ["¡¡Vas a saber lo que es hacienda!!"];
+      } else if (isZooPhase) {
+        phrases = [
+          "¡Eso es bulo!",
+          "¡¡Basta de bulos!!"
+        ];
       } else {
         phrases = [
           "¡La ultra derecha nos ataca!",
@@ -114,14 +119,13 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
-      // Primero el grito de dolor
-      const painScream = new SpeechSynthesisUtterance("aaayyyyy");
+      const painSound = isZooPhase ? "¡uuyy!" : "aaayyyyy";
+      const painScream = new SpeechSynthesisUtterance(painSound);
       painScream.lang = 'es-ES';
       painScream.rate = isBoss ? 0.8 : 1.0;
       painScream.pitch = isBoss ? 0.8 : 1.5;
       painScream.volume = 0.8;
       
-      // Luego la frase política
       const utterance = new SpeechSynthesisUtterance(randomPhrase);
       utterance.lang = 'es-ES';
       utterance.rate = isBoss ? 1.0 : 1.3;
