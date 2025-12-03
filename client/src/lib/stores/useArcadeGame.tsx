@@ -97,6 +97,7 @@ interface ArcadeGameState {
   setLastShootTime: (time: number) => void;
   loseLife: () => void;
   restart: () => void;
+  clearBattlefield: () => void;
 }
 
 const initialPlayerPosition: Vec3 = { x: 0, y: 0, z: -5 };
@@ -230,6 +231,12 @@ export const useArcadeGame = create<ArcadeGameState>()(
       obstacles: [],
       lastShootTime: 0,
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
+    }),
+    
+    clearBattlefield: () => set({
+      bullets: [],
+      enemies: [],
+      powerUps: [],
     }),
   }))
 );

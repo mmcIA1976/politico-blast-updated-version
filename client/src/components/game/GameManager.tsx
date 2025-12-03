@@ -46,6 +46,7 @@ export function GameManager() {
     mutatePowerUps,
     hasActivePowerUp,
     updateActivePowerUps,
+    clearBattlefield,
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
@@ -152,13 +153,14 @@ export function GameManager() {
     }> = [];
     
     if (level === 7 && lastLevel.current !== 7) {
+      clearBattlefield();
       bulletCounter++;
       enemiesToSpawn.push({
         id: `boss${bulletCounter}`,
         position: { x: 0, y: 0.7, z: 295 },
         health: 15,
         type: "boss",
-        shootTimer: 1,
+        shootTimer: 1.5,
         movePattern: "circular",
         spawnTime: currentTime,
         initialX: 0,
@@ -286,22 +288,27 @@ export function GameManager() {
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
         
         if (newShootTimer <= 0) {
-          const dirX = playerPosition.x - enemy.position.x;
-          const dirZ = playerPosition.z - enemy.position.z;
-          const mag = Math.sqrt(dirX * dirX + dirZ * dirZ) || 1;
+          const enemyBulletCount = bullets.filter(b => !b.fromPlayer).length;
+          const maxEnemyBullets = level === 7 ? 8 : 15;
           
-          bulletCounter++;
-          enemyBulletsToAdd.push({
-            id: `eb${bulletCounter}`,
-            position: { x: enemy.position.x, y: enemy.position.y, z: enemy.position.z },
-            direction: { x: dirX / mag, y: 0, z: dirZ / mag },
-            speed: 8,
-            fromPlayer: false,
-          });
+          if (enemyBulletCount < maxEnemyBullets) {
+            const dirX = playerPosition.x - enemy.position.x;
+            const dirZ = playerPosition.z - enemy.position.z;
+            const mag = Math.sqrt(dirX * dirX + dirZ * dirZ) || 1;
+            
+            bulletCounter++;
+            enemyBulletsToAdd.push({
+              id: `eb${bulletCounter}`,
+              position: { x: enemy.position.x, y: enemy.position.y, z: enemy.position.z },
+              direction: { x: dirX / mag, y: 0, z: dirZ / mag },
+              speed: 8,
+              fromPlayer: false,
+            });
+          }
           
           return {
             ...enemy,
-            shootTimer: enemy.type === "boss" ? 0.5 : 2 + Math.random() * 2,
+            shootTimer: enemy.type === "boss" ? 1.0 : 2 + Math.random() * 2,
             position: { x: newX, y: enemy.position.y, z: newZ },
           };
         }
