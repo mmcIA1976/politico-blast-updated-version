@@ -117,7 +117,7 @@ export function GameManager() {
             id: bulletId,
             position: { x: bulletPos.x, y: bulletPos.y, z: bulletPos.z },
             direction: { x: rotDir.x, y: rotDir.y, z: rotDir.z },
-            speed: 15,
+            speed: 30,
             fromPlayer: true,
             damage: bulletDamage,
           });
@@ -130,7 +130,7 @@ export function GameManager() {
           id: bulletId,
           position: { x: tempVec3B.x, y: tempVec3B.y, z: tempVec3B.z },
           direction: { x: tempVec3A.x, y: tempVec3A.y, z: tempVec3A.z },
-          speed: 15,
+          speed: 30,
           fromPlayer: true,
           damage: bulletDamage,
         });
