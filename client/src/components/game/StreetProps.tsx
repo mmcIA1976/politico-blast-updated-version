@@ -212,9 +212,14 @@ export function StreetProps() {
   const props = useMemo(() => {
     const items: Array<{ type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench'; position: [number, number, number]; color?: string }> = [];
     
-    const maxZ = level === 7 ? 330 : 280;
+    const maxZ = level === 7 ? 260 : 280;
     
-    if (level === 1 || level === 3 || level === 5 || level === 7) {
+    if (level === 7) {
+      for (let z = -10; z < 260; z += 15) {
+        items.push({ type: 'lamp', position: [-25, 0, z] });
+        items.push({ type: 'lamp', position: [25, 0, z] });
+      }
+    } else if (level === 1 || level === 3 || level === 5) {
       for (let z = -10; z < maxZ; z += 6) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
         items.push({ type: 'lamp', position: [15, 0, z] });

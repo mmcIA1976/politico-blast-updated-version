@@ -44,7 +44,7 @@ export function Bullets() {
       const distanceFromPlayer = Math.abs(newZ - playerZ);
       const maxDistance = bullet.fromPlayer ? 40 : 25;
       
-      if (Math.abs(newX) < 25 && distanceFromPlayer < maxDistance && Math.abs(newY) < 20) {
+      if (Math.abs(newX) < 35 && distanceFromPlayer < maxDistance && Math.abs(newY) < 20) {
         if (newX !== bullet.position.x || newY !== bullet.position.y || newZ !== bullet.position.z) {
           needsUpdate = true;
         }
