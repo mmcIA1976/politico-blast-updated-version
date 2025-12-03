@@ -18,8 +18,8 @@ export function Camera() {
     const smoothDelta = Math.min(delta, 0.05);
     const smoothFactor = 1 - Math.pow(0.001, smoothDelta);
     
-    const cameraHeight = level === 7 ? 22 : 16;
-    const cameraOffset = level === 7 ? -16 : -11;
+    const cameraHeight = 16;
+    const cameraOffset = -11;
     const maxLateralBound = level === 7 ? 28 : 18;
     
     const clampedPlayerX = Math.max(-maxLateralBound, Math.min(maxLateralBound, playerWorldPosition.x));
