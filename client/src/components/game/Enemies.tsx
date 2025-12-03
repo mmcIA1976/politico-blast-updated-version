@@ -98,7 +98,7 @@ function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   );
 }
 
-function ToucanEnemy() {
+function ToucanEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   return (
     <>
       <mesh position={[0, 0.8, 0]} castShadow>
@@ -113,6 +113,10 @@ function ToucanEnemy() {
         <sphereGeometry args={[0.6, 12, 12]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
+      <mesh position={[0, 1.9, 0.55]} rotation={[0, 0, 0]}>
+        <planeGeometry args={[0.8, 0.8]} />
+        <meshStandardMaterial map={faceTexture} />
+      </mesh>
       <mesh position={[0, 1.8, 0.5]} rotation={[-0.2, 0, 0]}>
         <boxGeometry args={[0.3, 0.25, 0.9]} />
         <meshStandardMaterial color="#ff6600" />
@@ -123,22 +127,6 @@ function ToucanEnemy() {
       </mesh>
       <mesh position={[0, 1.7, 0.95]}>
         <boxGeometry args={[0.2, 0.1, 0.1]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      <mesh position={[-0.25, 2.0, 0.4]}>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-      <mesh position={[0.25, 2.0, 0.4]}>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-      <mesh position={[-0.25, 2.0, 0.45]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      <mesh position={[0.25, 2.0, 0.45]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
       <mesh position={[-0.8, 0.6, -0.3]} rotation={[0, 0, -0.5]} castShadow>
@@ -160,6 +148,7 @@ export function Enemies() {
   const bossFaceTexture = useTexture("/textures/boss_face.jpg");
   const oscarPuenteFace = useTexture("/textures/oscar_puente_face.jpg");
   const felixBolanosFace = useTexture("/textures/felix_bolanos_face.jpg");
+  const yolandaDiazFace = useTexture("/textures/yolanda_diaz_face.png");
   
   return (
     <group>
@@ -178,7 +167,7 @@ export function Enemies() {
             <PenguinEnemy faceTexture={felixBolanosFace} />
           )}
           {enemy.type === "toucan" && (
-            <ToucanEnemy />
+            <ToucanEnemy faceTexture={yolandaDiazFace} />
           )}
         </group>
       ))}
