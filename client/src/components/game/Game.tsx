@@ -14,6 +14,7 @@ import { HUD } from "./HUD";
 import { BossHealthBar } from "./BossHealthBar";
 import { LevelTransition } from "./LevelTransition";
 import { MobileControls } from "./MobileControls";
+import { DebugControls } from "./DebugControls";
 
 enum Controls {
   forward = "forward",
@@ -85,6 +86,7 @@ export function Game() {
         <BossHealthBar />
         <LevelTransition />
         <MobileControls />
+        <DebugControls />
       </KeyboardControls>
     </>
   );
