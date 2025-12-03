@@ -67,7 +67,7 @@ function GorillaEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   );
 }
 
-function PenguinEnemy() {
+function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
   return (
     <>
       <mesh position={[0, 0.5, 0]} castShadow>
@@ -82,17 +82,9 @@ function PenguinEnemy() {
         <sphereGeometry args={[0.25, 12, 12]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
-      <mesh position={[0, 1.15, 0.2]}>
-        <coneGeometry args={[0.06, 0.2, 8]} />
-        <meshStandardMaterial color="#ff8c00" />
-      </mesh>
-      <mesh position={[-0.08, 1.2, 0.15]}>
-        <sphereGeometry args={[0.05, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-      <mesh position={[0.08, 1.2, 0.15]}>
-        <sphereGeometry args={[0.05, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
+      <mesh position={[0, 1.15, 0.22]} rotation={[0, 0, 0]}>
+        <planeGeometry args={[0.35, 0.35]} />
+        <meshStandardMaterial map={faceTexture} />
       </mesh>
       <mesh position={[-0.35, 0.4, 0]} rotation={[0, 0, -0.3]} castShadow>
         <boxGeometry args={[0.25, 0.1, 0.15]} />
@@ -167,6 +159,7 @@ export function Enemies() {
   const faceTexture2 = useTexture("/textures/politician_face_2.jpg");
   const bossFaceTexture = useTexture("/textures/boss_face.jpg");
   const oscarPuenteFace = useTexture("/textures/oscar_puente_face.jpg");
+  const felixBolanosFace = useTexture("/textures/felix_bolanos_face.jpg");
   
   return (
     <group>
@@ -182,7 +175,7 @@ export function Enemies() {
             <GorillaEnemy faceTexture={oscarPuenteFace} />
           )}
           {enemy.type === "penguin" && (
-            <PenguinEnemy />
+            <PenguinEnemy faceTexture={felixBolanosFace} />
           )}
           {enemy.type === "toucan" && (
             <ToucanEnemy />
