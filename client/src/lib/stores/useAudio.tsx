@@ -81,10 +81,10 @@ export const useAudio = create<AudioState>((set, get) => ({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
-      const painSound = new SpeechSynthesisUtterance("¡Ay!");
+      const painSound = new SpeechSynthesisUtterance("¡Puto rojo!");
       painSound.lang = 'es-ES';
-      painSound.rate = 1.5;
-      painSound.pitch = 1.0;
+      painSound.rate = 1.3;
+      painSound.pitch = 1.1;
       painSound.volume = 1.0;
       
       window.speechSynthesis.speak(painSound);
