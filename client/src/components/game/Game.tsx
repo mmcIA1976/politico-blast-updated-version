@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { KeyboardControls } from "@react-three/drei";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
@@ -31,22 +31,39 @@ const keyMap = [
   { name: Controls.shoot, keys: ["Space"] },
 ];
 
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.innerWidth <= 1024;
+};
+
 export function Game() {
+  const isMobile = useMemo(() => isMobileDevice(), []);
+  
+  const dpr = useMemo(() => {
+    if (isMobile) return [1, 1.5] as [number, number];
+    return [1, 2] as [number, number];
+  }, [isMobile]);
+  
   return (
     <>
       <KeyboardControls map={keyMap}>
         <Canvas
-          shadows
+          shadows={!isMobile}
+          dpr={dpr}
           camera={{
             position: [0, 12, -5],
             fov: 60,
             near: 0.1,
-            far: 1000,
+            far: 500,
           }}
           gl={{
-            antialias: true,
-            powerPreference: "default",
+            antialias: !isMobile,
+            powerPreference: "high-performance",
+            stencil: false,
+            depth: true,
           }}
+          frameloop="always"
         >
           <color attach="background" args={["#1a1a2e"]} />
           
