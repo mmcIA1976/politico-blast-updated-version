@@ -16,7 +16,7 @@ interface AudioState {
   playHit: () => void;
   playSuccess: () => void;
   playPlayerDamage: () => void;
-  playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean) => void;
+  playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean, isBoss2?: boolean) => void;
   playBossEntrance: () => void;
 }
 
@@ -91,7 +91,7 @@ export const useAudio = create<AudioState>((set, get) => ({
     }
   },
   
-  playEnemyScream: (isBoss = false, isZooPhase = false) => {
+  playEnemyScream: (isBoss = false, isZooPhase = false, isBoss2 = false) => {
     const { isMuted } = get();
     if (isMuted) {
       console.log("Enemy scream skipped (muted)");
@@ -103,7 +103,13 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       let phrases: string[];
       
-      if (isBoss) {
+      if (isBoss2) {
+        phrases = [
+          "¡¡Subir los impuestos a los ricos es bonito!!",
+          "¡¡La izquierda es feminista!!",
+          "¡¡Viva el comunismo!!"
+        ];
+      } else if (isBoss) {
         phrases = ["¡¡Vas a saber lo que es hacienda!!"];
       } else if (isZooPhase) {
         phrases = [

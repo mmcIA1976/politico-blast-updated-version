@@ -383,12 +383,33 @@ function BossArenaTree({ position }: { position: [number, number, number] }) {
   );
 }
 
+function RedFlag({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, 3, 8]} />
+        <meshStandardMaterial color="#4a3728" />
+      </mesh>
+      
+      <mesh position={[0.5, 2.5, 0]}>
+        <boxGeometry args={[1.0, 0.7, 0.05]} />
+        <meshStandardMaterial color="#cc0000" emissive="#cc0000" emissiveIntensity={0.3} />
+      </mesh>
+      
+      <mesh position={[0.5, 2.5, 0.03]}>
+        <circleGeometry args={[0.15, 16]} />
+        <meshStandardMaterial color="#ffcc00" />
+      </mesh>
+    </group>
+  );
+}
+
 export function StreetProps() {
   const { level, setObstacles } = useArcadeGame();
   
   const props = useMemo(() => {
     const items: Array<{ 
-      type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench' | 'bigfountain' | 'zoocage' | 'zoorock' | 'zoopond' | 'tropicalplant' | 'zooanimal' | 'bossarenatree'; 
+      type: 'lamp' | 'bench' | 'car' | 'planter' | 'fountain' | 'parkbench' | 'bigfountain' | 'zoocage' | 'zoorock' | 'zoopond' | 'tropicalplant' | 'zooanimal' | 'bossarenatree' | 'redflag'; 
       position: [number, number, number]; 
       color?: string;
       animalType?: 'lion' | 'penguin' | 'elephant';
@@ -501,22 +522,32 @@ export function StreetProps() {
         items.push({ type: 'zoorock', position: [12, 0, zooOffset + z] });
       }
     } else if (level === 14) {
-      for (let z = -10; z < 50; z += 15) {
+      for (let z = -10; z < 60; z += 12) {
         items.push({ type: 'bossarenatree', position: [-25, 0, zooOffset + z] });
         items.push({ type: 'bossarenatree', position: [25, 0, zooOffset + z] });
       }
       
-      items.push({ type: 'zoopond', position: [0, 0, zooOffset + 55] });
+      for (let z = -5; z < 60; z += 18) {
+        items.push({ type: 'redflag', position: [-20, 0, zooOffset + z] });
+        items.push({ type: 'redflag', position: [20, 0, zooOffset + z] });
+      }
       
-      items.push({ type: 'zoorock', position: [-20, 0, zooOffset + 45] });
-      items.push({ type: 'zoorock', position: [20, 0, zooOffset + 45] });
-      items.push({ type: 'zoorock', position: [-20, 0, zooOffset + 65] });
-      items.push({ type: 'zoorock', position: [20, 0, zooOffset + 65] });
+      for (let z = 0; z < 60; z += 15) {
+        items.push({ type: 'zoocage', position: [-16, 0, zooOffset + z] });
+        items.push({ type: 'zoocage', position: [16, 0, zooOffset + z] });
+      }
       
-      items.push({ type: 'tropicalplant', position: [-22, 0, zooOffset + 35] });
-      items.push({ type: 'tropicalplant', position: [22, 0, zooOffset + 35] });
-      items.push({ type: 'tropicalplant', position: [-22, 0, zooOffset + 75] });
-      items.push({ type: 'tropicalplant', position: [22, 0, zooOffset + 75] });
+      items.push({ type: 'zoopond', position: [0, 0, zooOffset + 65] });
+      
+      for (let z = 5; z < 60; z += 20) {
+        items.push({ type: 'zoorock', position: [-12, 0, zooOffset + z] });
+        items.push({ type: 'zoorock', position: [12, 0, zooOffset + z] });
+      }
+      
+      for (let z = -8; z < 70; z += 10) {
+        items.push({ type: 'tropicalplant', position: [-22, 0, zooOffset + z] });
+        items.push({ type: 'tropicalplant', position: [22, 0, zooOffset + z] });
+      }
     }
     
     return items;
@@ -609,6 +640,8 @@ export function StreetProps() {
           return <ZooAnimal key={`zooanimal-${index}`} position={prop.position} animalType={prop.animalType || 'lion'} />;
         } else if (prop.type === 'bossarenatree') {
           return <BossArenaTree key={`bossarenatree-${index}`} position={prop.position} />;
+        } else if (prop.type === 'redflag') {
+          return <RedFlag key={`redflag-${index}`} position={prop.position} />;
         }
         return null;
       })}
