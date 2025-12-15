@@ -348,9 +348,16 @@ export function GameManager() {
             newZ -= delta * 2.5;
         }
         
+        if (newZ < playerPosition.z - 8) {
+          enemiesToRemove.push(enemy.id);
+          return enemy;
+        }
+        
         const newShootTimer = Math.max(0, enemy.shootTimer - delta);
         
-        if (newShootTimer <= 0) {
+        const isAheadOfPlayer = newZ > playerPosition.z - 3;
+        
+        if (newShootTimer <= 0 && isAheadOfPlayer) {
           if (enemyBulletCount + enemyBulletsToAdd.length < maxEnemyBullets) {
             const dirX = playerPosition.x - enemy.position.x;
             const dirZ = playerPosition.z - enemy.position.z;
