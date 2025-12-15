@@ -348,7 +348,8 @@ export function GameManager() {
             newZ -= delta * 2.5;
         }
         
-        if (newZ < playerPosition.z - 8) {
+        const isBossType = enemy.type === "boss" || enemy.type === "toucan";
+        if (newZ < playerPosition.z - 8 && !isBossType) {
           enemiesToRemove.push(enemy.id);
           return enemy;
         }
