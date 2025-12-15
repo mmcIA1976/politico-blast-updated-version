@@ -184,7 +184,7 @@ export function GameManager() {
         spawnTime: currentTime,
         initialX: 0,
       });
-      playBossEntrance();
+      playBossEntrance(true);
     }
     
     lastLevel.current = level;

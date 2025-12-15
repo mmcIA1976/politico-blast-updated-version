@@ -2,14 +2,18 @@ import { create } from "zustand";
 
 interface AudioState {
   backgroundMusic: HTMLAudioElement | null;
+  backgroundMusic2: HTMLAudioElement | null;
   hitSound: HTMLAudioElement | null;
   successSound: HTMLAudioElement | null;
   isMuted: boolean;
+  currentPhase: number;
   
   // Setter functions
   setBackgroundMusic: (music: HTMLAudioElement) => void;
+  setBackgroundMusic2: (music: HTMLAudioElement) => void;
   setHitSound: (sound: HTMLAudioElement) => void;
   setSuccessSound: (sound: HTMLAudioElement) => void;
+  setCurrentPhase: (phase: number) => void;
   
   // Control functions
   toggleMute: () => void;
@@ -17,18 +21,22 @@ interface AudioState {
   playSuccess: () => void;
   playPlayerDamage: () => void;
   playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean, isBoss2?: boolean) => void;
-  playBossEntrance: () => void;
+  playBossEntrance: (isBoss2?: boolean) => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
   backgroundMusic: null,
+  backgroundMusic2: null,
   hitSound: null,
   successSound: null,
   isMuted: false,
+  currentPhase: 1,
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
+  setBackgroundMusic2: (music) => set({ backgroundMusic2: music }),
   setHitSound: (sound) => set({ hitSound: sound }),
   setSuccessSound: (sound) => set({ successSound: sound }),
+  setCurrentPhase: (phase) => set({ currentPhase: phase }),
   
   toggleMute: () => {
     const { isMuted } = get();
@@ -146,7 +154,7 @@ export const useAudio = create<AudioState>((set, get) => ({
     }
   },
   
-  playBossEntrance: () => {
+  playBossEntrance: (isBoss2 = false) => {
     const { isMuted } = get();
     if (isMuted) {
       console.log("Boss entrance skipped (muted)");
@@ -156,18 +164,20 @@ export const useAudio = create<AudioState>((set, get) => ({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
-      const phrase = "¡¡Te voy a subir los impuestos quiero tu dinero!!";
+      const phrase = isBoss2 
+        ? "¡¡Soy Yolanda Díaz y vengo a por ti fascista!!"
+        : "¡¡Te voy a subir los impuestos quiero tu dinero!!";
       
       const utterance1 = new SpeechSynthesisUtterance(phrase);
       utterance1.lang = 'es-ES';
-      utterance1.rate = 1.0;
-      utterance1.pitch = 0.8;
+      utterance1.rate = isBoss2 ? 1.1 : 1.0;
+      utterance1.pitch = isBoss2 ? 1.2 : 0.8;
       utterance1.volume = 0.9;
       
       const utterance2 = new SpeechSynthesisUtterance(phrase);
       utterance2.lang = 'es-ES';
-      utterance2.rate = 1.0;
-      utterance2.pitch = 0.8;
+      utterance2.rate = isBoss2 ? 1.1 : 1.0;
+      utterance2.pitch = isBoss2 ? 1.2 : 0.8;
       utterance2.volume = 0.9;
       
       window.speechSynthesis.speak(utterance1);

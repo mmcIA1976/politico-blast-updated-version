@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAudio } from "@/lib/stores/useAudio";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function SoundManager() {
-  const { setHitSound, setSuccessSound, setBackgroundMusic, isMuted, backgroundMusic } = useAudio();
-  const { phase } = useArcadeGame();
+  const { setHitSound, setSuccessSound, setBackgroundMusic, setBackgroundMusic2, isMuted, backgroundMusic, backgroundMusic2, currentPhase, setCurrentPhase } = useAudio();
+  const { phase, level } = useArcadeGame();
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const playbackRateRef = useRef<number>(1.0);
   
   useEffect(() => {
     const hitAudio = new Audio("/sounds/hit.mp3");
@@ -19,19 +22,43 @@ export function SoundManager() {
     bgMusic.volume = 0.2;
     bgMusic.loop = true;
     setBackgroundMusic(bgMusic);
-  }, [setHitSound, setSuccessSound, setBackgroundMusic]);
+    
+    const bgMusic2 = new Audio("/sounds/background.mp3");
+    bgMusic2.volume = 0.25;
+    bgMusic2.loop = true;
+    bgMusic2.playbackRate = 1.3;
+    setBackgroundMusic2(bgMusic2);
+  }, [setHitSound, setSuccessSound, setBackgroundMusic, setBackgroundMusic2]);
   
   useEffect(() => {
-    if (!backgroundMusic) return;
+    const newPhase = level >= 8 ? 2 : 1;
+    if (newPhase !== currentPhase) {
+      setCurrentPhase(newPhase);
+    }
+  }, [level, currentPhase, setCurrentPhase]);
+  
+  useEffect(() => {
+    if (!backgroundMusic || !backgroundMusic2) return;
     
     if (phase === "playing" && !isMuted) {
-      backgroundMusic.play().catch(error => {
-        console.log("Background music play prevented:", error);
-      });
+      if (currentPhase === 1) {
+        backgroundMusic2.pause();
+        backgroundMusic2.currentTime = 0;
+        backgroundMusic.play().catch(error => {
+          console.log("Background music play prevented:", error);
+        });
+      } else {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        backgroundMusic2.play().catch(error => {
+          console.log("Background music 2 play prevented:", error);
+        });
+      }
     } else {
       backgroundMusic.pause();
+      backgroundMusic2.pause();
     }
-  }, [phase, isMuted, backgroundMusic]);
+  }, [phase, isMuted, backgroundMusic, backgroundMusic2, currentPhase]);
   
   return null;
 }
