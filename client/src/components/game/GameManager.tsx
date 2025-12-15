@@ -318,26 +318,41 @@ export function GameManager() {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-              const bossSpeed = enemy.type === "toucan" ? 8 : 6;
+              const bossSpeed = enemy.type === "toucan" ? 5 : 4;
               
-              const strafePhase = Math.sin(age * 2) * 5;
+              // Organic movement patterns - multiple sine waves for fluid motion
+              const strafePhase = Math.sin(age * 1.5) * 8 + Math.sin(age * 0.7) * 4;
+              const verticalPhase = Math.cos(age * 0.9) * 6 + Math.sin(age * 1.3) * 3;
               
-              // Follow player horizontally
-              newX += (dx * 0.3 + strafePhase * 0.1) * delta * bossSpeed;
+              // Lazy horizontal follow - boss orbits around more than chases directly
+              const followStrength = 0.08; // Much weaker follow
+              newX += strafePhase * delta * 2;
+              newX += dx * followStrength * delta * bossSpeed;
               
-              // Follow player vertically - stay ahead of player
-              const targetZ = playerPosition.z + 8;
-              const zDiff = targetZ - enemy.position.z;
-              newZ += zDiff * delta * 2;
-              
-              // If too close, back away
-              if (distanceToPlayer < 6) {
-                newZ += delta * 4;
+              // Vertical movement - boss moves independently with occasional pursuit
+              const pursuitCycle = Math.sin(age * 0.5);
+              if (pursuitCycle > 0.5 && distanceToPlayer > 12) {
+                // Occasional pursuit phase
+                newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.4;
+              } else {
+                // Normal floating/patrol movement
+                newZ += verticalPhase * delta * 0.8;
               }
               
-              newX = Math.max(-24, Math.min(24, newX));
-              // Allow boss to follow player through the entire arena
-              newZ = Math.max(playerPosition.z - 5, Math.min(playerPosition.z + 20, newZ));
+              // Keep boss generally ahead but allow player to pass
+              const minZ = playerPosition.z - 15; // Player can get well behind boss
+              const maxZ = playerPosition.z + 25;
+              
+              // Soft boundary push instead of hard clamp
+              if (newZ < minZ + 5) {
+                newZ += delta * 3; // Gently push forward
+              }
+              if (newZ > maxZ - 5) {
+                newZ -= delta * 2; // Gently push back
+              }
+              
+              newX = Math.max(-22, Math.min(22, newX));
+              newZ = Math.max(minZ, Math.min(maxZ, newZ));
             } else {
               newX = enemy.initialX + Math.cos(age * 1.5) * 4;
               newZ = 12 - age * 1.5 + Math.sin(age * 1.5) * 4;
