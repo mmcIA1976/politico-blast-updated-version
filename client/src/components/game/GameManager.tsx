@@ -318,23 +318,26 @@ export function GameManager() {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-              const bossSpeed = enemy.type === "toucan" ? 7 : 6;
+              const bossSpeed = enemy.type === "toucan" ? 8 : 6;
               
               const strafePhase = Math.sin(age * 2) * 5;
-              const verticalPhase = Math.cos(age * 1.2) * 3;
               
-              newX += (dx * 0.2 + strafePhase * 0.12) * delta * bossSpeed;
+              // Follow player horizontally
+              newX += (dx * 0.3 + strafePhase * 0.1) * delta * bossSpeed;
               
-              if (distanceToPlayer < 8) {
-                newZ -= delta * 2.5;
-              } else if (distanceToPlayer > 14) {
-                newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.5;
-              } else {
-                newZ += verticalPhase * delta;
+              // Follow player vertically - stay ahead of player
+              const targetZ = playerPosition.z + 8;
+              const zDiff = targetZ - enemy.position.z;
+              newZ += zDiff * delta * 2;
+              
+              // If too close, back away
+              if (distanceToPlayer < 6) {
+                newZ += delta * 4;
               }
               
               newX = Math.max(-24, Math.min(24, newX));
-              newZ = Math.max(270, Math.min(312, newZ));
+              // Allow boss to follow player through the entire arena
+              newZ = Math.max(playerPosition.z - 5, Math.min(playerPosition.z + 20, newZ));
             } else {
               newX = enemy.initialX + Math.cos(age * 1.5) * 4;
               newZ = 12 - age * 1.5 + Math.sin(age * 1.5) * 4;
