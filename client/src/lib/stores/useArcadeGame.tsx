@@ -28,6 +28,7 @@ export interface Enemy {
   movePattern: "straight" | "zigzag" | "circular" | "formation";
   spawnTime: number;
   initialX: number;
+  isSpecial?: boolean;
 }
 
 export interface PowerUp {

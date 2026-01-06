@@ -2,17 +2,21 @@ import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
-function PoliticianEnemy({ level, faceTexture, faceTexture2 }: { level: number; faceTexture: THREE.Texture; faceTexture2: THREE.Texture }) {
+function PoliticianEnemy({ level, faceTexture, faceTexture2, isSpecial }: { level: number; faceTexture: THREE.Texture; faceTexture2: THREE.Texture; isSpecial?: boolean }) {
+  const bodyColor = isSpecial ? "#ffd700" : "#ef4444";
   return (
     <>
       <mesh position={[0, 0.5, 0]} castShadow>
         <boxGeometry args={[0.7, 1, 0.7]} />
-        <meshStandardMaterial color="#ef4444" />
+        <meshStandardMaterial color={bodyColor} emissive={isSpecial ? "#ffd700" : "#000000"} emissiveIntensity={isSpecial ? 0.4 : 0} />
       </mesh>
       <mesh position={[0, 1.4, -0.5]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.0, 32]} />
         <meshStandardMaterial map={level >= 4 && level <= 6 ? faceTexture2 : faceTexture} />
       </mesh>
+      {isSpecial && (
+        <pointLight position={[0, 1, 0]} intensity={2} distance={4} color="#ffd700" />
+      )}
     </>
   );
 }
@@ -40,16 +44,18 @@ function BossEnemy({ bossFaceTexture }: { bossFaceTexture: THREE.Texture }) {
   );
 }
 
-function GorillaEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
+function GorillaEnemy({ faceTexture, isSpecial }: { faceTexture: THREE.Texture; isSpecial?: boolean }) {
+  const bodyColor = isSpecial ? "#ffd700" : "#3d2914";
+  const headColor = isSpecial ? "#e6c200" : "#2a1d0d";
   return (
     <>
       <mesh position={[0, 0.6, 0]} castShadow>
         <boxGeometry args={[1.0, 1.2, 0.9]} />
-        <meshStandardMaterial color="#3d2914" />
+        <meshStandardMaterial color={bodyColor} emissive={isSpecial ? "#ffd700" : "#000000"} emissiveIntensity={isSpecial ? 0.4 : 0} />
       </mesh>
       <mesh position={[0, 1.5, 0]} castShadow>
         <sphereGeometry args={[0.5, 12, 12]} />
-        <meshStandardMaterial color="#2a1d0d" />
+        <meshStandardMaterial color={headColor} />
       </mesh>
       <mesh position={[0, 1.8, -0.4]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.0, 32]} />
@@ -57,30 +63,34 @@ function GorillaEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
       </mesh>
       <mesh position={[-0.65, 0.4, 0]} castShadow>
         <boxGeometry args={[0.35, 1.0, 0.35]} />
-        <meshStandardMaterial color="#3d2914" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
       <mesh position={[0.65, 0.4, 0]} castShadow>
         <boxGeometry args={[0.35, 1.0, 0.35]} />
-        <meshStandardMaterial color="#3d2914" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
       <mesh position={[-0.3, -0.2, 0]} castShadow>
         <boxGeometry args={[0.3, 0.5, 0.3]} />
-        <meshStandardMaterial color="#3d2914" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
       <mesh position={[0.3, -0.2, 0]} castShadow>
         <boxGeometry args={[0.3, 0.5, 0.3]} />
-        <meshStandardMaterial color="#3d2914" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
+      {isSpecial && (
+        <pointLight position={[0, 1, 0]} intensity={2} distance={4} color="#ffd700" />
+      )}
     </>
   );
 }
 
-function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
+function PenguinEnemy({ faceTexture, isSpecial }: { faceTexture: THREE.Texture; isSpecial?: boolean }) {
+  const bodyColor = isSpecial ? "#ffd700" : "#1a1a1a";
   return (
     <>
       <mesh position={[0, 0.5, 0]} castShadow>
         <boxGeometry args={[0.6, 1.0, 0.5]} />
-        <meshStandardMaterial color="#1a1a1a" />
+        <meshStandardMaterial color={bodyColor} emissive={isSpecial ? "#ffd700" : "#000000"} emissiveIntensity={isSpecial ? 0.4 : 0} />
       </mesh>
       <mesh position={[0, 0.5, -0.2]} castShadow>
         <boxGeometry args={[0.4, 0.8, 0.1]} />
@@ -88,7 +98,7 @@ function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
       </mesh>
       <mesh position={[0, 1.2, 0]} castShadow>
         <sphereGeometry args={[0.3, 12, 12]} />
-        <meshStandardMaterial color="#1a1a1a" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
       <mesh position={[0, 1.5, -0.3]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.0, 32]} />
@@ -96,11 +106,11 @@ function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
       </mesh>
       <mesh position={[-0.4, 0.5, 0]} rotation={[0, 0, -0.4]} castShadow>
         <boxGeometry args={[0.35, 0.12, 0.2]} />
-        <meshStandardMaterial color="#1a1a1a" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
       <mesh position={[0.4, 0.5, 0]} rotation={[0, 0, 0.4]} castShadow>
         <boxGeometry args={[0.35, 0.12, 0.2]} />
-        <meshStandardMaterial color="#1a1a1a" />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
       <mesh position={[-0.15, -0.15, 0]} castShadow>
         <boxGeometry args={[0.2, 0.3, 0.25]} />
@@ -110,6 +120,9 @@ function PenguinEnemy({ faceTexture }: { faceTexture: THREE.Texture }) {
         <boxGeometry args={[0.2, 0.3, 0.25]} />
         <meshStandardMaterial color="#ff8c00" />
       </mesh>
+      {isSpecial && (
+        <pointLight position={[0, 1, 0]} intensity={2} distance={4} color="#ffd700" />
+      )}
     </>
   );
 }
@@ -175,16 +188,16 @@ export function Enemies() {
       {enemies.map((enemy) => (
         <group key={enemy.id} position={[enemy.position.x, enemy.position.y, enemy.position.z]}>
           {enemy.type === "politician" && (
-            <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} />
+            <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} />
           )}
           {enemy.type === "boss" && (
             <BossEnemy bossFaceTexture={bossFaceTexture} />
           )}
           {enemy.type === "gorilla" && (
-            <GorillaEnemy faceTexture={oscarPuenteFace} />
+            <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} />
           )}
           {enemy.type === "penguin" && (
-            <PenguinEnemy faceTexture={felixBolanosFace} />
+            <PenguinEnemy faceTexture={felixBolanosFace} isSpecial={enemy.isSpecial} />
           )}
           {enemy.type === "toucan" && (
             <ToucanEnemy faceTexture={yolandaDiazFace} />

@@ -25,6 +25,24 @@ function vec3Distance(a: Vec3, b: Vec3): number {
 }
 
 let bulletCounter = 0;
+let enemySpawnCounter = 0;
+
+// Max enemies per level (not boss levels)
+const getMaxEnemiesForLevel = (level: number): number => {
+  if (level === 1) return 12;
+  if (level === 2) return 15;
+  if (level === 3) return 18;
+  if (level === 4) return 20;
+  if (level === 5) return 22;
+  if (level === 6) return 25;
+  if (level === 8) return 15;
+  if (level === 9) return 18;
+  if (level === 10) return 20;
+  if (level === 11) return 22;
+  if (level === 12) return 25;
+  if (level === 13) return 28;
+  return 0;
+};
 
 export function GameManager() {
   const {
@@ -39,14 +57,18 @@ export function GameManager() {
     setLastShootTime,
     addScore,
     loseLife,
+    setLives,
+    lives,
     setPhase,
     level,
     setLevel,
     mutateEnemies,
     mutatePowerUps,
+    addPowerUp,
     hasActivePowerUp,
     updateActivePowerUps,
     clearBattlefield,
+    enemies,
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
@@ -55,6 +77,7 @@ export function GameManager() {
   const lastLevel = useRef(1);
   const frameCounter = useRef(0);
   const lastScrollUpdate = useRef(0);
+  const levelEnemiesSpawned = useRef(0);
   
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
@@ -153,7 +176,13 @@ export function GameManager() {
       movePattern: "straight" | "zigzag" | "circular" | "formation";
       spawnTime: number;
       initialX: number;
+      isSpecial?: boolean;
     }> = [];
+    
+    // Reset enemy counter when level changes
+    if (lastLevel.current !== level) {
+      levelEnemiesSpawned.current = 0;
+    }
     
     if (level === 7 && lastLevel.current !== 7) {
       clearBattlefield();
@@ -196,67 +225,73 @@ export function GameManager() {
       enemySpawnTimer.current += delta;
     }
     
-    if (isPhase1 && enemySpawnTimer.current > 2) {
+    const maxEnemies = getMaxEnemiesForLevel(level);
+    const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
+    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan").length;
+    
+    if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 8) {
       enemySpawnTimer.current = 0;
       
-      let numEnemies = 3;
+      let numEnemies = Math.min(3, remainingToSpawn);
       let enemyHealth = 1;
       
       if (level >= 3) enemyHealth = 2;
       if (level >= 5) enemyHealth = 3;
-      if (level >= 2) numEnemies = 4;
-      if (level >= 3) numEnemies = 5;
-      if (level >= 5) numEnemies = 6;
       
       const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
       const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
       
       for (let i = 0; i < numEnemies; i++) {
         bulletCounter++;
+        enemySpawnCounter++;
+        levelEnemiesSpawned.current++;
         const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
+        const isSpecial = enemySpawnCounter % 15 === 0;
         
         enemiesToSpawn.push({
           id: `e${bulletCounter}`,
           position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
-          health: enemyHealth,
+          health: isSpecial ? enemyHealth + 1 : enemyHealth,
           type: "politician",
           shootTimer: (currentTime % 3) + 1,
           movePattern: patterns[patternIndex],
           spawnTime: currentTime,
           initialX: xPos,
+          isSpecial,
         });
       }
     }
     
-    if (isPhase2 && enemySpawnTimer.current > 2) {
+    if (isPhase2 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 8) {
       enemySpawnTimer.current = 0;
       
-      let numEnemies = 3;
+      let numEnemies = Math.min(3, remainingToSpawn);
       let enemyHealth = 2;
       
       if (level >= 10) enemyHealth = 3;
       if (level >= 12) enemyHealth = 4;
-      if (level >= 9) numEnemies = 4;
-      if (level >= 11) numEnemies = 5;
-      if (level >= 13) numEnemies = 6;
       
       const patterns: Array<"straight" | "zigzag" | "circular" | "formation"> = ["straight", "zigzag", "circular", "formation"];
       const patternIndex = Math.floor(newScrollPosition / 10) % patterns.length;
       
       for (let i = 0; i < numEnemies; i++) {
         bulletCounter++;
+        enemySpawnCounter++;
+        levelEnemiesSpawned.current++;
         const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
         const enemyType = i % 2 === 0 ? "gorilla" : "penguin";
+        const isSpecial = enemySpawnCounter % 15 === 0;
         
         enemiesToSpawn.push({
           id: `z${bulletCounter}`,
           position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
-          health: enemyHealth,
+          health: isSpecial ? enemyHealth + 1 : enemyHealth,
           type: enemyType,
           shootTimer: (currentTime % 3) + 1,
           movePattern: patterns[patternIndex],
           spawnTime: currentTime,
           initialX: xPos,
+          isSpecial,
         });
       }
     }
@@ -444,6 +479,25 @@ export function GameManager() {
                   } else {
                     scoreToAdd += 100;
                   }
+                  
+                  // Special enemy drops reward
+                  if (enemy.isSpecial) {
+                    const giveLife = Math.random() > 0.5;
+                    if (giveLife) {
+                      setLives(Math.min(lives + 1, 6));
+                    } else {
+                      const powerUpTypes: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
+                      const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+                      bulletCounter++;
+                      addPowerUp({
+                        id: `pu${bulletCounter}`,
+                        position: { x: enemy.position.x, y: 0.5, z: enemy.position.z },
+                        type: randomType,
+                        collected: false,
+                      });
+                    }
+                  }
+                  
                   enemiesToRemove.push(enemy.id);
                 }
               }
