@@ -22,6 +22,8 @@ interface AudioState {
   playPlayerDamage: () => void;
   playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean, isBoss2?: boolean, level?: number) => void;
   playBossEntrance: (isBoss2?: boolean) => void;
+  playGrenadeExplosion: () => void;
+  playGrenadePickup: () => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -230,6 +232,38 @@ export const useAudio = create<AudioState>((set, get) => ({
       utterance1.onend = () => {
         window.speechSynthesis.speak(utterance2);
       };
+    }
+  },
+  
+  playGrenadeExplosion: () => {
+    const { isMuted } = get();
+    if (isMuted) return;
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const explosionSound = new SpeechSynthesisUtterance("¡¡BOOM!!");
+      explosionSound.lang = 'es-ES';
+      explosionSound.rate = 0.6;
+      explosionSound.pitch = 0.4;
+      explosionSound.volume = 1.0;
+      
+      window.speechSynthesis.speak(explosionSound);
+    }
+  },
+  
+  playGrenadePickup: () => {
+    const { isMuted } = get();
+    if (isMuted) return;
+    
+    if ('speechSynthesis' in window) {
+      const pickupSound = new SpeechSynthesisUtterance("¡Granada!");
+      pickupSound.lang = 'es-ES';
+      pickupSound.rate = 1.3;
+      pickupSound.pitch = 1.4;
+      pickupSound.volume = 0.8;
+      
+      window.speechSynthesis.speak(pickupSound);
     }
   }
 }));

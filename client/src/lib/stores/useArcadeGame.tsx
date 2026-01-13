@@ -85,6 +85,7 @@ interface ArcadeGameState {
   lastShootTime: number;
   lastGrenadeTime: number;
   grenades: Grenade[];
+  grenadeCount: number;
   touchControls: TouchControls;
   
   setPhase: (phase: GamePhase) => void;
@@ -113,6 +114,8 @@ interface ArcadeGameState {
   addGrenade: (grenade: Grenade) => void;
   removeGrenade: (id: string) => void;
   updateGrenades: (grenades: Grenade[]) => void;
+  useGrenadeFromInventory: () => boolean;
+  addGrenadeToInventory: (count?: number) => void;
   loseLife: () => void;
   restart: () => void;
   clearBattlefield: () => void;
@@ -138,6 +141,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     lastShootTime: 0,
     lastGrenadeTime: 0,
     grenades: [],
+    grenadeCount: 3,
     touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
     
     setPhase: (phase) => set({ phase }),
@@ -238,6 +242,19 @@ export const useArcadeGame = create<ArcadeGameState>()(
     
     updateGrenades: (grenades) => set({ grenades }),
     
+    useGrenadeFromInventory: () => {
+      const state = get();
+      if (state.grenadeCount > 0) {
+        set({ grenadeCount: state.grenadeCount - 1 });
+        return true;
+      }
+      return false;
+    },
+    
+    addGrenadeToInventory: (count = 1) => set((state) => ({
+      grenadeCount: Math.min(6, state.grenadeCount + count)
+    })),
+    
     loseLife: () => set((state) => {
       const newLives = state.lives - 1;
       if (newLives <= 0) {
@@ -262,6 +279,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       lastShootTime: 0,
       lastGrenadeTime: 0,
       grenades: [],
+      grenadeCount: 3,
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
     }),
     
