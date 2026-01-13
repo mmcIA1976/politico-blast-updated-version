@@ -118,7 +118,14 @@ export const useAudio = create<AudioState>((set, get) => ({
           "¡¡Viva el comunismo!!"
         ];
       } else if (isBoss) {
-        phrases = ["¡¡Vas a saber lo que es hacienda!!"];
+        phrases = [
+          "¡¡Vas a saber lo que es hacienda!!",
+          "¡¡Te voy a crujir a impuestos!!",
+          "¡¡Tu dinero es mío fascista!!",
+          "¡¡La chiki siempre gana!!",
+          "¡¡Paga tus impuestos facha!!",
+          "¡¡Hacienda somos todos!!"
+        ];
       } else if (isZooPhase) {
         phrases = [
           "¡Eso es bulo!",
@@ -164,9 +171,14 @@ export const useAudio = create<AudioState>((set, get) => ({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
+      const boss1Phrases = [
+        "¡¡Soy la chiki, María Jesús Montero!!",
+        "¡¡Te voy a subir los impuestos quiero tu dinero!!",
+        "¡¡Hacienda viene a por ti facha!!"
+      ];
       const phrase = isBoss2 
         ? "¡¡Soy Yolanda Díaz y vengo a por ti fascista!!"
-        : "¡¡Te voy a subir los impuestos quiero tu dinero!!";
+        : boss1Phrases[Math.floor(Math.random() * boss1Phrases.length)];
       
       const utterance1 = new SpeechSynthesisUtterance(phrase);
       utterance1.lang = 'es-ES';

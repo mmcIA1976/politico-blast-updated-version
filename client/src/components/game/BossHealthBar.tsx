@@ -10,7 +10,7 @@ export function BossHealthBar() {
   const isToucan = boss.type === "toucan";
   const maxHealth = isToucan ? 20 : 15;
   const healthPercentage = (boss.health / maxHealth) * 100;
-  const bossName = isToucan ? "YOLANDA DÍAZ" : "PEDRO SÁNCHEZ";
+  const bossName = isToucan ? "YOLANDA DÍAZ" : "MARÍA JESÚS MONTERO (LA CHIKI)";
   
   return (
     <div style={{

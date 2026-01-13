@@ -353,11 +353,11 @@ export function GameManager() {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-              const bossSpeed = enemy.type === "toucan" ? 5 : 4;
+              const bossSpeed = enemy.type === "toucan" ? 4 : 3;
               
               // Organic movement patterns - multiple sine waves for fluid motion
-              const strafePhase = Math.sin(age * 1.5) * 8 + Math.sin(age * 0.7) * 4;
-              const verticalPhase = Math.cos(age * 0.9) * 6 + Math.sin(age * 1.3) * 3;
+              const strafePhase = Math.sin(age * 1.2) * 6 + Math.sin(age * 0.5) * 3;
+              const verticalPhase = Math.cos(age * 0.7) * 4 + Math.sin(age * 1.0) * 2;
               
               // Lazy horizontal follow - boss orbits around more than chases directly
               const followStrength = 0.08; // Much weaker follow
@@ -434,7 +434,7 @@ export function GameManager() {
           const isBossType = enemy.type === "boss" || enemy.type === "toucan";
           return {
             ...enemy,
-            shootTimer: isBossType ? 0.6 : enemy.type === "gorilla" ? 1.5 + Math.random() : 2 + Math.random() * 2,
+            shootTimer: isBossType ? 1.2 : enemy.type === "gorilla" ? 1.5 + Math.random() : 2 + Math.random() * 2,
             position: { x: newX, y: enemy.position.y, z: newZ },
           };
         }
