@@ -19,6 +19,17 @@ export interface Bullet {
   damage?: number;
 }
 
+export interface Grenade {
+  id: string;
+  position: Vec3;
+  targetPosition: Vec3;
+  startPosition: Vec3;
+  direction: Vec3;
+  progress: number;
+  exploding: boolean;
+  explosionProgress: number;
+}
+
 export interface Enemy {
   id: string;
   position: Vec3;
@@ -72,6 +83,8 @@ interface ArcadeGameState {
   activePowerUps: ActivePowerUp[];
   obstacles: Obstacle[];
   lastShootTime: number;
+  lastGrenadeTime: number;
+  grenades: Grenade[];
   touchControls: TouchControls;
   
   setPhase: (phase: GamePhase) => void;
@@ -96,6 +109,10 @@ interface ArcadeGameState {
   getTimeRemaining: (type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire", currentTime: number) => number;
   setObstacles: (obstacles: Obstacle[]) => void;
   setLastShootTime: (time: number) => void;
+  setLastGrenadeTime: (time: number) => void;
+  addGrenade: (grenade: Grenade) => void;
+  removeGrenade: (id: string) => void;
+  updateGrenades: (grenades: Grenade[]) => void;
   loseLife: () => void;
   restart: () => void;
   clearBattlefield: () => void;
@@ -119,6 +136,8 @@ export const useArcadeGame = create<ArcadeGameState>()(
     activePowerUps: [],
     obstacles: [],
     lastShootTime: 0,
+    lastGrenadeTime: 0,
+    grenades: [],
     touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
     
     setPhase: (phase) => set({ phase }),
@@ -209,6 +228,16 @@ export const useArcadeGame = create<ArcadeGameState>()(
     
     setLastShootTime: (time) => set({ lastShootTime: time }),
     
+    setLastGrenadeTime: (time) => set({ lastGrenadeTime: time }),
+    
+    addGrenade: (grenade) => set((state) => ({ grenades: [...state.grenades, grenade] })),
+    
+    removeGrenade: (id) => set((state) => ({
+      grenades: state.grenades.filter(g => g.id !== id)
+    })),
+    
+    updateGrenades: (grenades) => set({ grenades }),
+    
     loseLife: () => set((state) => {
       const newLives = state.lives - 1;
       if (newLives <= 0) {
@@ -231,6 +260,8 @@ export const useArcadeGame = create<ArcadeGameState>()(
       activePowerUps: [],
       obstacles: [],
       lastShootTime: 0,
+      lastGrenadeTime: 0,
+      grenades: [],
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
     }),
     
@@ -238,6 +269,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       bullets: [],
       enemies: [],
       powerUps: [],
+      grenades: [],
     }),
   }))
 );
