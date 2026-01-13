@@ -441,11 +441,24 @@ export function StreetProps() {
       items.push({ type: 'parkbench', position: [18, 0, 285] });
       items.push({ type: 'parkbench', position: [-18, 0, 305] });
       items.push({ type: 'parkbench', position: [18, 0, 305] });
+      items.push({ type: 'parkbench', position: [-18, 0, 330] });
+      items.push({ type: 'parkbench', position: [18, 0, 330] });
+      items.push({ type: 'parkbench', position: [-18, 0, 355] });
+      items.push({ type: 'parkbench', position: [18, 0, 355] });
       
       items.push({ type: 'planter', position: [-22, 0, 280] });
       items.push({ type: 'planter', position: [22, 0, 280] });
       items.push({ type: 'planter', position: [-22, 0, 310] });
       items.push({ type: 'planter', position: [22, 0, 310] });
+      items.push({ type: 'planter', position: [-22, 0, 340] });
+      items.push({ type: 'planter', position: [22, 0, 340] });
+      items.push({ type: 'planter', position: [-22, 0, 365] });
+      items.push({ type: 'planter', position: [22, 0, 365] });
+      
+      for (let z = 320; z < 370; z += 20) {
+        items.push({ type: 'lamp', position: [-25, 0, z] });
+        items.push({ type: 'lamp', position: [25, 0, z] });
+      }
     } else if (level === 1 || level === 3 || level === 5) {
       for (let z = -10; z < maxZ; z += 10) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
@@ -523,31 +536,31 @@ export function StreetProps() {
       }
     } else if (level === 14) {
       // Boss 2 arena - decorations around z=295 where the boss spawns
-      const bossArenaOffset = 270;
+      const bossArenaOffset = 255;
       
-      for (let z = -10; z < 60; z += 12) {
+      for (let z = -10; z < 110; z += 12) {
         items.push({ type: 'bossarenatree', position: [-25, 0, bossArenaOffset + z] });
         items.push({ type: 'bossarenatree', position: [25, 0, bossArenaOffset + z] });
       }
       
-      for (let z = -5; z < 60; z += 18) {
+      for (let z = -5; z < 110; z += 18) {
         items.push({ type: 'redflag', position: [-20, 0, bossArenaOffset + z] });
         items.push({ type: 'redflag', position: [20, 0, bossArenaOffset + z] });
       }
       
-      for (let z = 0; z < 60; z += 15) {
+      for (let z = 0; z < 100; z += 15) {
         items.push({ type: 'zoocage', position: [-16, 0, bossArenaOffset + z] });
         items.push({ type: 'zoocage', position: [16, 0, bossArenaOffset + z] });
       }
       
-      items.push({ type: 'zoopond', position: [0, 0, bossArenaOffset + 65] });
+      items.push({ type: 'zoopond', position: [0, 0, bossArenaOffset + 95] });
       
-      for (let z = 5; z < 60; z += 20) {
+      for (let z = 5; z < 100; z += 20) {
         items.push({ type: 'zoorock', position: [-12, 0, bossArenaOffset + z] });
         items.push({ type: 'zoorock', position: [12, 0, bossArenaOffset + z] });
       }
       
-      for (let z = -8; z < 70; z += 10) {
+      for (let z = -8; z < 115; z += 10) {
         items.push({ type: 'tropicalplant', position: [-22, 0, bossArenaOffset + z] });
         items.push({ type: 'tropicalplant', position: [22, 0, bossArenaOffset + z] });
       }

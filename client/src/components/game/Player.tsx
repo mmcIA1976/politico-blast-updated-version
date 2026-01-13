@@ -98,7 +98,7 @@ export function Player() {
       
       if (level === 7 || level === 14) {
         newX = Math.max(-28, Math.min(28, newX));
-        newZ = Math.max(270, Math.min(340, newZ));
+        newZ = Math.max(255, Math.min(360, newZ));
       } else {
         newX = Math.max(-18, Math.min(18, newX));
         newZ = Math.max(-5, newZ);
