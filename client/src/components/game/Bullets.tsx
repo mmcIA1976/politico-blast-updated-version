@@ -88,11 +88,13 @@ export function Bullets() {
       const newY = bullet.position.y + bullet.direction.y * bullet.speed * delta;
       const newZ = bullet.position.z + bullet.direction.z * bullet.speed * delta;
       
-      const isBehindPlayer = newZ < playerZ - 5;
-      const maxDistanceAhead = bullet.fromPlayer ? 40 : 20;
+      // Player bullets can travel further in all directions
+      const maxDistanceBehind = bullet.fromPlayer ? 25 : 5;
+      const maxDistanceAhead = bullet.fromPlayer ? 50 : 20;
+      const isBehindPlayer = newZ < playerZ - maxDistanceBehind;
       const tooFarAhead = newZ > playerZ + maxDistanceAhead;
       
-      if (Math.abs(newX) < 35 && !isBehindPlayer && !tooFarAhead && Math.abs(newY) < 20) {
+      if (Math.abs(newX) < 40 && !isBehindPlayer && !tooFarAhead && Math.abs(newY) < 20) {
         if (newX !== bullet.position.x || newY !== bullet.position.y || newZ !== bullet.position.z) {
           needsUpdate = true;
         }

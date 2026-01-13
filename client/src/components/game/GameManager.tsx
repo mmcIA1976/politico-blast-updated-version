@@ -115,8 +115,13 @@ export function GameManager() {
       
       if (moveForward) dz = 1;
       if (moveBack) dz = -1;
-      if (moveLeft) dx = 1;
-      if (moveRight) dx = -1;
+      if (moveLeft) dx = -1;
+      if (moveRight) dx = 1;
+      
+      // If only moving laterally without forward/back, shoot forward by default
+      if ((moveLeft || moveRight) && !moveForward && !moveBack) {
+        dz = 1;
+      }
       
       tempVec3A.set(dx, 0, dz).normalize();
       tempVec3B.set(playerPosition.x, playerPosition.y, playerPosition.z);
