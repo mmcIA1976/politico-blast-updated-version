@@ -75,13 +75,13 @@ export function Player() {
     
     if (forward) dz = 1;
     if (back) dz = -1;
-    if (left) dx = -1;
-    if (right) dx = 1;
+    if (left) dx = 1;
+    if (right) dx = -1;
     
-    if (forward && left) { dx = -1; dz = 1; }
-    if (forward && right) { dx = 1; dz = 1; }
-    if (back && left) { dx = -1; dz = -1; }
-    if (back && right) { dx = 1; dz = -1; }
+    if (forward && left) { dx = 1; dz = 1; }
+    if (forward && right) { dx = -1; dz = 1; }
+    if (back && left) { dx = 1; dz = -1; }
+    if (back && right) { dx = -1; dz = -1; }
     
     const hasMovement = dx !== 0 || dz !== 0;
     

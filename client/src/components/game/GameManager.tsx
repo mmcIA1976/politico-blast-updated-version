@@ -116,8 +116,8 @@ export function GameManager() {
       // Build direction from all active inputs - supports all 8 directions
       if (moveForward) dz += 1;
       if (moveBack) dz -= 1;
-      if (moveLeft) dx -= 1;
-      if (moveRight) dx += 1;
+      if (moveLeft) dx += 1;
+      if (moveRight) dx -= 1;
       
       // Default to shooting forward if no direction pressed
       if (dx === 0 && dz === 0) {
