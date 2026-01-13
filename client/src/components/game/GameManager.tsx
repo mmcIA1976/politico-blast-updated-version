@@ -111,15 +111,16 @@ export function GameManager() {
       const moveRight = keys.right || touchControls.right;
       
       let dx = 0;
-      let dz = 1;
+      let dz = 0;
       
-      if (moveForward) dz = 1;
-      if (moveBack) dz = -1;
-      if (moveLeft) dx = -1;
-      if (moveRight) dx = 1;
+      // Build direction from all active inputs - supports all 8 directions
+      if (moveForward) dz += 1;
+      if (moveBack) dz -= 1;
+      if (moveLeft) dx -= 1;
+      if (moveRight) dx += 1;
       
-      // If only moving laterally without forward/back, shoot forward by default
-      if ((moveLeft || moveRight) && !moveForward && !moveBack) {
+      // Default to shooting forward if no direction pressed
+      if (dx === 0 && dz === 0) {
         dz = 1;
       }
       
