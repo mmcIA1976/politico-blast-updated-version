@@ -3,7 +3,7 @@ import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
 
 export function HUD() {
-  const { lives, score, level, phase, setPhase, restart, activePowerUps } = useArcadeGame();
+  const { lives, score, level, phase, setPhase, restart, activePowerUps, grenadeCount } = useArcadeGame();
   const { isMuted, toggleMute } = useAudio();
   const [, setTick] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -75,7 +75,8 @@ export function HUD() {
           ) : (
             <>
               <p style={{ marginBottom: "0.5rem" }}>🎮 WASD o Flechas - Mover</p>
-              <p>🔫 Espacio - Disparar</p>
+              <p style={{ marginBottom: "0.5rem" }}>🔫 Espacio - Disparar</p>
+              <p>💣 G - Lanzar granada</p>
             </>
           )}
         </div>
@@ -206,8 +207,11 @@ export function HUD() {
         <div style={{ marginBottom: isMobile ? "4px" : "8px" }}>
           ⭐ {score}
         </div>
-        <div>
+        <div style={{ marginBottom: isMobile ? "4px" : "8px" }}>
           📍 {level}
+        </div>
+        <div>
+          💣 {grenadeCount}
         </div>
       </div>
       

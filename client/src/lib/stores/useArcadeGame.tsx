@@ -45,7 +45,7 @@ export interface Enemy {
 export interface PowerUp {
   id: string;
   position: Vec3;
-  type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire";
+  type: "tripleShot" | "speedBoost" | "powerShot" | "rapidFire" | "grenade";
   collected: boolean;
 }
 

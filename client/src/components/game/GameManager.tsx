@@ -58,6 +58,9 @@ export function GameManager() {
     lastShootTime,
     lastGrenadeTime,
     grenades,
+    grenadeCount,
+    useGrenadeFromInventory,
+    addGrenadeToInventory,
     addBullet,
     removeBullet,
     setScrollPosition,
@@ -82,7 +85,7 @@ export function GameManager() {
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
-  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance } = useAudio();
+  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance, playGrenadeExplosion, playGrenadePickup } = useAudio();
   const enemySpawnTimer = useRef(0);
   const lastLevel = useRef(1);
   const frameCounter = useRef(0);
@@ -184,51 +187,54 @@ export function GameManager() {
     }
     
     const isThrowingGrenade = keys.grenade;
-    if (isThrowingGrenade && currentTime - lastGrenadeTime > GRENADE_COOLDOWN) {
-      const moveForward = keys.forward || touchControls.forward;
-      const moveBack = keys.back || touchControls.back;
-      const moveLeft = keys.left || touchControls.left;
-      const moveRight = keys.right || touchControls.right;
-      
-      let dx = 0;
-      let dz = 0;
-      
-      if (moveForward) dz += 1;
-      if (moveBack) dz -= 1;
-      if (moveLeft) dx += 1;
-      if (moveRight) dx -= 1;
-      
-      if (dx === 0 && dz === 0) {
-        dz = 1;
+    if (isThrowingGrenade && currentTime - lastGrenadeTime > GRENADE_COOLDOWN && grenadeCount > 0) {
+      const canThrow = useGrenadeFromInventory();
+      if (canThrow) {
+        const moveForward = keys.forward || touchControls.forward;
+        const moveBack = keys.back || touchControls.back;
+        const moveLeft = keys.left || touchControls.left;
+        const moveRight = keys.right || touchControls.right;
+        
+        let dx = 0;
+        let dz = 0;
+        
+        if (moveForward) dz += 1;
+        if (moveBack) dz -= 1;
+        if (moveLeft) dx += 1;
+        if (moveRight) dx -= 1;
+        
+        if (dx === 0 && dz === 0) {
+          dz = 1;
+        }
+        
+        const length = Math.sqrt(dx * dx + dz * dz);
+        dx /= length;
+        dz /= length;
+        
+        grenadeCounter++;
+        const grenadeId = `g${grenadeCounter}`;
+        
+        const startPos = { x: playerPosition.x, y: playerPosition.y + 0.5, z: playerPosition.z };
+        const targetPos = { 
+          x: playerPosition.x + dx * GRENADE_DISTANCE, 
+          y: 0.3, 
+          z: playerPosition.z + dz * GRENADE_DISTANCE 
+        };
+        
+        addGrenade({
+          id: grenadeId,
+          position: { ...startPos },
+          targetPosition: targetPos,
+          startPosition: startPos,
+          direction: { x: dx, y: 0, z: dz },
+          progress: 0,
+          exploding: false,
+          explosionProgress: 0,
+        });
+        
+        setLastGrenadeTime(currentTime);
+        console.log("Grenade thrown!", grenadeId, "direction:", dx, dz);
       }
-      
-      const length = Math.sqrt(dx * dx + dz * dz);
-      dx /= length;
-      dz /= length;
-      
-      grenadeCounter++;
-      const grenadeId = `g${grenadeCounter}`;
-      
-      const startPos = { x: playerPosition.x, y: playerPosition.y + 0.5, z: playerPosition.z };
-      const targetPos = { 
-        x: playerPosition.x + dx * GRENADE_DISTANCE, 
-        y: 0.3, 
-        z: playerPosition.z + dz * GRENADE_DISTANCE 
-      };
-      
-      addGrenade({
-        id: grenadeId,
-        position: { ...startPos },
-        targetPosition: targetPos,
-        startPosition: startPos,
-        direction: { x: dx, y: 0, z: dz },
-        progress: 0,
-        exploding: false,
-        explosionProgress: 0,
-      });
-      
-      setLastGrenadeTime(currentTime);
-      console.log("Grenade thrown!", grenadeId, "direction:", dx, dz);
     }
     
     if (grenades.length > 0) {
@@ -287,6 +293,8 @@ export function GameManager() {
             
             console.log("Grenade explosion killed", nearbyEnemies.length, "enemies!");
           }
+          
+          playGrenadeExplosion();
           
           return { 
             ...grenade, 
@@ -630,9 +638,12 @@ export function GameManager() {
                   
                   // Special enemy drops reward
                   if (enemy.isSpecial) {
-                    const giveLife = Math.random() > 0.5;
-                    if (giveLife) {
+                    const roll = Math.random();
+                    if (roll < 0.33) {
                       setLives(Math.min(lives + 1, 6));
+                    } else if (roll < 0.66) {
+                      addGrenadeToInventory(1);
+                      playGrenadePickup();
                     } else {
                       const powerUpTypes: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
                       const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
