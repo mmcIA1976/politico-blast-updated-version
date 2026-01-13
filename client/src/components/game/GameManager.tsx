@@ -467,7 +467,7 @@ export function GameManager() {
                 const isBoss1 = enemy.type === "boss";
                 const isBoss2 = enemy.type === "toucan";
                 const isZooPhase = level >= 8;
-                playEnemyScream(isBoss1, isZooPhase, isBoss2);
+                playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
                 
                 if (enemies[j].health <= 0) {
                   if (enemy.type === "boss") {

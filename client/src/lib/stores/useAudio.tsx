@@ -20,7 +20,7 @@ interface AudioState {
   playHit: () => void;
   playSuccess: () => void;
   playPlayerDamage: () => void;
-  playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean, isBoss2?: boolean) => void;
+  playEnemyScream: (isBoss?: boolean, isZooPhase?: boolean, isBoss2?: boolean, level?: number) => void;
   playBossEntrance: (isBoss2?: boolean) => void;
 }
 
@@ -99,7 +99,7 @@ export const useAudio = create<AudioState>((set, get) => ({
     }
   },
   
-  playEnemyScream: (isBoss = false, isZooPhase = false, isBoss2 = false) => {
+  playEnemyScream: (isBoss = false, isZooPhase = false, isBoss2 = false, level = 0) => {
     const { isMuted } = get();
     if (isMuted) {
       console.log("Enemy scream skipped (muted)");
@@ -140,10 +140,34 @@ export const useAudio = create<AudioState>((set, get) => ({
           "¡¡Los bulos de la derecha!!",
           "¡¡Eso lo dice la fachosfera!!"
         ];
+      } else if (level === 1) {
+        phrases = [
+          "¡¡No os metáis con Jésica, que es muy trabajadora!!",
+          "¡¡Jésica es inocente!!",
+          "¡¡Yo no sabía nada de los ERE!!",
+          "¡La ultra derecha nos ataca!",
+          "¡¡Detener a los fascistas!!"
+        ];
+      } else if (level === 2) {
+        phrases = [
+          "¡¡Los medios mienten!!",
+          "¡¡Eso es bulo de la derecha!!",
+          "¡La ultra derecha nos ataca!",
+          "¡¡Detener a los fascistas!!"
+        ];
+      } else if (level === 3) {
+        phrases = [
+          "¡¡Pedro es nuestro líder!!",
+          "¡¡Viva el PSOE!!",
+          "¡La ultra derecha nos ataca!",
+          "¡¡Detener a los fascistas!!"
+        ];
       } else {
         phrases = [
           "¡La ultra derecha nos ataca!",
-          "¡¡Detener a los fascistas!!"
+          "¡¡Detener a los fascistas!!",
+          "¡¡No pasarán!!",
+          "¡¡Viva la república!!"
         ];
       }
       
