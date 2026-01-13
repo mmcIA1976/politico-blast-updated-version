@@ -3,6 +3,7 @@ import { Suspense, useMemo } from "react";
 import { KeyboardControls } from "@react-three/drei";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
+import { Grenades } from "./Grenades";
 import { Enemies } from "./Enemies";
 import { PowerUps } from "./PowerUps";
 import { ScrollingBackground } from "./ScrollingBackground";
@@ -22,6 +23,7 @@ enum Controls {
   left = "left",
   right = "right",
   shoot = "shoot",
+  grenade = "grenade",
 }
 
 const keyMap = [
@@ -30,6 +32,7 @@ const keyMap = [
   { name: Controls.left, keys: ["KeyA", "ArrowLeft"] },
   { name: Controls.right, keys: ["KeyD", "ArrowRight"] },
   { name: Controls.shoot, keys: ["Space"] },
+  { name: Controls.grenade, keys: ["KeyG"] },
 ];
 
 const isMobileDevice = () => {
@@ -75,6 +78,7 @@ export function Game() {
             <StreetProps />
             <Player />
             <Bullets />
+            <Grenades />
             <Enemies />
             <PowerUps />
             <GameManager />

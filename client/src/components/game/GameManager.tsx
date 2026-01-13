@@ -11,6 +11,7 @@ enum Controls {
   left = "left",
   right = "right",
   shoot = "shoot",
+  grenade = "grenade",
 }
 
 const tempVec3A = new THREE.Vector3();
@@ -26,6 +27,10 @@ function vec3Distance(a: Vec3, b: Vec3): number {
 
 let bulletCounter = 0;
 let enemySpawnCounter = 0;
+let grenadeCounter = 0;
+const GRENADE_DISTANCE = 15;
+const GRENADE_COOLDOWN = 2.0;
+const EXPLOSION_RADIUS = 5;
 
 // Max enemies per level (not boss levels)
 const getMaxEnemiesForLevel = (level: number): number => {
@@ -51,10 +56,15 @@ export function GameManager() {
     bullets,
     scrollPosition,
     lastShootTime,
+    lastGrenadeTime,
+    grenades,
     addBullet,
     removeBullet,
     setScrollPosition,
     setLastShootTime,
+    setLastGrenadeTime,
+    addGrenade,
+    updateGrenades,
     addScore,
     loseLife,
     setLives,
@@ -171,6 +181,138 @@ export function GameManager() {
       
       playHit();
       setLastShootTime(currentTime);
+    }
+    
+    const isThrowingGrenade = keys.grenade;
+    if (isThrowingGrenade && currentTime - lastGrenadeTime > GRENADE_COOLDOWN) {
+      const moveForward = keys.forward || touchControls.forward;
+      const moveBack = keys.back || touchControls.back;
+      const moveLeft = keys.left || touchControls.left;
+      const moveRight = keys.right || touchControls.right;
+      
+      let dx = 0;
+      let dz = 0;
+      
+      if (moveForward) dz += 1;
+      if (moveBack) dz -= 1;
+      if (moveLeft) dx += 1;
+      if (moveRight) dx -= 1;
+      
+      if (dx === 0 && dz === 0) {
+        dz = 1;
+      }
+      
+      const length = Math.sqrt(dx * dx + dz * dz);
+      dx /= length;
+      dz /= length;
+      
+      grenadeCounter++;
+      const grenadeId = `g${grenadeCounter}`;
+      
+      const startPos = { x: playerPosition.x, y: playerPosition.y + 0.5, z: playerPosition.z };
+      const targetPos = { 
+        x: playerPosition.x + dx * GRENADE_DISTANCE, 
+        y: 0.3, 
+        z: playerPosition.z + dz * GRENADE_DISTANCE 
+      };
+      
+      addGrenade({
+        id: grenadeId,
+        position: { ...startPos },
+        targetPosition: targetPos,
+        startPosition: startPos,
+        direction: { x: dx, y: 0, z: dz },
+        progress: 0,
+        exploding: false,
+        explosionProgress: 0,
+      });
+      
+      setLastGrenadeTime(currentTime);
+      console.log("Grenade thrown!", grenadeId, "direction:", dx, dz);
+    }
+    
+    if (grenades.length > 0) {
+      const updatedGrenades = grenades.map(grenade => {
+        if (grenade.exploding) {
+          const newExplosionProgress = grenade.explosionProgress + delta * 2;
+          if (newExplosionProgress >= 1) {
+            return null;
+          }
+          return { ...grenade, explosionProgress: newExplosionProgress };
+        }
+        
+        const newProgress = grenade.progress + delta * 2;
+        
+        if (newProgress >= 1) {
+          const explosionPos = grenade.targetPosition;
+          
+          const nearbyEnemies = enemies
+            .map((enemy, idx) => ({
+              enemy,
+              idx,
+              dist: vec3Distance(enemy.position, explosionPos)
+            }))
+            .filter(e => e.dist < EXPLOSION_RADIUS)
+            .sort((a, b) => a.dist - b.dist)
+            .slice(0, 4);
+          
+          if (nearbyEnemies.length > 0) {
+            let scoreToAdd = 0;
+            const killIds: string[] = [];
+            
+            nearbyEnemies.forEach(({ enemy }) => {
+              killIds.push(enemy.id);
+              if (enemy.type === "boss") {
+                scoreToAdd += 500;
+              } else if (enemy.type === "toucan") {
+                scoreToAdd += 750;
+              } else if (enemy.isSpecial) {
+                scoreToAdd += 75;
+              } else {
+                scoreToAdd += 25;
+              }
+              const isBoss1 = enemy.type === "boss";
+              const isBoss2 = enemy.type === "toucan";
+              const isZooPhase = level >= 8;
+              playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
+            });
+            
+            if (scoreToAdd > 0) {
+              addScore(scoreToAdd);
+            }
+            
+            mutateEnemies(currentEnemies => 
+              currentEnemies.filter(e => !killIds.includes(e.id))
+            );
+            
+            console.log("Grenade explosion killed", nearbyEnemies.length, "enemies!");
+          }
+          
+          return { 
+            ...grenade, 
+            progress: 1, 
+            position: { ...explosionPos },
+            exploding: true, 
+            explosionProgress: 0 
+          };
+        }
+        
+        const t = newProgress;
+        const arcHeight = 3;
+        const y = grenade.startPosition.y + arcHeight * 4 * t * (1 - t);
+        
+        return {
+          ...grenade,
+          progress: newProgress,
+          position: {
+            x: grenade.startPosition.x + (grenade.targetPosition.x - grenade.startPosition.x) * t,
+            y: y,
+            z: grenade.startPosition.z + (grenade.targetPosition.z - grenade.startPosition.z) * t,
+          }
+        };
+      }).filter(g => g !== null);
+      
+      updateGrenades(updatedGrenades);
     }
     
     const enemiesToSpawn: Array<{
