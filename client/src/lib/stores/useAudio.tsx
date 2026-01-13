@@ -129,7 +129,16 @@ export const useAudio = create<AudioState>((set, get) => ({
       } else if (isZooPhase) {
         phrases = [
           "¡Eso es bulo!",
-          "¡¡Basta de bulos!!"
+          "¡¡Basta de bulos!!",
+          "¡¡Si no van los trenes pedalea!!",
+          "¡¡Los trenes no van por culpa de Franco!!",
+          "¡¡El poder legislativo me lo paso por el ombligo!!",
+          "¡¡La culpa es del PP!!",
+          "¡¡Eso es desinformación de la ultraderecha!!",
+          "¡¡Renfe funciona perfectamente!!",
+          "¡¡Vox es el nuevo fascismo!!",
+          "¡¡Los bulos de la derecha!!",
+          "¡¡Eso lo dice la fachosfera!!"
         ];
       } else {
         phrases = [
