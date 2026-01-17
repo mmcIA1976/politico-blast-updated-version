@@ -118,26 +118,8 @@ export function GameManager() {
     const shootInterval = hasRapidFire ? 0.12 : 0.5;
     
     if (isShooting && currentTime - lastShootTime > shootInterval) {
-      const moveForward = keys.forward || touchControls.forward;
-      const moveBack = keys.back || touchControls.back;
-      const moveLeft = keys.left || touchControls.left;
-      const moveRight = keys.right || touchControls.right;
-      
-      let dx = 0;
-      let dz = 0;
-      
-      // Build direction from all active inputs - supports all 8 directions
-      if (moveForward) dz += 1;
-      if (moveBack) dz -= 1;
-      if (moveLeft) dx += 1;
-      if (moveRight) dx -= 1;
-      
-      // Default to shooting forward if no direction pressed
-      if (dx === 0 && dz === 0) {
-        dz = 1;
-      }
-      
-      tempVec3A.set(dx, 0, dz).normalize();
+      // Siempre disparar hacia arriba (adelante en el juego)
+      tempVec3A.set(0, 0, 1);
       tempVec3B.set(playerPosition.x, playerPosition.y, playerPosition.z);
       tempVec3B.addScaledVector(tempVec3A, 0.5);
       
@@ -190,26 +172,9 @@ export function GameManager() {
     if (isThrowingGrenade && currentTime - lastGrenadeTime > GRENADE_COOLDOWN && grenadeCount > 0) {
       const canThrow = useGrenadeFromInventory();
       if (canThrow) {
-        const moveForward = keys.forward || touchControls.forward;
-        const moveBack = keys.back || touchControls.back;
-        const moveLeft = keys.left || touchControls.left;
-        const moveRight = keys.right || touchControls.right;
-        
-        let dx = 0;
-        let dz = 0;
-        
-        if (moveForward) dz += 1;
-        if (moveBack) dz -= 1;
-        if (moveLeft) dx += 1;
-        if (moveRight) dx -= 1;
-        
-        if (dx === 0 && dz === 0) {
-          dz = 1;
-        }
-        
-        const length = Math.sqrt(dx * dx + dz * dz);
-        dx /= length;
-        dz /= length;
+        // Siempre lanzar granadas hacia arriba (adelante en el juego)
+        const dx = 0;
+        const dz = 1;
         
         grenadeCounter++;
         const grenadeId = `g${grenadeCounter}`;
