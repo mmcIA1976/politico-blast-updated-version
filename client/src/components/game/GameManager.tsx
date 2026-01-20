@@ -230,33 +230,63 @@ export function GameManager() {
           if (nearbyEnemies.length > 0) {
             let scoreToAdd = 0;
             const killIds: string[] = [];
+            const bossDamage: { id: string; damage: number }[] = [];
             
             nearbyEnemies.forEach(({ enemy }) => {
-              killIds.push(enemy.id);
-              if (enemy.type === "boss") {
-                scoreToAdd += 500;
-              } else if (enemy.type === "toucan") {
-                scoreToAdd += 750;
-              } else if (enemy.isSpecial) {
-                scoreToAdd += 75;
+              const isBoss = enemy.type === "boss" || enemy.type === "toucan";
+              
+              if (isBoss) {
+                // Bosses reciben 3 puntos de daño por granada
+                bossDamage.push({ id: enemy.id, damage: 3 });
+                console.log("Grenade hit boss, dealing 3 damage");
               } else {
-                scoreToAdd += 25;
+                // Enemigos normales mueren con la granada
+                killIds.push(enemy.id);
+                if (enemy.isSpecial) {
+                  scoreToAdd += 75;
+                } else {
+                  scoreToAdd += 25;
+                }
+                const isZooPhase = level >= 8;
+                playEnemyScream(false, isZooPhase, false, level);
               }
-              const isBoss1 = enemy.type === "boss";
-              const isBoss2 = enemy.type === "toucan";
-              const isZooPhase = level >= 8;
-              playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
             });
             
             if (scoreToAdd > 0) {
               addScore(scoreToAdd);
             }
             
-            mutateEnemies(currentEnemies => 
-              currentEnemies.filter(e => !killIds.includes(e.id))
-            );
+            // Aplicar daño a bosses y matar enemigos normales
+            mutateEnemies(currentEnemies => {
+              const result: typeof currentEnemies = [];
+              for (const e of currentEnemies) {
+                if (killIds.includes(e.id)) continue;
+                
+                const dmg = bossDamage.find(b => b.id === e.id);
+                if (dmg) {
+                  const newHealth = e.health - dmg.damage;
+                  if (newHealth <= 0) {
+                    // Boss muerto
+                    if (e.type === "boss") {
+                      addScore(500);
+                    } else if (e.type === "toucan") {
+                      addScore(750);
+                    }
+                    const isBoss1 = e.type === "boss";
+                    const isBoss2 = e.type === "toucan";
+                    const isZooPhase = level >= 8;
+                    playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
+                    continue;
+                  }
+                  result.push({ ...e, health: newHealth });
+                } else {
+                  result.push(e);
+                }
+              }
+              return result;
+            });
             
-            console.log("Grenade explosion killed", nearbyEnemies.length, "enemies!");
+            console.log("Grenade explosion hit", nearbyEnemies.length, "enemies!");
           }
           
           playGrenadeExplosion();
