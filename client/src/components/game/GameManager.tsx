@@ -506,39 +506,20 @@ export function GameManager() {
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
               const bossSpeed = enemy.type === "toucan" ? 4 : 3;
               
-              // Organic movement patterns - multiple sine waves for fluid motion
+              // Movimiento horizontal orgánico
               const strafePhase = Math.sin(age * 1.2) * 6 + Math.sin(age * 0.5) * 3;
-              const verticalPhase = Math.cos(age * 0.7) * 4 + Math.sin(age * 1.0) * 2;
               
-              // Lazy horizontal follow - boss orbits around more than chases directly
-              const followStrength = 0.08; // Much weaker follow
+              // Seguir al jugador horizontalmente
+              const followStrength = 0.15;
               newX += strafePhase * delta * 2;
               newX += dx * followStrength * delta * bossSpeed;
               
-              // Vertical movement - boss moves independently with occasional pursuit
-              const pursuitCycle = Math.sin(age * 0.5);
-              if (pursuitCycle > 0.5 && distanceToPlayer > 12) {
-                // Occasional pursuit phase
-                newZ += (dz / (distanceToPlayer || 1)) * delta * bossSpeed * 0.4;
-              } else {
-                // Normal floating/patrol movement
-                newZ += verticalPhase * delta * 0.8;
-              }
+              // Boss siempre se mantiene por encima del jugador (a distancia fija)
+              const targetZ = playerPosition.z + 12; // Siempre 12 unidades adelante del jugador
+              const zDiff = targetZ - newZ;
+              newZ += zDiff * delta * 2; // Suavemente acercarse a la posición objetivo
               
-              // Keep boss generally ahead but allow player to pass
-              const minZ = playerPosition.z - 15; // Player can get well behind boss
-              const maxZ = playerPosition.z + 25;
-              
-              // Soft boundary push instead of hard clamp
-              if (newZ < minZ + 5) {
-                newZ += delta * 3; // Gently push forward
-              }
-              if (newZ > maxZ - 5) {
-                newZ -= delta * 2; // Gently push back
-              }
-              
-              newX = Math.max(-22, Math.min(22, newX));
-              newZ = Math.max(minZ, Math.min(maxZ, newZ));
+              newX = Math.max(-18, Math.min(18, newX));
             } else {
               newX = enemy.initialX + Math.cos(age * 1.5) * 4;
               newZ = 12 - age * 1.5 + Math.sin(age * 1.5) * 4;
