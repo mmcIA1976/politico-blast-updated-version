@@ -128,6 +128,17 @@ export const useAudio = create<AudioState>((set, get) => ({
           "¡¡Paga tus impuestos facha!!",
           "¡¡Hacienda somos todos!!"
         ];
+      } else if (level === 8) {
+        // Oscar Puente y Félix Bolaños
+        phrases = [
+          "¡¡A ver si te atreves a subirte a un tren!!",
+          "¡¡Renfe está en sus mejores momentos!!",
+          "¡¡Aquí en el Senado no se puede legislar!!",
+          "¡¡Pedro Sánchez es el puto amo!!",
+          "¡¡Si no van los trenes pedalea!!",
+          "¡¡Los trenes no van por culpa de Franco!!",
+          "¡¡Renfe funciona perfectamente!!"
+        ];
       } else if (isZooPhase) {
         phrases = [
           "¡Eso es bulo!",
