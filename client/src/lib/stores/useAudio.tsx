@@ -109,7 +109,7 @@ export const useAudio = create<AudioState>((set, get) => ({
     }
     
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      // No cancelar para permitir que las frases anteriores terminen
       
       let phrases: string[];
       
@@ -186,11 +186,11 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
-      const painSound = isZooPhase ? "¡uuyy!" : "aaayyyyy";
+      const painSound = isZooPhase ? "¡uuyy!" : "¡ay!";
       const painScream = new SpeechSynthesisUtterance(painSound);
       painScream.lang = 'es-ES';
-      painScream.rate = isBoss ? 0.8 : 1.0;
-      painScream.pitch = isBoss ? 0.8 : 1.5;
+      painScream.rate = isBoss ? 1.0 : 1.8;
+      painScream.pitch = isBoss ? 1.0 : 2.0;
       painScream.volume = 0.8;
       
       const utterance = new SpeechSynthesisUtterance(randomPhrase);
