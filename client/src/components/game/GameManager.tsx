@@ -31,6 +31,8 @@ let grenadeCounter = 0;
 const GRENADE_DISTANCE = 15;
 const GRENADE_COOLDOWN = 2.0;
 const EXPLOSION_RADIUS = 8;
+const BOSS_ENRAGE_INTERVAL = 70; // Cada 70 segundos
+const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
 
 // Max enemies per level (not boss levels)
 const getMaxEnemiesForLevel = (level: number): number => {
@@ -368,6 +370,9 @@ export function GameManager() {
       isSpecial?: boolean;
       dying?: boolean;
       dyingProgress?: number;
+      enraged?: boolean;
+      enragedProgress?: number;
+      lastEnrageTime?: number;
     }> = [];
     
     // Reset enemy counter when level changes
@@ -528,6 +533,7 @@ export function GameManager() {
     mutateEnemies((currentEnemies) => {
       let enemies = enemiesToSpawn.length > 0 ? [...currentEnemies, ...enemiesToSpawn] : currentEnemies;
       const enemiesToRemove: string[] = [];
+      const enragedUpdates: Array<{ id: string; enraged: boolean; enragedProgress: number; lastEnrageTime?: number }> = [];
       
       enemies = enemies.map(enemy => {
         // Actualizar animación de muerte
@@ -555,6 +561,50 @@ export function GameManager() {
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
               const bossSpeed = enemy.type === "toucan" ? 4 : 3;
+              
+              // Lógica de Enrage para La Chiki (Boss 1)
+              if (enemy.type === "boss") {
+                const lastEnrage = enemy.lastEnrageTime || enemy.spawnTime;
+                const timeSinceLastEnrage = currentTime - lastEnrage;
+                
+                if (enemy.enraged) {
+                  // Actualizar progreso del enrage
+                  const newProgress = (enemy.enragedProgress || 0) + delta / BOSS_ENRAGE_DURATION;
+                  
+                  if (newProgress >= 1) {
+                    // Terminar enrage - resetear lastEnrageTime para próximo ciclo de 70s
+                    enragedUpdates.push({ id: enemy.id, enraged: false, enragedProgress: 0, lastEnrageTime: currentTime });
+                  } else {
+                    // Mantener estado de enrage (sin disparar más balas, eso se hace al inicio)
+                    enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: newProgress });
+                  }
+                } else if (timeSinceLastEnrage >= BOSS_ENRAGE_INTERVAL) {
+                  // Iniciar nuevo enrage - establecer lastEnrageTime a currentTime
+                  enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: 0, lastEnrageTime: currentTime });
+                  
+                  // Disparar UNA ráfaga de balas en 8 direcciones al inicio del enrage
+                  const numBullets = 8;
+                  for (let b = 0; b < numBullets; b++) {
+                    const angle = (b / numBullets) * Math.PI * 2;
+                    bulletCounter++;
+                    enemyBulletsToAdd.push({
+                      id: `rage${bulletCounter}`,
+                      position: { x: enemy.position.x, y: enemy.position.y + 1, z: enemy.position.z },
+                      direction: { x: Math.sin(angle), y: 0, z: Math.cos(angle) },
+                      speed: 12,
+                      fromPlayer: false,
+                    });
+                  }
+                  
+                  // Decir la frase de furia (solo una vez al inicio)
+                  const utterance = new SpeechSynthesisUtterance("¡Me cago en la mar llena de fascistas!");
+                  utterance.lang = "es-ES";
+                  utterance.rate = 1.1;
+                  utterance.pitch = 1.3;
+                  speechSynthesis.speak(utterance);
+                  console.log("LA CHIKI ENRAGED! ¡Me cago en la mar llena de fascistas!");
+                }
+              }
               
               // Movimiento horizontal orgánico
               const strafePhase = Math.sin(age * 1.2) * 6 + Math.sin(age * 0.5) * 3;
@@ -699,6 +749,22 @@ export function GameManager() {
             playPlayerDamage();
           }
         }
+      }
+      
+      // Aplicar actualizaciones de enrage a los enemigos
+      if (enragedUpdates.length > 0) {
+        enemies = enemies.map(e => {
+          const update = enragedUpdates.find(u => u.id === e.id);
+          if (update) {
+            return { 
+              ...e, 
+              enraged: update.enraged, 
+              enragedProgress: update.enragedProgress,
+              lastEnrageTime: update.lastEnrageTime !== undefined ? update.lastEnrageTime : e.lastEnrageTime
+            };
+          }
+          return e;
+        });
       }
       
       if (enemiesToRemove.length > 0) {

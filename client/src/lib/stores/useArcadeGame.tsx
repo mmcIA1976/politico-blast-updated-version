@@ -42,6 +42,9 @@ export interface Enemy {
   isSpecial?: boolean;
   dying?: boolean;
   dyingProgress?: number;
+  enraged?: boolean;
+  enragedProgress?: number;
+  lastEnrageTime?: number;
 }
 
 export interface PowerUp {

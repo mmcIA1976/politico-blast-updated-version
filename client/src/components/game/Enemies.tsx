@@ -21,26 +21,39 @@ function PoliticianEnemy({ level, faceTexture, faceTexture2, isSpecial }: { leve
   );
 }
 
-function BossEnemy({ bossFaceTexture }: { bossFaceTexture: THREE.Texture }) {
+function BossEnemy({ bossFaceTexture, enraged, enragedProgress }: { bossFaceTexture: THREE.Texture; enraged?: boolean; enragedProgress?: number }) {
+  // Cuando está enraged: color rojo brillante y salta
+  const bodyColor = enraged ? "#ff0000" : "#ef4444";
+  const emissiveColor = enraged ? "#ff0000" : "#000000";
+  const emissiveIntensity = enraged ? 1.5 : 0;
+  
+  // Animación de salto durante el enrage (sube y baja)
+  const jumpHeight = enraged && enragedProgress !== undefined 
+    ? Math.sin(enragedProgress * Math.PI) * 3 
+    : 0;
+  
   return (
-    <>
+    <group position={[0, jumpHeight, 0]}>
       <mesh position={[0, 0.7, 0]} castShadow>
         <boxGeometry args={[1.2, 1.5, 1.2]} />
-        <meshStandardMaterial color="#ef4444" />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 2.0, -0.8]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.6, 32]} />
-        <meshStandardMaterial map={bossFaceTexture} />
+        <meshStandardMaterial map={bossFaceTexture} emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.3} />
       </mesh>
       <mesh position={[-0.8, 3.0, -0.5]}>
         <coneGeometry args={[0.25, 0.6, 8]} />
-        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={enraged ? 1.5 : 0.5} />
       </mesh>
       <mesh position={[0.8, 3.0, -0.5]}>
         <coneGeometry args={[0.25, 0.6, 8]} />
-        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.5} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={enraged ? 1.5 : 0.5} />
       </mesh>
-    </>
+      {enraged && (
+        <pointLight position={[0, 2, 0]} intensity={5} distance={10} color="#ff0000" />
+      )}
+    </group>
   );
 }
 
@@ -200,7 +213,7 @@ export function Enemies() {
               <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} />
             )}
             {enemy.type === "boss" && (
-              <BossEnemy bossFaceTexture={bossFaceTexture} />
+              <BossEnemy bossFaceTexture={bossFaceTexture} enraged={enemy.enraged} enragedProgress={enemy.enragedProgress} />
             )}
             {enemy.type === "gorilla" && (
               <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} />
