@@ -624,13 +624,18 @@ export function GameManager() {
                     speechSynthesis.speak(utterance);
                     console.log("LA CHIKI ENRAGED (JUMP)! ¡Me cago en la mar llena de fascistas!");
                   } else {
-                    // Modo temblor: frase YO MOPONGOO
-                    const utterance = new SpeechSynthesisUtterance("¡YO MOPONGOO!");
-                    utterance.lang = "es-ES";
-                    utterance.rate = 1.3;
-                    utterance.pitch = 1.5;
-                    speechSynthesis.speak(utterance);
-                    console.log("LA CHIKI ENRAGED (SHAKE)! ¡YO MOPONGOO!");
+                    // Modo temblor: frase YO MOPONGOO dos veces
+                    const utterance1 = new SpeechSynthesisUtterance("¡YO MOPONGOO!");
+                    utterance1.lang = "es-ES";
+                    utterance1.rate = 1.3;
+                    utterance1.pitch = 1.5;
+                    const utterance2 = new SpeechSynthesisUtterance("¡YO MOPONGOO!");
+                    utterance2.lang = "es-ES";
+                    utterance2.rate = 1.3;
+                    utterance2.pitch = 1.5;
+                    speechSynthesis.speak(utterance1);
+                    speechSynthesis.speak(utterance2);
+                    console.log("LA CHIKI ENRAGED (SHAKE)! ¡YO MOPONGOO! ¡YO MOPONGOO!");
                   }
                 }
               }
