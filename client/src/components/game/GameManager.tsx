@@ -650,6 +650,55 @@ export function GameManager() {
                 }
               }
               
+              // Lógica de Enrage para Yolanda Díaz (Tucán - Boss 2)
+              if (enemy.type === "toucan") {
+                const lastEnrage = enemy.lastEnrageTime || enemy.spawnTime;
+                const timeSinceLastEnrage = currentTime - lastEnrage;
+                
+                if (enemy.enraged) {
+                  // Actualizar progreso del enrage
+                  const newProgress = (enemy.enragedProgress || 0) + delta / BOSS_ENRAGE_DURATION;
+                  
+                  if (newProgress >= 1) {
+                    // Terminar enrage
+                    enragedUpdates.push({ id: enemy.id, enraged: false, enragedProgress: 0, lastEnrageTime: currentTime });
+                  } else {
+                    // Disparar balas en abanico durante el modo SUMAR
+                    if (Math.floor(newProgress * 8) > Math.floor((enemy.enragedProgress || 0) * 8)) {
+                      const numBullets = 5;
+                      for (let b = 0; b < numBullets; b++) {
+                        const angle = ((b - 2) / 4) * Math.PI * 0.6; // Abanico frontal
+                        bulletCounter++;
+                        enemyBulletsToAdd.push({
+                          id: `sumar${bulletCounter}`,
+                          position: { x: enemy.position.x, y: enemy.position.y + 1, z: enemy.position.z },
+                          direction: { x: Math.sin(angle), y: 0, z: -Math.cos(angle) },
+                          speed: 14,
+                          fromPlayer: false,
+                        });
+                      }
+                    }
+                    enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: newProgress });
+                  }
+                } else if (timeSinceLastEnrage >= BOSS_ENRAGE_INTERVAL) {
+                  // Iniciar enrage SUMAR
+                  enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: 0, lastEnrageTime: currentTime });
+                  
+                  // Frase SUMAR dos veces
+                  const utterance1 = new SpeechSynthesisUtterance("¡SUMAR!");
+                  utterance1.lang = "es-ES";
+                  utterance1.rate = 1.2;
+                  utterance1.pitch = 1.4;
+                  const utterance2 = new SpeechSynthesisUtterance("¡SUMAR!");
+                  utterance2.lang = "es-ES";
+                  utterance2.rate = 1.2;
+                  utterance2.pitch = 1.4;
+                  speechSynthesis.speak(utterance1);
+                  speechSynthesis.speak(utterance2);
+                  console.log("YOLANDA ENRAGED (SUMAR)! ¡SUMAR! ¡SUMAR!");
+                }
+              }
+              
               // Movimiento horizontal orgánico
               const strafePhase = Math.sin(age * 1.2) * 6 + Math.sin(age * 0.5) * 3;
               
