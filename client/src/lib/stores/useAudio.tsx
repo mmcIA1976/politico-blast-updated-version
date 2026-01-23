@@ -186,7 +186,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
-      // Sonido de dolor corto e inmediato
+      // Sonido de dolor corto
       const painSound = isZooPhase ? "¡uy!" : "¡ay!";
       const painScream = new SpeechSynthesisUtterance(painSound);
       painScream.lang = 'es-ES';
@@ -194,21 +194,18 @@ export const useAudio = create<AudioState>((set, get) => ({
       painScream.pitch = isBoss ? 1.0 : 2.0;
       painScream.volume = 0.9;
       
-      // Solo reproducir el dolor, sin encolar más
-      window.speechSynthesis.speak(painScream);
+      // Frase completa
+      const utterance = new SpeechSynthesisUtterance(randomPhrase);
+      utterance.lang = 'es-ES';
+      utterance.rate = isBoss ? 1.0 : 1.3;
+      utterance.pitch = isBoss ? 0.9 : 1.2;
+      utterance.volume = 0.7;
       
-      // Las frases solo se dicen ocasionalmente (30% de probabilidad) y si no hay nada en cola
-      if (Math.random() < 0.3 && window.speechSynthesis.pending === false) {
-        const utterance = new SpeechSynthesisUtterance(randomPhrase);
-        utterance.lang = 'es-ES';
-        utterance.rate = isBoss ? 1.0 : 1.3;
-        utterance.pitch = isBoss ? 0.9 : 1.2;
-        utterance.volume = 0.7;
-        
-        painScream.onend = () => {
-          window.speechSynthesis.speak(utterance);
-        };
-      }
+      // Reproducir dolor y luego frase
+      window.speechSynthesis.speak(painScream);
+      painScream.onend = () => {
+        window.speechSynthesis.speak(utterance);
+      };
     }
   },
   
