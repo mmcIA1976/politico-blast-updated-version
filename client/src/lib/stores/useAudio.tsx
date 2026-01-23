@@ -186,26 +186,37 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
-      // Sonido de dolor corto
-      const painSound = isZooPhase ? "¡uy!" : "¡ay!";
-      const painScream = new SpeechSynthesisUtterance(painSound);
-      painScream.lang = 'es-ES';
-      painScream.rate = isBoss ? 1.2 : 2.0;
-      painScream.pitch = isBoss ? 1.0 : 2.0;
-      painScream.volume = 0.9;
+      // Sonido de dolor usando AudioContext (inmediato, no interfiere con frases)
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        // Tono agudo y corto para el dolor
+        oscillator.frequency.value = isBoss ? 400 : 800;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.3;
+        
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+      } catch (e) {
+        console.log("AudioContext not available");
+      }
       
-      // Frase completa
-      const utterance = new SpeechSynthesisUtterance(randomPhrase);
-      utterance.lang = 'es-ES';
-      utterance.rate = isBoss ? 1.0 : 1.3;
-      utterance.pitch = isBoss ? 0.9 : 1.2;
-      utterance.volume = 0.7;
-      
-      // Reproducir dolor y luego frase
-      window.speechSynthesis.speak(painScream);
-      painScream.onend = () => {
+      // Frase - solo si no hay nada reproduciéndose actualmente
+      if (!window.speechSynthesis.speaking) {
+        const utterance = new SpeechSynthesisUtterance(randomPhrase);
+        utterance.lang = 'es-ES';
+        utterance.rate = isBoss ? 1.0 : 1.3;
+        utterance.pitch = isBoss ? 0.9 : 1.2;
+        utterance.volume = 0.7;
+        
         window.speechSynthesis.speak(utterance);
-      };
+      }
     }
   },
   
