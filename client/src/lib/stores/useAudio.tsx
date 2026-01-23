@@ -186,23 +186,28 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       
-      // Sonido de dolor usando AudioContext (inmediato, no interfiere con frases)
+      // Sonido de impacto usando AudioContext (inmediato, no interfiere con frases)
       try {
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
         
-        oscillator.connect(gainNode);
+        // Crear ruido blanco para sonido de impacto
+        const bufferSize = audioCtx.sampleRate * 0.08;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+        }
+        
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = isBoss ? 0.4 : 0.25;
+        
+        noise.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         
-        // Tono agudo y corto para el dolor
-        oscillator.frequency.value = isBoss ? 400 : 800;
-        oscillator.type = 'sine';
-        gainNode.gain.value = 0.3;
-        
-        oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        oscillator.stop(audioCtx.currentTime + 0.1);
+        noise.start();
       } catch (e) {
         console.log("AudioContext not available");
       }
