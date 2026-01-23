@@ -185,25 +185,35 @@ export function Enemies() {
   
   return (
     <group>
-      {enemies.map((enemy) => (
-        <group key={enemy.id} position={[enemy.position.x, enemy.position.y, enemy.position.z]}>
-          {enemy.type === "politician" && (
-            <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} />
-          )}
-          {enemy.type === "boss" && (
-            <BossEnemy bossFaceTexture={bossFaceTexture} />
-          )}
-          {enemy.type === "gorilla" && (
-            <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} />
-          )}
-          {enemy.type === "penguin" && (
-            <PenguinEnemy faceTexture={felixBolanosFace} isSpecial={enemy.isSpecial} />
-          )}
-          {enemy.type === "toucan" && (
-            <ToucanEnemy faceTexture={yolandaDiazFace} />
-          )}
-        </group>
-      ))}
+      {enemies.map((enemy) => {
+        // Calcular rotación para animación de muerte (caer hacia atrás)
+        const dyingRotation = enemy.dying ? (enemy.dyingProgress || 0) * (Math.PI / 2) : 0;
+        const dyingY = enemy.dying ? -(enemy.dyingProgress || 0) * 0.8 : 0;
+        
+        return (
+          <group 
+            key={enemy.id} 
+            position={[enemy.position.x, enemy.position.y + dyingY, enemy.position.z]}
+            rotation={[-dyingRotation, 0, 0]}
+          >
+            {enemy.type === "politician" && (
+              <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} />
+            )}
+            {enemy.type === "boss" && (
+              <BossEnemy bossFaceTexture={bossFaceTexture} />
+            )}
+            {enemy.type === "gorilla" && (
+              <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} />
+            )}
+            {enemy.type === "penguin" && (
+              <PenguinEnemy faceTexture={felixBolanosFace} isSpecial={enemy.isSpecial} />
+            )}
+            {enemy.type === "toucan" && (
+              <ToucanEnemy faceTexture={yolandaDiazFace} />
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 }

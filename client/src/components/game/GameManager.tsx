@@ -328,6 +328,8 @@ export function GameManager() {
       spawnTime: number;
       initialX: number;
       isSpecial?: boolean;
+      dying?: boolean;
+      dyingProgress?: number;
     }> = [];
     
     // Reset enemy counter when level changes
@@ -490,6 +492,16 @@ export function GameManager() {
       const enemiesToRemove: string[] = [];
       
       enemies = enemies.map(enemy => {
+        // Actualizar animación de muerte
+        if (enemy.dying) {
+          const newDyingProgress = (enemy.dyingProgress || 0) + delta * 2;
+          if (newDyingProgress >= 1) {
+            enemiesToRemove.push(enemy.id);
+            return enemy;
+          }
+          return { ...enemy, dyingProgress: newDyingProgress };
+        }
+        
         const age = currentTime - enemy.spawnTime;
         let newX = enemy.position.x;
         let newZ = enemy.position.z;
@@ -595,14 +607,17 @@ export function GameManager() {
                 const isZooPhase = level >= 8;
                 playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
                 
-                if (enemies[j].health <= 0) {
+                if (enemies[j].health <= 0 && !enemies[j].dying) {
+                  // Iniciar animación de muerte
+                  enemies[j] = { ...enemies[j], dying: true, dyingProgress: 0 };
+                  
                   if (enemy.type === "boss") {
                     scoreToAdd += 500;
                     setTimeout(() => {
                       clearBattlefield();
                       setScrollPosition(315);
                       setLevel(8);
-                    }, 500);
+                    }, 1500);
                   } else if (enemy.type === "toucan") {
                     scoreToAdd += 1000;
                     shouldEndGame = true;
@@ -632,8 +647,6 @@ export function GameManager() {
                       });
                     }
                   }
-                  
-                  enemiesToRemove.push(enemy.id);
                 }
               }
             }

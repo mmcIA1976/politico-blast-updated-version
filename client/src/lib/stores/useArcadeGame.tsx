@@ -40,6 +40,8 @@ export interface Enemy {
   spawnTime: number;
   initialX: number;
   isSpecial?: boolean;
+  dying?: boolean;
+  dyingProgress?: number;
 }
 
 export interface PowerUp {
