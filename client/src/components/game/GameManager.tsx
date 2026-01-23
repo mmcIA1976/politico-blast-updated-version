@@ -31,7 +31,7 @@ let grenadeCounter = 0;
 const GRENADE_DISTANCE = 15;
 const GRENADE_COOLDOWN = 2.0;
 const EXPLOSION_RADIUS = 8;
-const BOSS_ENRAGE_INTERVAL = 70; // Cada 70 segundos
+const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
 
 // Max enemies per level (not boss levels)
