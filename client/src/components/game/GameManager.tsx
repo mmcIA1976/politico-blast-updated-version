@@ -309,8 +309,18 @@ export function GameManager() {
                     // Boss muerto
                     if (e.type === "boss") {
                       addScore(500);
+                      // Transición al nivel 8 después de matar al boss 1
+                      setTimeout(() => {
+                        clearBattlefield();
+                        setScrollPosition(315);
+                        setLevel(8);
+                      }, 1500);
                     } else if (e.type === "toucan") {
                       addScore(750);
+                      // Victoria después de matar al boss 2
+                      setTimeout(() => {
+                        setPhase("victory");
+                      }, 1500);
                     }
                     const isBoss1 = e.type === "boss";
                     const isBoss2 = e.type === "toucan";
