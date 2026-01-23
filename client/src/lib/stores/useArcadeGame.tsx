@@ -63,6 +63,15 @@ export interface Obstacle {
   size: Vec3;
 }
 
+export interface Debris {
+  id: string;
+  position: Vec3;
+  velocity: Vec3;
+  color: string;
+  size: number;
+  lifetime: number;
+}
+
 export interface TouchControls {
   forward: boolean;
   back: boolean;
@@ -121,6 +130,9 @@ interface ArcadeGameState {
   loseLife: () => void;
   restart: () => void;
   clearBattlefield: () => void;
+  debris: Debris[];
+  addDebris: (debris: Debris[]) => void;
+  updateDebris: (delta: number) => void;
 }
 
 const initialPlayerPosition: Vec3 = { x: 0, y: 0, z: -5 };
@@ -145,6 +157,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     grenades: [],
     grenadeCount: 3,
     touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
+    debris: [],
     
     setPhase: (phase) => set({ phase }),
     
@@ -283,6 +296,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       grenades: [],
       grenadeCount: 3,
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
+      debris: [],
     }),
     
     clearBattlefield: () => set({
@@ -290,6 +304,30 @@ export const useArcadeGame = create<ArcadeGameState>()(
       enemies: [],
       powerUps: [],
       grenades: [],
+      debris: [],
     }),
+    
+    addDebris: (newDebris) => set((state) => ({
+      debris: [...state.debris, ...newDebris]
+    })),
+    
+    updateDebris: (delta) => set((state) => ({
+      debris: state.debris
+        .map(d => ({
+          ...d,
+          position: {
+            x: d.position.x + d.velocity.x * delta,
+            y: Math.max(0, d.position.y + d.velocity.y * delta),
+            z: d.position.z + d.velocity.z * delta,
+          },
+          velocity: {
+            x: d.velocity.x * 0.98,
+            y: d.velocity.y - 15 * delta, // Gravedad
+            z: d.velocity.z * 0.98,
+          },
+          lifetime: d.lifetime - delta,
+        }))
+        .filter(d => d.lifetime > 0)
+    })),
   }))
 );

@@ -30,7 +30,7 @@ let enemySpawnCounter = 0;
 let grenadeCounter = 0;
 const GRENADE_DISTANCE = 15;
 const GRENADE_COOLDOWN = 2.0;
-const EXPLOSION_RADIUS = 5;
+const EXPLOSION_RADIUS = 8;
 
 // Max enemies per level (not boss levels)
 const getMaxEnemiesForLevel = (level: number): number => {
@@ -82,6 +82,8 @@ export function GameManager() {
     updateActivePowerUps,
     clearBattlefield,
     enemies,
+    addDebris,
+    updateDebris,
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
@@ -103,6 +105,9 @@ export function GameManager() {
     if (frameCounter.current % 3 === 0) {
       updateActivePowerUps(currentTime);
     }
+    
+    // Actualizar debris
+    updateDebris(delta);
     
     const newScrollPosition = Math.max(scrollPosition, playerPosition.z);
     if (Math.abs(newScrollPosition - lastScrollUpdate.current) > 0.5) {
@@ -225,12 +230,15 @@ export function GameManager() {
             }))
             .filter(e => e.dist < EXPLOSION_RADIUS)
             .sort((a, b) => a.dist - b.dist)
-            .slice(0, 4);
+            .slice(0, 6);
           
           if (nearbyEnemies.length > 0) {
             let scoreToAdd = 0;
             const killIds: string[] = [];
             const bossDamage: { id: string; damage: number }[] = [];
+            
+            const newDebris: Array<{id: string; position: {x: number; y: number; z: number}; velocity: {x: number; y: number; z: number}; color: string; size: number; lifetime: number}> = [];
+            let debrisCounter = 0;
             
             nearbyEnemies.forEach(({ enemy }) => {
               const isBoss = enemy.type === "boss" || enemy.type === "toucan";
@@ -240,8 +248,33 @@ export function GameManager() {
                 bossDamage.push({ id: enemy.id, damage: 3 });
                 console.log("Grenade hit boss, dealing 3 damage");
               } else {
-                // Enemigos normales mueren con la granada
+                // Enemigos normales mueren con la granada - crear debris
                 killIds.push(enemy.id);
+                
+                // Crear trozos que salen disparados
+                const colors = ["#dc2626", "#7f1d1d", "#991b1b", "#450a0a", "#fef08a"];
+                for (let i = 0; i < 8; i++) {
+                  debrisCounter++;
+                  const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
+                  const speed = 8 + Math.random() * 12;
+                  newDebris.push({
+                    id: `debris_${enemy.id}_${debrisCounter}`,
+                    position: { 
+                      x: enemy.position.x, 
+                      y: enemy.position.y + 0.5 + Math.random() * 0.5, 
+                      z: enemy.position.z 
+                    },
+                    velocity: {
+                      x: Math.cos(angle) * speed,
+                      y: 5 + Math.random() * 8,
+                      z: Math.sin(angle) * speed,
+                    },
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: 0.15 + Math.random() * 0.2,
+                    lifetime: 1.5 + Math.random() * 0.5,
+                  });
+                }
+                
                 if (enemy.isSpecial) {
                   scoreToAdd += 75;
                 } else {
@@ -251,6 +284,11 @@ export function GameManager() {
                 playEnemyScream(false, isZooPhase, false, level);
               }
             });
+            
+            // Añadir debris al estado
+            if (newDebris.length > 0) {
+              addDebris(newDebris);
+            }
             
             if (scoreToAdd > 0) {
               addScore(scoreToAdd);

@@ -4,6 +4,7 @@ import { KeyboardControls } from "@react-three/drei";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
 import { Grenades } from "./Grenades";
+import { Debris } from "./Debris";
 import { Enemies } from "./Enemies";
 import { PowerUps } from "./PowerUps";
 import { ScrollingBackground } from "./ScrollingBackground";
@@ -79,6 +80,7 @@ export function Game() {
             <Player />
             <Bullets />
             <Grenades />
+            <Debris />
             <Enemies />
             <PowerUps />
             <GameManager />
