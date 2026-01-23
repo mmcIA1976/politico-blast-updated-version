@@ -45,6 +45,7 @@ export interface Enemy {
   enraged?: boolean;
   enragedProgress?: number;
   lastEnrageTime?: number;
+  enrageMode?: "jump" | "shake"; // Alternar entre salto y temblor
 }
 
 export interface PowerUp {

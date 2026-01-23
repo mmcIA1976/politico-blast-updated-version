@@ -373,6 +373,7 @@ export function GameManager() {
       enraged?: boolean;
       enragedProgress?: number;
       lastEnrageTime?: number;
+      enrageMode?: "jump" | "shake";
     }> = [];
     
     // Reset enemy counter when level changes
@@ -533,7 +534,7 @@ export function GameManager() {
     mutateEnemies((currentEnemies) => {
       let enemies = enemiesToSpawn.length > 0 ? [...currentEnemies, ...enemiesToSpawn] : currentEnemies;
       const enemiesToRemove: string[] = [];
-      const enragedUpdates: Array<{ id: string; enraged: boolean; enragedProgress: number; lastEnrageTime?: number }> = [];
+      const enragedUpdates: Array<{ id: string; enraged: boolean; enragedProgress: number; lastEnrageTime?: number; enrageMode?: "jump" | "shake" }> = [];
       
       enemies = enemies.map(enemy => {
         // Actualizar animación de muerte
@@ -572,37 +573,65 @@ export function GameManager() {
                   const newProgress = (enemy.enragedProgress || 0) + delta / BOSS_ENRAGE_DURATION;
                   
                   if (newProgress >= 1) {
-                    // Terminar enrage - resetear lastEnrageTime para próximo ciclo de 70s
+                    // Terminar enrage - resetear lastEnrageTime para próximo ciclo
                     enragedUpdates.push({ id: enemy.id, enraged: false, enragedProgress: 0, lastEnrageTime: currentTime });
                   } else {
-                    // Mantener estado de enrage (sin disparar más balas, eso se hace al inicio)
-                    enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: newProgress });
+                    // Mantener estado de enrage
+                    // En modo shake, disparar balas continuamente durante el temblor
+                    if (enemy.enrageMode === "shake" && Math.floor(newProgress * 10) > Math.floor((enemy.enragedProgress || 0) * 10)) {
+                      const numBullets = 6;
+                      for (let b = 0; b < numBullets; b++) {
+                        const angle = (b / numBullets) * Math.PI * 2 + newProgress * Math.PI;
+                        bulletCounter++;
+                        enemyBulletsToAdd.push({
+                          id: `shake${bulletCounter}`,
+                          position: { x: enemy.position.x, y: enemy.position.y + 1, z: enemy.position.z },
+                          direction: { x: Math.sin(angle), y: 0, z: Math.cos(angle) },
+                          speed: 10,
+                          fromPlayer: false,
+                        });
+                      }
+                    }
+                    enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: newProgress, enrageMode: enemy.enrageMode });
                   }
                 } else if (timeSinceLastEnrage >= BOSS_ENRAGE_INTERVAL) {
-                  // Iniciar nuevo enrage - establecer lastEnrageTime a currentTime
-                  enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: 0, lastEnrageTime: currentTime });
+                  // Alternar entre modo jump y shake
+                  const nextMode: "jump" | "shake" = enemy.enrageMode === "jump" ? "shake" : "jump";
                   
-                  // Disparar UNA ráfaga de balas en 8 direcciones al inicio del enrage
-                  const numBullets = 8;
-                  for (let b = 0; b < numBullets; b++) {
-                    const angle = (b / numBullets) * Math.PI * 2;
-                    bulletCounter++;
-                    enemyBulletsToAdd.push({
-                      id: `rage${bulletCounter}`,
-                      position: { x: enemy.position.x, y: enemy.position.y + 1, z: enemy.position.z },
-                      direction: { x: Math.sin(angle), y: 0, z: Math.cos(angle) },
-                      speed: 12,
-                      fromPlayer: false,
-                    });
+                  // Iniciar nuevo enrage
+                  enragedUpdates.push({ id: enemy.id, enraged: true, enragedProgress: 0, lastEnrageTime: currentTime, enrageMode: nextMode });
+                  
+                  if (nextMode === "jump") {
+                    // Modo salto: dispara ráfaga al inicio
+                    const numBullets = 8;
+                    for (let b = 0; b < numBullets; b++) {
+                      const angle = (b / numBullets) * Math.PI * 2;
+                      bulletCounter++;
+                      enemyBulletsToAdd.push({
+                        id: `rage${bulletCounter}`,
+                        position: { x: enemy.position.x, y: enemy.position.y + 1, z: enemy.position.z },
+                        direction: { x: Math.sin(angle), y: 0, z: Math.cos(angle) },
+                        speed: 12,
+                        fromPlayer: false,
+                      });
+                    }
+                    
+                    // Frase del modo salto
+                    const utterance = new SpeechSynthesisUtterance("¡Me cago en la mar llena de fascistas!");
+                    utterance.lang = "es-ES";
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.3;
+                    speechSynthesis.speak(utterance);
+                    console.log("LA CHIKI ENRAGED (JUMP)! ¡Me cago en la mar llena de fascistas!");
+                  } else {
+                    // Modo temblor: frase YO ME OPONGO
+                    const utterance = new SpeechSynthesisUtterance("¡YO ME OPONGO!");
+                    utterance.lang = "es-ES";
+                    utterance.rate = 1.3;
+                    utterance.pitch = 1.5;
+                    speechSynthesis.speak(utterance);
+                    console.log("LA CHIKI ENRAGED (SHAKE)! ¡YO ME OPONGO!");
                   }
-                  
-                  // Decir la frase de furia (solo una vez al inicio)
-                  const utterance = new SpeechSynthesisUtterance("¡Me cago en la mar llena de fascistas!");
-                  utterance.lang = "es-ES";
-                  utterance.rate = 1.1;
-                  utterance.pitch = 1.3;
-                  speechSynthesis.speak(utterance);
-                  console.log("LA CHIKI ENRAGED! ¡Me cago en la mar llena de fascistas!");
                 }
               }
               
@@ -760,7 +789,8 @@ export function GameManager() {
               ...e, 
               enraged: update.enraged, 
               enragedProgress: update.enragedProgress,
-              lastEnrageTime: update.lastEnrageTime !== undefined ? update.lastEnrageTime : e.lastEnrageTime
+              lastEnrageTime: update.lastEnrageTime !== undefined ? update.lastEnrageTime : e.lastEnrageTime,
+              enrageMode: update.enrageMode !== undefined ? update.enrageMode : e.enrageMode
             };
           }
           return e;

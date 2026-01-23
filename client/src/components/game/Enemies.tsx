@@ -21,19 +21,30 @@ function PoliticianEnemy({ level, faceTexture, faceTexture2, isSpecial }: { leve
   );
 }
 
-function BossEnemy({ bossFaceTexture, enraged, enragedProgress }: { bossFaceTexture: THREE.Texture; enraged?: boolean; enragedProgress?: number }) {
-  // Cuando está enraged: color rojo brillante y salta
+function BossEnemy({ bossFaceTexture, enraged, enragedProgress, enrageMode }: { bossFaceTexture: THREE.Texture; enraged?: boolean; enragedProgress?: number; enrageMode?: "jump" | "shake" }) {
+  // Cuando está enraged: color rojo brillante
   const bodyColor = enraged ? "#ff0000" : "#ef4444";
   const emissiveColor = enraged ? "#ff0000" : "#000000";
   const emissiveIntensity = enraged ? 1.5 : 0;
   
-  // Animación de salto durante el enrage (sube y baja)
-  const jumpHeight = enraged && enragedProgress !== undefined 
-    ? Math.sin(enragedProgress * Math.PI) * 3 
-    : 0;
+  // Animación según el modo de furia
+  let offsetY = 0;
+  let offsetX = 0;
+  let shakeRotation = 0;
+  
+  if (enraged && enragedProgress !== undefined) {
+    if (enrageMode === "jump") {
+      // Modo salto: sube y baja
+      offsetY = Math.sin(enragedProgress * Math.PI) * 3;
+    } else if (enrageMode === "shake") {
+      // Modo temblor: vibra rápidamente y se mueve de lado a lado
+      offsetX = Math.sin(enragedProgress * Math.PI * 8) * 2; // Movimiento lateral rápido
+      shakeRotation = Math.sin(enragedProgress * Math.PI * 20) * 0.15; // Temblor
+    }
+  }
   
   return (
-    <group position={[0, jumpHeight, 0]}>
+    <group position={[offsetX, offsetY, 0]} rotation={[0, 0, shakeRotation]}>
       <mesh position={[0, 0.7, 0]} castShadow>
         <boxGeometry args={[1.2, 1.5, 1.2]} />
         <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
@@ -213,7 +224,7 @@ export function Enemies() {
               <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} />
             )}
             {enemy.type === "boss" && (
-              <BossEnemy bossFaceTexture={bossFaceTexture} enraged={enemy.enraged} enragedProgress={enemy.enragedProgress} />
+              <BossEnemy bossFaceTexture={bossFaceTexture} enraged={enemy.enraged} enragedProgress={enemy.enragedProgress} enrageMode={enemy.enrageMode} />
             )}
             {enemy.type === "gorilla" && (
               <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} />
