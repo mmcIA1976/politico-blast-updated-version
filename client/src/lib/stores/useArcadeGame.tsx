@@ -82,6 +82,7 @@ export interface TouchControls {
   left: boolean;
   right: boolean;
   shooting: boolean;
+  throwingGrenade: boolean;
 }
 
 interface ArcadeGameState {
@@ -160,7 +161,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     lastGrenadeTime: 0,
     grenades: [],
     grenadeCount: 3,
-    touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
+    touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
     debris: [],
     
     setPhase: (phase) => set({ phase }),
@@ -299,7 +300,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       lastGrenadeTime: 0,
       grenades: [],
       grenadeCount: 3,
-      touchControls: { forward: false, back: false, left: false, right: false, shooting: false },
+      touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
       debris: [],
     }),
     

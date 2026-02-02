@@ -175,7 +175,7 @@ export function GameManager() {
       setLastShootTime(currentTime);
     }
     
-    const isThrowingGrenade = keys.grenade;
+    const isThrowingGrenade = keys.grenade || touchControls.throwingGrenade;
     if (isThrowingGrenade && currentTime - lastGrenadeTime > GRENADE_COOLDOWN && grenadeCount > 0) {
       const canThrow = useGrenadeFromInventory();
       if (canThrow) {

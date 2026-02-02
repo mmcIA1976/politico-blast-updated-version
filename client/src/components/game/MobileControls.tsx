@@ -31,6 +31,7 @@ export function MobileControls() {
       setTouchControl("left", false);
       setTouchControl("right", false);
       setTouchControl("shooting", false);
+      setTouchControl("throwingGrenade", false);
     };
   }, [setTouchControl]);
   
@@ -189,45 +190,87 @@ export function MobileControls() {
         <button {...createButtonProps("back-right", "small")}>↘</button>
       </div>
       
-      <button
-        style={{
-          width: "80px",
-          height: "80px",
-          borderRadius: "50%",
-          fontSize: "12px",
-          fontWeight: "bold",
-          backgroundColor: isActive("shooting") ? "rgba(255, 80, 80, 0.9)" : "rgba(255, 50, 50, 0.6)",
-          border: isActive("shooting") ? "4px solid rgba(255, 180, 180, 1)" : "3px solid rgba(255, 100, 100, 0.8)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-          userSelect: "none" as const,
-          WebkitUserSelect: "none" as const,
-          touchAction: "none" as const,
-          WebkitTapHighlightColor: "transparent",
-          outline: "none",
-        }}
-        onPointerDown={(e) => {
-          e.preventDefault();
-          handlePointerDown("shooting");
-        }}
-        onPointerUp={(e) => {
-          e.preventDefault();
-          handlePointerUp("shooting");
-        }}
-        onPointerCancel={(e) => {
-          e.preventDefault();
-          handlePointerUp("shooting");
-        }}
-        onPointerLeave={(e) => {
-          e.preventDefault();
-          handlePointerUp("shooting");
-        }}
-        onContextMenu={(e) => e.preventDefault()}
-      >
-        FUEGO
-      </button>
+      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <button
+          style={{
+            width: "65px",
+            height: "65px",
+            borderRadius: "50%",
+            fontSize: "24px",
+            fontWeight: "bold",
+            backgroundColor: isActive("throwingGrenade") ? "rgba(80, 200, 80, 0.9)" : "rgba(50, 150, 50, 0.6)",
+            border: isActive("throwingGrenade") ? "4px solid rgba(180, 255, 180, 1)" : "3px solid rgba(100, 200, 100, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            userSelect: "none" as const,
+            WebkitUserSelect: "none" as const,
+            touchAction: "none" as const,
+            WebkitTapHighlightColor: "transparent",
+            outline: "none",
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            handlePointerDown("throwingGrenade");
+          }}
+          onPointerUp={(e) => {
+            e.preventDefault();
+            handlePointerUp("throwingGrenade");
+          }}
+          onPointerCancel={(e) => {
+            e.preventDefault();
+            handlePointerUp("throwingGrenade");
+          }}
+          onPointerLeave={(e) => {
+            e.preventDefault();
+            handlePointerUp("throwingGrenade");
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          💣
+        </button>
+        
+        <button
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            fontSize: "12px",
+            fontWeight: "bold",
+            backgroundColor: isActive("shooting") ? "rgba(255, 80, 80, 0.9)" : "rgba(255, 50, 50, 0.6)",
+            border: isActive("shooting") ? "4px solid rgba(255, 180, 180, 1)" : "3px solid rgba(255, 100, 100, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            userSelect: "none" as const,
+            WebkitUserSelect: "none" as const,
+            touchAction: "none" as const,
+            WebkitTapHighlightColor: "transparent",
+            outline: "none",
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            handlePointerDown("shooting");
+          }}
+          onPointerUp={(e) => {
+            e.preventDefault();
+            handlePointerUp("shooting");
+          }}
+          onPointerCancel={(e) => {
+            e.preventDefault();
+            handlePointerUp("shooting");
+          }}
+          onPointerLeave={(e) => {
+            e.preventDefault();
+            handlePointerUp("shooting");
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          FUEGO
+        </button>
+      </div>
     </div>
   );
 }
