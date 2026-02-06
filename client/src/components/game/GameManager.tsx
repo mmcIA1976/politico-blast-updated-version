@@ -96,6 +96,7 @@ export function GameManager() {
   const lastScrollUpdate = useRef(0);
   const levelEnemiesSpawned = useRef(0);
   const scooterSpawnedForLevel = useRef(0);
+  const enemyPhraseTimer = useRef(0);
   
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
@@ -294,8 +295,6 @@ export function GameManager() {
                 } else {
                   scoreToAdd += 25;
                 }
-                const isZooPhase = level >= 8;
-                playEnemyScream(false, isZooPhase, false, level);
               }
             });
             
@@ -450,6 +449,14 @@ export function GameManager() {
       enemySpawnTimer.current += delta;
     }
     
+    if (level === 7 || level === 14) {
+      enemyPhraseTimer.current += delta;
+      if (enemyPhraseTimer.current > 8) {
+        enemyPhraseTimer.current = 0;
+        playEnemyScream(level === 7, false, level === 14, level);
+      }
+    }
+    
     const maxEnemies = getMaxEnemiesForLevel(level);
     const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
     const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter").length;
@@ -485,6 +492,7 @@ export function GameManager() {
           isSpecial,
         });
       }
+      playEnemyScream(false, false, false, level);
     }
     
     if (isPhase2 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 8) {
@@ -519,6 +527,7 @@ export function GameManager() {
           isSpecial,
         });
       }
+      playEnemyScream(false, true, false, level);
     }
     
     // Spawn scooter when regular enemies are cleared (not on boss levels)
@@ -540,7 +549,15 @@ export function GameManager() {
         initialX: startX,
       });
       
-      const utterance = new SpeechSynthesisUtterance("un segarro amego");
+      const scooterPhrases = [
+        "¡¡Un segarro amego!!",
+        "¡¡De las pagas cobro más que tú pringao!!",
+      ];
+      const lastP = useAudio.getState().lastPhrase;
+      const available = scooterPhrases.filter(p => p !== lastP);
+      const chosen = available[Math.floor(Math.random() * available.length)] || scooterPhrases[0];
+      useAudio.setState({ lastPhrase: chosen, lastPhraseTime: Date.now() });
+      const utterance = new SpeechSynthesisUtterance(chosen);
       utterance.lang = "es-ES";
       utterance.rate = 1.1;
       utterance.pitch = 0.9;
@@ -931,10 +948,6 @@ export function GameManager() {
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
                 playHit();
-                const isBoss1 = enemy.type === "boss";
-                const isBoss2 = enemy.type === "toucan";
-                const isZooPhase = level >= 8;
-                playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
                 
                 if (enemies[j].health <= 0 && !enemies[j].dying) {
                   // Iniciar animación de muerte

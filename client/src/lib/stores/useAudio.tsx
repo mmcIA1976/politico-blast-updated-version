@@ -8,6 +8,8 @@ interface AudioState {
   bossMusic: HTMLAudioElement | null;
   isMuted: boolean;
   currentPhase: number;
+  lastPhrase: string;
+  lastPhraseTime: number;
   
   // Setter functions
   setBackgroundMusic: (music: HTMLAudioElement) => void;
@@ -36,6 +38,8 @@ export const useAudio = create<AudioState>((set, get) => ({
   bossMusic: null,
   isMuted: false,
   currentPhase: 1,
+  lastPhrase: "",
+  lastPhraseTime: 0,
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
   setBackgroundMusic2: (music) => set({ backgroundMusic2: music }),
@@ -113,14 +117,15 @@ export const useAudio = create<AudioState>((set, get) => ({
   },
   
   playEnemyScream: (isBoss = false, isZooPhase = false, isBoss2 = false, level = 0) => {
-    const { isMuted } = get();
-    if (isMuted) {
-      console.log("Enemy scream skipped (muted)");
-      return;
-    }
+    const { isMuted, lastPhrase, lastPhraseTime } = get();
+    if (isMuted) return;
+    
+    const now = Date.now();
+    const cooldown = isBoss || isBoss2 ? 4000 : 6000;
+    if (now - lastPhraseTime < cooldown) return;
     
     if ('speechSynthesis' in window) {
-      // No cancelar para permitir que las frases anteriores terminen
+      if (window.speechSynthesis.speaking) return;
       
       let phrases: string[];
       
@@ -140,7 +145,6 @@ export const useAudio = create<AudioState>((set, get) => ({
           "¡¡Hacienda somos todos!!"
         ];
       } else if (level === 8) {
-        // Oscar Puente y Félix Bolaños
         phrases = [
           "¡¡A ver si te atreves a subirte a un tren!!",
           "¡¡Renfe está en sus mejores momentos!!",
@@ -195,44 +199,18 @@ export const useAudio = create<AudioState>((set, get) => ({
         ];
       }
       
-      const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+      const available = phrases.filter(p => p !== lastPhrase);
+      const chosen = available[Math.floor(Math.random() * available.length)] || phrases[0];
       
-      // Sonido de impacto usando AudioContext (inmediato, no interfiere con frases)
-      try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        
-        // Crear ruido blanco para sonido de impacto
-        const bufferSize = audioCtx.sampleRate * 0.08;
-        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
-        }
-        
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buffer;
-        
-        const gainNode = audioCtx.createGain();
-        gainNode.gain.value = isBoss ? 0.4 : 0.25;
-        
-        noise.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        noise.start();
-      } catch (e) {
-        console.log("AudioContext not available");
-      }
+      set({ lastPhrase: chosen, lastPhraseTime: now });
       
-      // Frase - solo si no hay nada reproduciéndose actualmente
-      if (!window.speechSynthesis.speaking) {
-        const utterance = new SpeechSynthesisUtterance(randomPhrase);
-        utterance.lang = 'es-ES';
-        utterance.rate = isBoss ? 1.0 : 1.3;
-        utterance.pitch = isBoss ? 0.9 : 1.2;
-        utterance.volume = 0.7;
-        
-        window.speechSynthesis.speak(utterance);
-      }
+      const utterance = new SpeechSynthesisUtterance(chosen);
+      utterance.lang = 'es-ES';
+      utterance.rate = isBoss ? 1.0 : 1.3;
+      utterance.pitch = isBoss ? 0.9 : 1.2;
+      utterance.volume = 0.7;
+      
+      window.speechSynthesis.speak(utterance);
     }
   },
   
