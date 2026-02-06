@@ -290,6 +290,11 @@ export function GameManager() {
                     type: "tripleShot",
                     collected: false,
                   });
+                  const deathUtt = new SpeechSynthesisUtterance("¡¡Tu racista!!");
+                  deathUtt.lang = "es-ES";
+                  deathUtt.rate = 1.2;
+                  deathUtt.pitch = 0.8;
+                  speechSynthesis.speak(deathUtt);
                 } else if (enemy.isSpecial) {
                   scoreToAdd += 75;
                 } else {
@@ -401,6 +406,7 @@ export function GameManager() {
       chargeDirZ?: number;
       charging?: boolean;
       lastHitTime?: number;
+      scooterPhraseTime?: number;
     }> = [];
     
     // Reset enemy counter when level changes
@@ -541,7 +547,8 @@ export function GameManager() {
       enemiesToSpawn.push({
         id: `scooter${bulletCounter}`,
         position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
-        health: 1,
+        health: 2,
+        scooterPhraseTime: currentTime,
         type: "scooter",
         shootTimer: 2.5,
         movePattern: "zigzag",
@@ -716,11 +723,30 @@ export function GameManager() {
             console.log("SCOOTER HIT PLAYER! -1 vida, sigue su curso");
           }
           
+          let newScooterPhraseTime = enemy.scooterPhraseTime || enemy.spawnTime;
+          if (currentTime - newScooterPhraseTime > 5) {
+            newScooterPhraseTime = currentTime;
+            const scooterPhrases = [
+              "¡¡Un segarro amego!!",
+              "¡¡De las pagas cobro más que tú pringao!!",
+            ];
+            const lastP = useAudio.getState().lastPhrase;
+            const available = scooterPhrases.filter(p => p !== lastP);
+            const chosen = available[Math.floor(Math.random() * available.length)] || scooterPhrases[0];
+            useAudio.setState({ lastPhrase: chosen, lastPhraseTime: Date.now() });
+            const utt = new SpeechSynthesisUtterance(chosen);
+            utt.lang = "es-ES";
+            utt.rate = 1.1;
+            utt.pitch = 0.9;
+            speechSynthesis.speak(utt);
+          }
+          
           return {
             ...enemy,
             position: { x: newX, y: enemy.position.y, z: newZ },
             shootTimer: newShootTimer <= 0 ? 2.5 : newShootTimer,
             lastHitTime: newLastHitTime,
+            scooterPhraseTime: newScooterPhraseTime,
           };
         }
         
@@ -974,6 +1000,11 @@ export function GameManager() {
                       type: "tripleShot",
                       collected: false,
                     });
+                    const deathUtt = new SpeechSynthesisUtterance("¡¡Tu racista!!");
+                    deathUtt.lang = "es-ES";
+                    deathUtt.rate = 1.2;
+                    deathUtt.pitch = 0.8;
+                    speechSynthesis.speak(deathUtt);
                   } else if (enemy.type === "gorilla" || enemy.type === "penguin") {
                     scoreToAdd += 150;
                   } else {

@@ -50,6 +50,7 @@ export interface Enemy {
   chargeDirZ?: number;
   charging?: boolean;
   lastHitTime?: number;
+  scooterPhraseTime?: number;
 }
 
 export interface PowerUp {
