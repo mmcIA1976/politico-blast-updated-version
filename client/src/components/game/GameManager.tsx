@@ -245,6 +245,8 @@ export function GameManager() {
             let debrisCounter = 0;
             
             nearbyEnemies.forEach(({ enemy }) => {
+              // Scooter invulnerable durante 1.5s
+              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) return;
               const isBoss = enemy.type === "boss" || enemy.type === "toucan";
               
               if (isBoss) {
@@ -870,6 +872,8 @@ export function GameManager() {
           for (let j = 0; j < enemies.length; j++) {
             const enemy = enemies[j];
             if (!enemiesToRemove.includes(enemy.id)) {
+              // Scooter tiene 1.5s de invulnerabilidad al aparecer
+              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) continue;
               const distance = vec3Distance(bullet.position, enemy.position);
               if (distance < 1 && !bulletsToRemove.includes(bullet.id)) {
                 const damage = bullet.damage || 1;
