@@ -254,11 +254,11 @@ export const useAudio = create<AudioState>((set, get) => ({
     if (!bossAudio) {
       bossAudio = new Audio("/sounds/commando_boss.mp3");
       bossAudio.loop = true;
-      bossAudio.volume = 0.6;
+      bossAudio.volume = 0.15;
       set({ bossMusic: bossAudio });
     }
     bossAudio.currentTime = 0;
-    bossAudio.volume = 0.6;
+    bossAudio.volume = 0.15;
     bossAudio.play().catch(e => console.log("Boss music play prevented:", e));
     
     if ('speechSynthesis' in window) {
