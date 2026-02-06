@@ -528,7 +528,7 @@ export function GameManager() {
     if (!isBossLevel && (isPhase1 || isPhase2) && remainingToSpawn === 0 && currentEnemyCount === 0 && !hasScooterOnField && scooterSpawnedForLevel.current !== level) {
       scooterSpawnedForLevel.current = level;
       bulletCounter++;
-      const startX = level % 2 === 0 ? -15 : 15;
+      const startX = level % 2 === 0 ? -10 : 10;
       enemiesToSpawn.push({
         id: `scooter${bulletCounter}`,
         position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
@@ -611,26 +611,36 @@ export function GameManager() {
         
         // Scooter: traza dirección del jugador y carga en línea recta
         if (enemy.type === "scooter") {
-          const chargeSpeed = 10;
-          const cruiseSpeed = 5;
+          const chargeSpeed = 12;
+          const approachSpeed = 8;
           const distToPlayerX = playerPosition.x - enemy.position.x;
           const distToPlayerZ = playerPosition.z - enemy.position.z;
           const distToPlayer = Math.sqrt(distToPlayerX * distToPlayerX + distToPlayerZ * distToPlayerZ);
           
           if (!enemy.charging) {
-            // Fase de aproximación: moverse hacia delante del jugador con zigzag
-            const targetZ = playerPosition.z + 12;
-            const zigzagX = Math.sin(age * 2) * 6;
-            newX = enemy.position.x + (zigzagX - enemy.position.x) * delta * 2;
-            newZ = enemy.position.z + (targetZ - enemy.position.z) * delta * 2;
+            // Fase de aproximación: ir rápido hacia posición delante del jugador
+            const targetX = Math.sin(age * 1.5) * 5;
+            const targetZ = playerPosition.z + 10;
+            const dxTarget = targetX - enemy.position.x;
+            const dzTarget = targetZ - enemy.position.z;
+            const distTarget = Math.sqrt(dxTarget * dxTarget + dzTarget * dzTarget);
+            if (distTarget > 0.5) {
+              newX = enemy.position.x + (dxTarget / distTarget) * approachSpeed * delta;
+              newZ = enemy.position.z + (dzTarget / distTarget) * approachSpeed * delta;
+            } else {
+              newX = targetX;
+              newZ = targetZ;
+            }
             
-            // Cuando está posicionado delante del jugador, iniciar carga
+            // Iniciar carga cuando: está cerca de su posición objetivo, delante del jugador, y visible
+            const nearTarget = distTarget < 3;
             const aheadOfPlayer = enemy.position.z > playerPosition.z + 5;
-            if (aheadOfPlayer && age > 1.5) {
-              // Fijar dirección hacia el jugador AHORA y cargar en línea recta
+            const withinView = Math.abs(enemy.position.x) < 12;
+            if (nearTarget && aheadOfPlayer && withinView && age > 1.5) {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const mag = Math.sqrt(dx * dx + dz * dz);
+              console.log("SCOOTER CARGA! dirección fijada hacia jugador");
               return {
                 ...enemy,
                 position: { x: newX, y: enemy.position.y, z: newZ },
@@ -647,10 +657,11 @@ export function GameManager() {
             newX = enemy.position.x + dirX * chargeSpeed * delta;
             newZ = enemy.position.z + dirZ * chargeSpeed * delta;
             
-            // Si ya pasó de largo al jugador (está lejos detrás), volver a fase de aproximación
-            const passedPlayer = enemy.position.z < playerPosition.z - 6;
-            const tooFarSide = Math.abs(enemy.position.x) > 18;
-            if (passedPlayer || tooFarSide) {
+            // Si ya pasó de largo al jugador o se fue lejos, volver a aproximación
+            const passedPlayer = enemy.position.z < playerPosition.z - 8;
+            const tooFarSide = Math.abs(enemy.position.x) > 20;
+            const tooFarAhead = enemy.position.z > playerPosition.z + 25;
+            if (passedPlayer || tooFarSide || tooFarAhead) {
               return {
                 ...enemy,
                 position: { x: newX, y: enemy.position.y, z: newZ },
