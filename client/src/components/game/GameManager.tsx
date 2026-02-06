@@ -96,8 +96,6 @@ export function GameManager() {
   const lastScrollUpdate = useRef(0);
   const levelEnemiesSpawned = useRef(0);
   const scooterSpawnedForLevel = useRef(0);
-  const scooterSpeechDone = useRef(false);
-  const scooterLastHitTime = useRef(0);
   
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
@@ -401,13 +399,12 @@ export function GameManager() {
       chargeDirX?: number;
       chargeDirZ?: number;
       charging?: boolean;
+      lastHitTime?: number;
     }> = [];
     
     // Reset enemy counter when level changes
     if (lastLevel.current !== level) {
       levelEnemiesSpawned.current = 0;
-      scooterSpawnedForLevel.current = 0;
-      scooterSpeechDone.current = false;
     }
     
     if (level === 7 && lastLevel.current !== 7) {
@@ -522,15 +519,11 @@ export function GameManager() {
       }
     }
     
-    // Spawn scooter when all regular enemies of the level are killed (not on boss levels)
+    // Spawn scooter when regular enemies are cleared (not on boss levels)
     const isBossLevel = level === 7 || level === 14;
-    const hasScooterOnField = enemies.some(e => e.type === "scooter");
-    // Debug: log scooter spawn conditions every 60 frames
-    if (frameCounter.current % 60 === 0 && !isBossLevel && (isPhase1 || isPhase2)) {
-      console.log(`SCOOTER DEBUG: level=${level} remaining=${remainingToSpawn} enemies=${currentEnemyCount} spawned=${levelEnemiesSpawned.current}/${maxEnemies} hasScooter=${hasScooterOnField} scooterSpawnedForLevel=${scooterSpawnedForLevel.current}`);
-    }
+    const scooterCount = enemies.filter(e => e.type === "scooter").length;
     const enoughEnemiesSpawned = levelEnemiesSpawned.current >= 4;
-    if (!isBossLevel && (isPhase1 || isPhase2) && enoughEnemiesSpawned && currentEnemyCount === 0 && !hasScooterOnField && scooterSpawnedForLevel.current !== level) {
+    if (!isBossLevel && (isPhase1 || isPhase2) && enoughEnemiesSpawned && currentEnemyCount === 0 && scooterSpawnedForLevel.current !== level) {
       scooterSpawnedForLevel.current = level;
       bulletCounter++;
       const startX = level % 2 === 0 ? -10 : 10;
@@ -545,15 +538,12 @@ export function GameManager() {
         initialX: startX,
       });
       
-      if (!scooterSpeechDone.current) {
-        scooterSpeechDone.current = true;
-        const utterance = new SpeechSynthesisUtterance("un segarro amego");
-        utterance.lang = "es-ES";
-        utterance.rate = 1.1;
-        utterance.pitch = 0.9;
-        speechSynthesis.speak(utterance);
-        console.log("SCOOTER SPAWNED: ¡un segarro amego!");
-      }
+      const utterance = new SpeechSynthesisUtterance("un segarro amego");
+      utterance.lang = "es-ES";
+      utterance.rate = 1.1;
+      utterance.pitch = 0.9;
+      speechSynthesis.speak(utterance);
+      console.log(`SCOOTER SPAWNED level ${level}! Total scooters: ${scooterCount + 1}`);
     }
     
     const enemyBulletsToAdd: Array<{
@@ -697,11 +687,13 @@ export function GameManager() {
           }
           
           // Colisión con el jugador (atropello) - daña pero sigue su curso
-          const hitCooldown = currentTime - scooterLastHitTime.current > 2.0;
+          const lastHit = enemy.lastHitTime || 0;
+          const hitCooldown = currentTime - lastHit > 2.0;
+          let newLastHitTime = lastHit;
           if (distToPlayer < 1.8 && (currentTime - enemy.spawnTime) > 1.5 && hitCooldown) {
             playPlayerDamage();
             loseLife();
-            scooterLastHitTime.current = currentTime;
+            newLastHitTime = currentTime;
             console.log("SCOOTER HIT PLAYER! -1 vida, sigue su curso");
           }
           
@@ -709,6 +701,7 @@ export function GameManager() {
             ...enemy,
             position: { x: newX, y: enemy.position.y, z: newZ },
             shootTimer: newShootTimer <= 0 ? 2.5 : newShootTimer,
+            lastHitTime: newLastHitTime,
           };
         }
         

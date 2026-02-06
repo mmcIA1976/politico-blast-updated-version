@@ -49,6 +49,7 @@ export interface Enemy {
   chargeDirX?: number;
   chargeDirZ?: number;
   charging?: boolean;
+  lastHitTime?: number;
 }
 
 export interface PowerUp {
