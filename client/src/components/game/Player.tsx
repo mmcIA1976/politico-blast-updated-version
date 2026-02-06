@@ -1,8 +1,8 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Vec3, type ActivePowerUp } from "@/lib/stores/useArcadeGame";
 import { updatePlayerWorldPosition, updatePlayerWorldDirection } from "@/lib/stores/playerPositionRef";
 
 enum Controls {
@@ -36,8 +36,10 @@ export function Player() {
   const frameCount = useRef(0);
   const lastSyncedZ = useRef(0);
   
-  const { phase, hasActivePowerUp, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives } = useArcadeGame();
+  const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
+  const haloRef = useRef<THREE.PointLight>(null);
+  const haloRingRef = useRef<THREE.Mesh>(null);
   
   useEffect(() => {
     const distanceFromLocal = Math.abs(playerPosition.z - localPos.current.z);
@@ -50,7 +52,7 @@ export function Player() {
     }
   }, [playerPosition.z, lives]);
   
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (phase !== "playing" || !meshRef.current) return;
     
     const dt = Math.min(delta, 0.05);
@@ -125,6 +127,56 @@ export function Player() {
         setPlayerDirection({ ...localDir.current });
       }
     }
+    
+    const currentAP = useArcadeGame.getState().activePowerUps;
+    const now = state.clock.getElapsedTime();
+    
+    const powerUpColors: Record<string, THREE.Color> = {
+      speedBoost: new THREE.Color(0x00ff00),
+      powerShot: new THREE.Color(0xff0000),
+      rapidFire: new THREE.Color(0xff8800),
+      tripleShot: new THREE.Color(0x0088ff),
+    };
+    
+    const priority = ["powerShot", "tripleShot", "rapidFire", "speedBoost"];
+    let dominantPU: ActivePowerUp | null = null;
+    for (const t of priority) {
+      const found = currentAP.find(p => p.type === t);
+      if (found) { dominantPU = found; break; }
+    }
+    
+    if (haloRef.current && haloRingRef.current) {
+      if (dominantPU) {
+        const remaining = dominantPU.expiresAt - now;
+        const total = dominantPU.duration;
+        const ratio = Math.max(0, Math.min(1, remaining / total));
+        
+        const blinkThreshold = total * 0.25;
+        let intensity = ratio;
+        
+        if (remaining < blinkThreshold && remaining > 0) {
+          const blinkSpeed = remaining < blinkThreshold * 0.5 ? 12 : 6;
+          const blink = Math.sin(now * blinkSpeed * Math.PI) * 0.5 + 0.5;
+          intensity = ratio * blink;
+        }
+        
+        const color = powerUpColors[dominantPU.type] || new THREE.Color(0xffffff);
+        haloRef.current.color.copy(color);
+        haloRef.current.intensity = intensity * 3;
+        haloRef.current.visible = true;
+        
+        const ringMat = haloRingRef.current.material as THREE.MeshStandardMaterial;
+        ringMat.emissive.copy(color);
+        ringMat.emissiveIntensity = intensity * 2;
+        ringMat.opacity = intensity * 0.6;
+        haloRingRef.current.visible = true;
+        haloRingRef.current.rotation.x = Math.PI / 2;
+        haloRingRef.current.rotation.z += delta * 2;
+      } else {
+        haloRef.current.visible = false;
+        haloRingRef.current.visible = false;
+      }
+    }
   });
   
   return (
@@ -163,6 +215,26 @@ export function Player() {
           <meshStandardMaterial color="#c60b1e" />
         </mesh>
       </group>
+      
+      <pointLight
+        ref={haloRef}
+        position={[0, 0.5, 0]}
+        distance={5}
+        decay={2}
+        visible={false}
+      />
+      
+      <mesh ref={haloRingRef} position={[0, -0.3, 0]} visible={false}>
+        <torusGeometry args={[1.0, 0.08, 8, 32]} />
+        <meshStandardMaterial
+          color="#000000"
+          emissive="#ffffff"
+          emissiveIntensity={2}
+          transparent
+          opacity={0.6}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
     </mesh>
   );
 }
