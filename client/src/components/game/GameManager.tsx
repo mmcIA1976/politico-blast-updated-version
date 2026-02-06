@@ -97,6 +97,7 @@ export function GameManager() {
   const levelEnemiesSpawned = useRef(0);
   const scooterSpawnedForLevel = useRef(0);
   const scooterSpeechDone = useRef(false);
+  const scooterLastHitTime = useRef(0);
   
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
@@ -385,7 +386,7 @@ export function GameManager() {
       id: string;
       position: Vec3;
       health: number;
-      type: "politician" | "boss" | "gorilla" | "penguin" | "toucan";
+      type: "politician" | "boss" | "gorilla" | "penguin" | "toucan" | "scooter";
       shootTimer: number;
       movePattern: "straight" | "zigzag" | "circular" | "formation";
       spawnTime: number;
@@ -605,15 +606,35 @@ export function GameManager() {
         let newX = enemy.position.x;
         let newZ = enemy.position.z;
         
-        // Scooter: movimiento especial zigzag horizontal rápido
+        // Scooter: se lanza hacia el jugador en ciclos de carga
         if (enemy.type === "scooter") {
-          const speed = 4;
-          const amplitude = 10;
-          newX = Math.sin(age * 1.2) * amplitude;
-          const spawnZ = playerPosition.z + 8;
-          newZ = spawnZ + Math.sin(age * 0.8) * 3;
+          const chargeCycle = 4.0; // cada 4 segundos un ciclo completo
+          const chargePhase = age % chargeCycle;
+          const retreatTime = 1.5; // primeros 1.5s: reposicionarse
+          const chargeTime = 2.5; // últimos 2.5s: cargar hacia el jugador
           
-          // Scooter dispara al jugador (cada 2.5 segundos, dificultad moderada)
+          if (chargePhase < retreatTime) {
+            // Fase de reposicionamiento: alejarse y zigzaguear
+            const targetX = (Math.sin(age * 1.5) * 8);
+            const targetZ = playerPosition.z + 10;
+            newX = enemy.position.x + (targetX - enemy.position.x) * delta * 3;
+            newZ = enemy.position.z + (targetZ - enemy.position.z) * delta * 3;
+          } else {
+            // Fase de carga: lanzarse hacia el jugador
+            const chargeSpeed = 12;
+            const dx = playerPosition.x - enemy.position.x;
+            const dz = playerPosition.z - enemy.position.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            if (dist > 0.5) {
+              newX = enemy.position.x + (dx / dist) * chargeSpeed * delta;
+              newZ = enemy.position.z + (dz / dist) * chargeSpeed * delta;
+            } else {
+              newX = enemy.position.x;
+              newZ = enemy.position.z;
+            }
+          }
+          
+          // Scooter dispara al jugador (cada 2.5 segundos)
           const newShootTimer = enemy.shootTimer - delta;
           if (newShootTimer <= 0 && enemyBulletCount < maxEnemyBullets) {
             const dx = playerPosition.x - newX;
@@ -631,23 +652,27 @@ export function GameManager() {
             }
           }
           
-          // Colisión con el jugador (atropello)
+          // Colisión con el jugador (atropello) - rebota en vez de morir
           const dxPlayer = newX - playerPosition.x;
           const dzPlayer = newZ - playerPosition.z;
           const distToPlayer = Math.sqrt(dxPlayer * dxPlayer + dzPlayer * dzPlayer);
-          if (distToPlayer < 1.8) {
+          const hitCooldown = currentTime - scooterLastHitTime.current > 2.0;
+          if (distToPlayer < 1.8 && (currentTime - enemy.spawnTime) > 1.5 && hitCooldown) {
             playPlayerDamage();
             loseLife();
-            enemiesToRemove.push(enemy.id);
-            console.log("SCOOTER HIT PLAYER! -1 vida");
-            return enemy;
+            scooterLastHitTime.current = currentTime;
+            // Rebotar siempre hacia adelante del jugador (z positivo)
+            const bounceX = Math.max(-12, Math.min(12, newX + (dxPlayer > 0 ? 6 : -6)));
+            const bounceZ = playerPosition.z + 10;
+            console.log("SCOOTER HIT PLAYER! -1 vida, rebota y vuelve");
+            return {
+              ...enemy,
+              position: { x: bounceX, y: enemy.position.y, z: bounceZ },
+              shootTimer: 2.5,
+            };
           }
           
-          // Eliminar después de 12 segundos si no lo matan
-          if (age > 12) {
-            enemiesToRemove.push(enemy.id);
-            return enemy;
-          }
+          // NO timeout: el scooter persiste hasta que lo maten
           
           return {
             ...enemy,
@@ -822,7 +847,8 @@ export function GameManager() {
         }
         
         const isBossType = enemy.type === "boss" || enemy.type === "toucan";
-        if (newZ < playerPosition.z - 8 && !isBossType) {
+        const isScooter = enemy.type === "scooter";
+        if (newZ < playerPosition.z - 8 && !isBossType && !isScooter) {
           enemiesToRemove.push(enemy.id);
           return enemy;
         }
