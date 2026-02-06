@@ -73,7 +73,7 @@ export const useAudio = create<AudioState>((set, get) => ({
       
       // Clone the sound to allow overlapping playback
       const soundClone = hitSound.cloneNode() as HTMLAudioElement;
-      soundClone.volume = 0.8;
+      soundClone.volume = 0.9;
       soundClone.play().catch(error => {
         console.log("Hit sound play prevented:", error);
       });
@@ -254,11 +254,11 @@ export const useAudio = create<AudioState>((set, get) => ({
     if (!bossAudio) {
       bossAudio = new Audio("/sounds/commando_boss.mp3");
       bossAudio.loop = true;
-      bossAudio.volume = 0.15;
+      bossAudio.volume = 0.10;
       set({ bossMusic: bossAudio });
     }
     bossAudio.currentTime = 0;
-    bossAudio.volume = 0.15;
+    bossAudio.volume = 0.10;
     bossAudio.play().catch(e => console.log("Boss music play prevented:", e));
     
     if ('speechSynthesis' in window) {

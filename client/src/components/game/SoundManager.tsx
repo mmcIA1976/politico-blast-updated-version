@@ -11,7 +11,7 @@ export function SoundManager() {
   
   useEffect(() => {
     const hitAudio = new Audio("/sounds/hit.mp3");
-    hitAudio.volume = 0.3;
+    hitAudio.volume = 0.4;
     setHitSound(hitAudio);
     
     const successAudio = new Audio("/sounds/success.mp3");
