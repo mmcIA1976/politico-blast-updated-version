@@ -279,7 +279,16 @@ export function GameManager() {
                   });
                 }
                 
-                if (enemy.isSpecial) {
+                if (enemy.type === "scooter") {
+                  scoreToAdd += 200;
+                  bulletCounter++;
+                  addPowerUp({
+                    id: `pu${bulletCounter}`,
+                    position: { x: enemy.position.x, y: 0.5, z: enemy.position.z },
+                    type: "tripleShot",
+                    collected: false,
+                  });
+                } else if (enemy.isSpecial) {
                   scoreToAdd += 75;
                 } else {
                   scoreToAdd += 25;
@@ -517,9 +526,9 @@ export function GameManager() {
       enemiesToSpawn.push({
         id: `scooter${bulletCounter}`,
         position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
-        health: 999,
+        health: 1,
         type: "scooter",
-        shootTimer: 999,
+        shootTimer: 2.5,
         movePattern: "zigzag",
         spawnTime: currentTime,
         initialX: startX,
@@ -596,11 +605,29 @@ export function GameManager() {
         
         // Scooter: movimiento especial zigzag horizontal rápido
         if (enemy.type === "scooter") {
-          const direction = enemy.initialX < 0 ? 1 : -1;
-          const speed = 12;
-          newX = enemy.initialX + direction * age * speed;
+          const speed = 4;
+          const amplitude = 10;
+          newX = Math.sin(age * 1.2) * amplitude;
           const spawnZ = playerPosition.z + 8;
-          newZ = spawnZ + Math.sin(age * 4) * 3;
+          newZ = spawnZ + Math.sin(age * 0.8) * 3;
+          
+          // Scooter dispara al jugador (cada 2.5 segundos, dificultad moderada)
+          const newShootTimer = enemy.shootTimer - delta;
+          if (newShootTimer <= 0 && enemyBulletCount < maxEnemyBullets) {
+            const dx = playerPosition.x - newX;
+            const dz = playerPosition.z - newZ;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            if (dist > 0.1) {
+              bulletCounter++;
+              enemyBulletsToAdd.push({
+                id: `sb${bulletCounter}`,
+                position: { x: newX, y: enemy.position.y + 1, z: newZ },
+                direction: { x: dx / dist, y: 0, z: dz / dist },
+                speed: 8,
+                fromPlayer: false,
+              });
+            }
+          }
           
           // Colisión con el jugador (atropello)
           const dxPlayer = newX - playerPosition.x;
@@ -614,8 +641,8 @@ export function GameManager() {
             return enemy;
           }
           
-          // Eliminar cuando sale de la pantalla
-          if (Math.abs(newX) > 25) {
+          // Eliminar después de 12 segundos si no lo matan
+          if (age > 12) {
             enemiesToRemove.push(enemy.id);
             return enemy;
           }
@@ -623,6 +650,7 @@ export function GameManager() {
           return {
             ...enemy,
             position: { x: newX, y: enemy.position.y, z: newZ },
+            shootTimer: newShootTimer <= 0 ? 2.5 : newShootTimer,
           };
         }
         
@@ -867,6 +895,15 @@ export function GameManager() {
                   } else if (enemy.type === "toucan") {
                     scoreToAdd += 1000;
                     shouldEndGame = true;
+                  } else if (enemy.type === "scooter") {
+                    scoreToAdd += 200;
+                    bulletCounter++;
+                    addPowerUp({
+                      id: `pu${bulletCounter}`,
+                      position: { x: enemy.position.x, y: 0.5, z: enemy.position.z },
+                      type: "tripleShot",
+                      collected: false,
+                    });
                   } else if (enemy.type === "gorilla" || enemy.type === "penguin") {
                     scoreToAdd += 150;
                   } else {
