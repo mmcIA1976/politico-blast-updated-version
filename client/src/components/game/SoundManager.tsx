@@ -3,7 +3,7 @@ import { useAudio } from "@/lib/stores/useAudio";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function SoundManager() {
-  const { setHitSound, setSuccessSound, setBackgroundMusic, setBackgroundMusic2, isMuted, backgroundMusic, backgroundMusic2, currentPhase, setCurrentPhase } = useAudio();
+  const { setHitSound, setSuccessSound, setBackgroundMusic, setBackgroundMusic2, isMuted, backgroundMusic, backgroundMusic2, currentPhase, setCurrentPhase, bossMusic, stopBossMusic } = useAudio();
   const { phase, level } = useArcadeGame();
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -40,25 +40,39 @@ export function SoundManager() {
   useEffect(() => {
     if (!backgroundMusic || !backgroundMusic2) return;
     
+    const isBossLevel = level === 7 || level === 14;
+    
     if (phase === "playing" && !isMuted) {
-      if (currentPhase === 1) {
-        backgroundMusic2.pause();
-        backgroundMusic2.currentTime = 0;
-        backgroundMusic.play().catch(error => {
-          console.log("Background music play prevented:", error);
-        });
-      } else {
+      if (isBossLevel) {
         backgroundMusic.pause();
-        backgroundMusic.currentTime = 0;
-        backgroundMusic2.play().catch(error => {
-          console.log("Background music 2 play prevented:", error);
-        });
+        backgroundMusic2.pause();
+      } else {
+        if (bossMusic) {
+          bossMusic.pause();
+          bossMusic.currentTime = 0;
+        }
+        if (currentPhase === 1) {
+          backgroundMusic2.pause();
+          backgroundMusic2.currentTime = 0;
+          backgroundMusic.play().catch(error => {
+            console.log("Background music play prevented:", error);
+          });
+        } else {
+          backgroundMusic.pause();
+          backgroundMusic.currentTime = 0;
+          backgroundMusic2.play().catch(error => {
+            console.log("Background music 2 play prevented:", error);
+          });
+        }
       }
     } else {
       backgroundMusic.pause();
       backgroundMusic2.pause();
+      if (bossMusic) {
+        bossMusic.pause();
+      }
     }
-  }, [phase, isMuted, backgroundMusic, backgroundMusic2, currentPhase]);
+  }, [phase, isMuted, backgroundMusic, backgroundMusic2, currentPhase, level, bossMusic]);
   
   return null;
 }

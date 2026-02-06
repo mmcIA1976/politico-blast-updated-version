@@ -89,7 +89,7 @@ export function GameManager() {
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
-  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance, playGrenadeExplosion, playGrenadePickup } = useAudio();
+  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance, playGrenadeExplosion, playGrenadePickup, stopBossMusic } = useAudio();
   const enemySpawnTimer = useRef(0);
   const lastLevel = useRef(1);
   const frameCounter = useRef(0);
@@ -321,6 +321,7 @@ export function GameManager() {
                     // Boss muerto
                     if (e.type === "boss") {
                       addScore(500);
+                      stopBossMusic();
                       // Transición al nivel 8 después de matar al boss 1
                       setTimeout(() => {
                         clearBattlefield();
@@ -329,6 +330,7 @@ export function GameManager() {
                       }, 1500);
                     } else if (e.type === "toucan") {
                       addScore(750);
+                      stopBossMusic();
                       // Victoria después de matar al boss 2
                       setTimeout(() => {
                         setPhase("victory");
@@ -940,6 +942,7 @@ export function GameManager() {
                   
                   if (enemy.type === "boss") {
                     scoreToAdd += 500;
+                    stopBossMusic();
                     setTimeout(() => {
                       clearBattlefield();
                       setScrollPosition(315);
@@ -947,6 +950,7 @@ export function GameManager() {
                     }, 1500);
                   } else if (enemy.type === "toucan") {
                     scoreToAdd += 1000;
+                    stopBossMusic();
                     shouldEndGame = true;
                   } else if (enemy.type === "scooter") {
                     scoreToAdd += 200;

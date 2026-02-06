@@ -5,6 +5,7 @@ interface AudioState {
   backgroundMusic2: HTMLAudioElement | null;
   hitSound: HTMLAudioElement | null;
   successSound: HTMLAudioElement | null;
+  bossMusic: HTMLAudioElement | null;
   isMuted: boolean;
   currentPhase: number;
   
@@ -14,6 +15,7 @@ interface AudioState {
   setHitSound: (sound: HTMLAudioElement) => void;
   setSuccessSound: (sound: HTMLAudioElement) => void;
   setCurrentPhase: (phase: number) => void;
+  stopBossMusic: () => void;
   
   // Control functions
   toggleMute: () => void;
@@ -31,6 +33,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   backgroundMusic2: null,
   hitSound: null,
   successSound: null,
+  bossMusic: null,
   isMuted: false,
   currentPhase: 1,
   
@@ -39,6 +42,14 @@ export const useAudio = create<AudioState>((set, get) => ({
   setHitSound: (sound) => set({ hitSound: sound }),
   setSuccessSound: (sound) => set({ successSound: sound }),
   setCurrentPhase: (phase) => set({ currentPhase: phase }),
+  
+  stopBossMusic: () => {
+    const { bossMusic } = get();
+    if (bossMusic) {
+      bossMusic.pause();
+      bossMusic.currentTime = 0;
+    }
+  },
   
   toggleMute: () => {
     const { isMuted } = get();
@@ -226,11 +237,29 @@ export const useAudio = create<AudioState>((set, get) => ({
   },
   
   playBossEntrance: (isBoss2 = false) => {
-    const { isMuted } = get();
+    const { isMuted, backgroundMusic, backgroundMusic2 } = get();
     if (isMuted) {
       console.log("Boss entrance skipped (muted)");
       return;
     }
+    
+    if (backgroundMusic) {
+      backgroundMusic.pause();
+    }
+    if (backgroundMusic2) {
+      backgroundMusic2.pause();
+    }
+    
+    let bossAudio = get().bossMusic;
+    if (!bossAudio) {
+      bossAudio = new Audio("/sounds/commando_boss.mp3");
+      bossAudio.loop = true;
+      bossAudio.volume = 0.6;
+      set({ bossMusic: bossAudio });
+    }
+    bossAudio.currentTime = 0;
+    bossAudio.volume = 0.6;
+    bossAudio.play().catch(e => console.log("Boss music play prevented:", e));
     
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
