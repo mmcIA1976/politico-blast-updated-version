@@ -95,6 +95,8 @@ export function GameManager() {
   const frameCounter = useRef(0);
   const lastScrollUpdate = useRef(0);
   const levelEnemiesSpawned = useRef(0);
+  const scooterSpawnedForLevel = useRef(0);
+  const scooterSpeechDone = useRef(false);
   
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
@@ -389,6 +391,8 @@ export function GameManager() {
     // Reset enemy counter when level changes
     if (lastLevel.current !== level) {
       levelEnemiesSpawned.current = 0;
+      scooterSpawnedForLevel.current = 0;
+      scooterSpeechDone.current = false;
     }
     
     if (level === 7 && lastLevel.current !== 7) {
@@ -434,7 +438,7 @@ export function GameManager() {
     
     const maxEnemies = getMaxEnemiesForLevel(level);
     const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
-    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan").length;
+    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter").length;
     
     if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 8) {
       enemySpawnTimer.current = 0;
@@ -503,6 +507,35 @@ export function GameManager() {
       }
     }
     
+    // Spawn scooter when all regular enemies of the level are killed (not on boss levels)
+    const isBossLevel = level === 7 || level === 14;
+    const hasScooterOnField = enemies.some(e => e.type === "scooter");
+    if (!isBossLevel && (isPhase1 || isPhase2) && remainingToSpawn === 0 && currentEnemyCount === 0 && !hasScooterOnField && scooterSpawnedForLevel.current !== level) {
+      scooterSpawnedForLevel.current = level;
+      bulletCounter++;
+      const startX = level % 2 === 0 ? -15 : 15;
+      enemiesToSpawn.push({
+        id: `scooter${bulletCounter}`,
+        position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
+        health: 999,
+        type: "scooter",
+        shootTimer: 999,
+        movePattern: "zigzag",
+        spawnTime: currentTime,
+        initialX: startX,
+      });
+      
+      if (!scooterSpeechDone.current) {
+        scooterSpeechDone.current = true;
+        const utterance = new SpeechSynthesisUtterance("un segarro amego");
+        utterance.lang = "es-ES";
+        utterance.rate = 1.1;
+        utterance.pitch = 0.9;
+        speechSynthesis.speak(utterance);
+        console.log("SCOOTER SPAWNED: ¡un segarro amego!");
+      }
+    }
+    
     const enemyBulletsToAdd: Array<{
       id: string;
       position: Vec3;
@@ -560,6 +593,38 @@ export function GameManager() {
         const age = currentTime - enemy.spawnTime;
         let newX = enemy.position.x;
         let newZ = enemy.position.z;
+        
+        // Scooter: movimiento especial zigzag horizontal rápido
+        if (enemy.type === "scooter") {
+          const direction = enemy.initialX < 0 ? 1 : -1;
+          const speed = 12;
+          newX = enemy.initialX + direction * age * speed;
+          const spawnZ = playerPosition.z + 8;
+          newZ = spawnZ + Math.sin(age * 4) * 3;
+          
+          // Colisión con el jugador (atropello)
+          const dxPlayer = newX - playerPosition.x;
+          const dzPlayer = newZ - playerPosition.z;
+          const distToPlayer = Math.sqrt(dxPlayer * dxPlayer + dzPlayer * dzPlayer);
+          if (distToPlayer < 1.8) {
+            playPlayerDamage();
+            loseLife();
+            enemiesToRemove.push(enemy.id);
+            console.log("SCOOTER HIT PLAYER! -1 vida");
+            return enemy;
+          }
+          
+          // Eliminar cuando sale de la pantalla
+          if (Math.abs(newX) > 25) {
+            enemiesToRemove.push(enemy.id);
+            return enemy;
+          }
+          
+          return {
+            ...enemy,
+            position: { x: newX, y: enemy.position.y, z: newZ },
+          };
+        }
         
         switch (enemy.movePattern) {
           case "zigzag":

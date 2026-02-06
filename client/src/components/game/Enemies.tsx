@@ -225,6 +225,65 @@ function ToucanEnemy({ faceTexture, enraged, enragedProgress }: { faceTexture: T
   );
 }
 
+function ScooterEnemy() {
+  return (
+    <group>
+      <mesh position={[0, 0.15, 0]}>
+        <boxGeometry args={[0.6, 0.1, 2.0]} />
+        <meshStandardMaterial color="#cc0000" />
+      </mesh>
+      <mesh position={[0, 0.25, 0]}>
+        <boxGeometry args={[0.5, 0.08, 1.8]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0, 0.1, 0.9]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.18, 0.18, 0.08, 16]} />
+        <meshStandardMaterial color="#333333" />
+      </mesh>
+      <mesh position={[0, 0.1, -0.9]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.18, 0.18, 0.08, 16]} />
+        <meshStandardMaterial color="#333333" />
+      </mesh>
+      <mesh position={[0, 0.6, 0.7]} rotation={[-0.2, 0, 0]}>
+        <boxGeometry args={[0.08, 0.7, 0.08]} />
+        <meshStandardMaterial color="#aaaaaa" />
+      </mesh>
+      <mesh position={[0, 0.95, 0.85]}>
+        <boxGeometry args={[0.5, 0.06, 0.06]} />
+        <meshStandardMaterial color="#666666" />
+      </mesh>
+      <mesh position={[0, 0.7, -0.2]}>
+        <boxGeometry args={[0.5, 0.8, 0.4]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      <mesh position={[0, 1.3, -0.2]}>
+        <sphereGeometry args={[0.3, 10, 10]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      <mesh position={[0, 1.35, -0.35]}>
+        <sphereGeometry args={[0.12, 8, 8]} />
+        <meshStandardMaterial color="#222222" />
+      </mesh>
+      <mesh position={[-0.35, 0.85, 0.1]} rotation={[0.5, 0, -0.3]}>
+        <boxGeometry args={[0.15, 0.5, 0.15]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      <mesh position={[0.35, 0.85, 0.1]} rotation={[0.5, 0, 0.3]}>
+        <boxGeometry args={[0.15, 0.5, 0.15]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      <mesh position={[-0.15, 0.35, -0.2]}>
+        <boxGeometry args={[0.15, 0.5, 0.15]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      <mesh position={[0.15, 0.35, -0.2]}>
+        <boxGeometry args={[0.15, 0.5, 0.15]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+    </group>
+  );
+}
+
 export function Enemies() {
   const { enemies, level } = useArcadeGame();
   const faceTexture = useTexture("/textures/politician_face.jpg");
@@ -261,6 +320,9 @@ export function Enemies() {
             )}
             {enemy.type === "toucan" && (
               <ToucanEnemy faceTexture={yolandaDiazFace} enraged={enemy.enraged} enragedProgress={enemy.enragedProgress} />
+            )}
+            {enemy.type === "scooter" && (
+              <ScooterEnemy />
             )}
           </group>
         );
