@@ -525,7 +525,12 @@ export function GameManager() {
     // Spawn scooter when all regular enemies of the level are killed (not on boss levels)
     const isBossLevel = level === 7 || level === 14;
     const hasScooterOnField = enemies.some(e => e.type === "scooter");
-    if (!isBossLevel && (isPhase1 || isPhase2) && remainingToSpawn === 0 && currentEnemyCount === 0 && !hasScooterOnField && scooterSpawnedForLevel.current !== level) {
+    // Debug: log scooter spawn conditions every 60 frames
+    if (frameCounter.current % 60 === 0 && !isBossLevel && (isPhase1 || isPhase2)) {
+      console.log(`SCOOTER DEBUG: level=${level} remaining=${remainingToSpawn} enemies=${currentEnemyCount} spawned=${levelEnemiesSpawned.current}/${maxEnemies} hasScooter=${hasScooterOnField} scooterSpawnedForLevel=${scooterSpawnedForLevel.current}`);
+    }
+    const enoughEnemiesSpawned = levelEnemiesSpawned.current >= 4;
+    if (!isBossLevel && (isPhase1 || isPhase2) && enoughEnemiesSpawned && currentEnemyCount === 0 && !hasScooterOnField && scooterSpawnedForLevel.current !== level) {
       scooterSpawnedForLevel.current = level;
       bulletCounter++;
       const startX = level % 2 === 0 ? -10 : 10;
