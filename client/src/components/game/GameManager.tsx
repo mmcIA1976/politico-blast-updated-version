@@ -398,6 +398,9 @@ export function GameManager() {
       enragedProgress?: number;
       lastEnrageTime?: number;
       enrageMode?: "jump" | "shake";
+      chargeDirX?: number;
+      chargeDirZ?: number;
+      charging?: boolean;
     }> = [];
     
     // Reset enemy counter when level changes
@@ -606,31 +609,56 @@ export function GameManager() {
         let newX = enemy.position.x;
         let newZ = enemy.position.z;
         
-        // Scooter: se lanza hacia el jugador en ciclos de carga
+        // Scooter: traza dirección del jugador y carga en línea recta
         if (enemy.type === "scooter") {
-          const chargeCycle = 4.0; // cada 4 segundos un ciclo completo
-          const chargePhase = age % chargeCycle;
-          const retreatTime = 1.5; // primeros 1.5s: reposicionarse
-          const chargeTime = 2.5; // últimos 2.5s: cargar hacia el jugador
+          const chargeSpeed = 10;
+          const cruiseSpeed = 5;
+          const distToPlayerX = playerPosition.x - enemy.position.x;
+          const distToPlayerZ = playerPosition.z - enemy.position.z;
+          const distToPlayer = Math.sqrt(distToPlayerX * distToPlayerX + distToPlayerZ * distToPlayerZ);
           
-          if (chargePhase < retreatTime) {
-            // Fase de reposicionamiento: alejarse y zigzaguear
-            const targetX = (Math.sin(age * 1.5) * 8);
-            const targetZ = playerPosition.z + 10;
-            newX = enemy.position.x + (targetX - enemy.position.x) * delta * 3;
-            newZ = enemy.position.z + (targetZ - enemy.position.z) * delta * 3;
+          if (!enemy.charging) {
+            // Fase de aproximación: moverse hacia delante del jugador con zigzag
+            const targetZ = playerPosition.z + 12;
+            const zigzagX = Math.sin(age * 2) * 6;
+            newX = enemy.position.x + (zigzagX - enemy.position.x) * delta * 2;
+            newZ = enemy.position.z + (targetZ - enemy.position.z) * delta * 2;
+            
+            // Cuando está posicionado delante del jugador, iniciar carga
+            const aheadOfPlayer = enemy.position.z > playerPosition.z + 5;
+            if (aheadOfPlayer && age > 1.5) {
+              // Fijar dirección hacia el jugador AHORA y cargar en línea recta
+              const dx = playerPosition.x - enemy.position.x;
+              const dz = playerPosition.z - enemy.position.z;
+              const mag = Math.sqrt(dx * dx + dz * dz);
+              return {
+                ...enemy,
+                position: { x: newX, y: enemy.position.y, z: newZ },
+                charging: true,
+                chargeDirX: mag > 0.1 ? dx / mag : 0,
+                chargeDirZ: mag > 0.1 ? dz / mag : -1,
+                shootTimer: enemy.shootTimer - delta <= 0 ? 2.5 : enemy.shootTimer - delta,
+              };
+            }
           } else {
-            // Fase de carga: lanzarse hacia el jugador
-            const chargeSpeed = 12;
-            const dx = playerPosition.x - enemy.position.x;
-            const dz = playerPosition.z - enemy.position.z;
-            const dist = Math.sqrt(dx * dx + dz * dz);
-            if (dist > 0.5) {
-              newX = enemy.position.x + (dx / dist) * chargeSpeed * delta;
-              newZ = enemy.position.z + (dz / dist) * chargeSpeed * delta;
-            } else {
-              newX = enemy.position.x;
-              newZ = enemy.position.z;
+            // Fase de carga: seguir en LÍNEA RECTA con la dirección fijada
+            const dirX = enemy.chargeDirX || 0;
+            const dirZ = enemy.chargeDirZ || -1;
+            newX = enemy.position.x + dirX * chargeSpeed * delta;
+            newZ = enemy.position.z + dirZ * chargeSpeed * delta;
+            
+            // Si ya pasó de largo al jugador (está lejos detrás), volver a fase de aproximación
+            const passedPlayer = enemy.position.z < playerPosition.z - 6;
+            const tooFarSide = Math.abs(enemy.position.x) > 18;
+            if (passedPlayer || tooFarSide) {
+              return {
+                ...enemy,
+                position: { x: newX, y: enemy.position.y, z: newZ },
+                charging: false,
+                chargeDirX: 0,
+                chargeDirZ: 0,
+                shootTimer: enemy.shootTimer - delta <= 0 ? 2.5 : enemy.shootTimer - delta,
+              };
             }
           }
           
@@ -652,27 +680,14 @@ export function GameManager() {
             }
           }
           
-          // Colisión con el jugador (atropello) - rebota en vez de morir
-          const dxPlayer = newX - playerPosition.x;
-          const dzPlayer = newZ - playerPosition.z;
-          const distToPlayer = Math.sqrt(dxPlayer * dxPlayer + dzPlayer * dzPlayer);
+          // Colisión con el jugador (atropello) - daña pero sigue su curso
           const hitCooldown = currentTime - scooterLastHitTime.current > 2.0;
           if (distToPlayer < 1.8 && (currentTime - enemy.spawnTime) > 1.5 && hitCooldown) {
             playPlayerDamage();
             loseLife();
             scooterLastHitTime.current = currentTime;
-            // Rebotar siempre hacia adelante del jugador (z positivo)
-            const bounceX = Math.max(-12, Math.min(12, newX + (dxPlayer > 0 ? 6 : -6)));
-            const bounceZ = playerPosition.z + 10;
-            console.log("SCOOTER HIT PLAYER! -1 vida, rebota y vuelve");
-            return {
-              ...enemy,
-              position: { x: bounceX, y: enemy.position.y, z: bounceZ },
-              shootTimer: 2.5,
-            };
+            console.log("SCOOTER HIT PLAYER! -1 vida, sigue su curso");
           }
-          
-          // NO timeout: el scooter persiste hasta que lo maten
           
           return {
             ...enemy,
@@ -847,8 +862,7 @@ export function GameManager() {
         }
         
         const isBossType = enemy.type === "boss" || enemy.type === "toucan";
-        const isScooter = enemy.type === "scooter";
-        if (newZ < playerPosition.z - 8 && !isBossType && !isScooter) {
+        if (newZ < playerPosition.z - 8 && !isBossType) {
           enemiesToRemove.push(enemy.id);
           return enemy;
         }

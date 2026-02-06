@@ -45,7 +45,10 @@ export interface Enemy {
   enraged?: boolean;
   enragedProgress?: number;
   lastEnrageTime?: number;
-  enrageMode?: "jump" | "shake"; // Alternar entre salto y temblor
+  enrageMode?: "jump" | "shake";
+  chargeDirX?: number;
+  chargeDirZ?: number;
+  charging?: boolean;
 }
 
 export interface PowerUp {
