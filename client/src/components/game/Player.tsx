@@ -77,12 +77,12 @@ function PowerUpHalo({ powerUp }: { powerUp: ActivePowerUp }) {
       <pointLight
         ref={lightRef}
         position={[0, 0.5, 0]}
-        distance={4}
+        distance={6}
         decay={2}
         visible={false}
       />
       <mesh ref={ringRef} position={[0, config.yOffset, 0]} visible={false}>
-        <torusGeometry args={[config.radius, 0.06, 8, 32]} />
+        <torusGeometry args={[config.radius, 0.08, 8, 32]} />
         <meshStandardMaterial
           color="#000000"
           emissive="#ffffff"
@@ -119,7 +119,7 @@ export function Player() {
   const frameCount = useRef(0);
   const lastSyncedZ = useRef(0);
   
-  const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives } = useArcadeGame();
+  const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives, level } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
   useEffect(() => {
@@ -139,7 +139,7 @@ export function Player() {
     const dt = Math.min(delta, 0.05);
     
     const keys = getKeys();
-    const { touchControls, level } = useArcadeGame.getState();
+    const { touchControls } = useArcadeGame.getState();
     
     const playerScale = (level === 7 || level === 14) ? 1.4 : 1;
     meshRef.current.scale.set(playerScale, playerScale, playerScale);
@@ -248,9 +248,11 @@ export function Player() {
         </mesh>
       </group>
       
-      {activePowerUps.map((pu) => (
-        <PowerUpHalo key={pu.type} powerUp={pu} />
-      ))}
+      <group scale={(level === 7 || level === 14) ? [1/1.4, 1/1.4, 1/1.4] : [1, 1, 1]}>
+        {activePowerUps.map((pu) => (
+          <PowerUpHalo key={pu.type} powerUp={pu} />
+        ))}
+      </group>
     </mesh>
   );
 }
