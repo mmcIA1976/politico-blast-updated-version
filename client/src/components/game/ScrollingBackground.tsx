@@ -10,17 +10,17 @@ export function ScrollingBackground() {
   const { level } = useArcadeGame();
   
   const texturePath = useMemo(() => {
-    if (level === 1) return "/textures/asphalt.png";
-    if (level === 2) return "/textures/grass.png";
-    if (level === 3) return "/textures/asphalt.png";
-    if (level === 4) return "/textures/grass.png";
-    if (level === 5) return "/textures/asphalt.png";
-    if (level === 6) return "/textures/grass.png";
+    if (level === 1) return "/textures/asphalt.jpg";
+    if (level === 2) return "/textures/grass.jpg";
+    if (level === 3) return "/textures/asphalt.jpg";
+    if (level === 4) return "/textures/grass.jpg";
+    if (level === 5) return "/textures/asphalt.jpg";
+    if (level === 6) return "/textures/grass.jpg";
     if (level === 7) return "/textures/sand.jpg";
-    if (level === 8 || level === 10 || level === 12) return "/textures/grass.png";
+    if (level === 8 || level === 10 || level === 12) return "/textures/grass.jpg";
     if (level === 9 || level === 11 || level === 13) return "/textures/sand.jpg";
-    if (level === 14) return "/textures/grass.png";
-    return "/textures/asphalt.png";
+    if (level === 14) return "/textures/grass.jpg";
+    return "/textures/asphalt.jpg";
   }, [level]);
   
   const groundColor = useMemo(() => {
@@ -38,7 +38,12 @@ export function ScrollingBackground() {
   
   useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(6, 12);
+    texture.repeat.set(4, 8);
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.anisotropy = 4;
+    texture.generateMipmaps = true;
+    texture.needsUpdate = true;
   }, [texture]);
   
   useFrame(() => {
