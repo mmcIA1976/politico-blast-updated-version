@@ -92,13 +92,24 @@ export function PowerUps() {
     const powerUpLimitReached = isBossLevel && currentPowerUpCount >= 3;
     const grenadeLimitReached = isBossLevel && currentGrenadeCount >= 2;
     
-    if (!powerUpLimitReached && spawnTimer.current > 15 && scrollPosition - lastSpawnPosition.current > 10) {
+    const shouldSpawnPowerUp = isBossLevel
+      ? (!powerUpLimitReached && spawnTimer.current > 15)
+      : (spawnTimer.current > 15 && scrollPosition - lastSpawnPosition.current > 10);
+    
+    if (shouldSpawnPowerUp) {
       spawnTimer.current = 0;
       lastSpawnPosition.current = scrollPosition;
       
+      const spawnX = isBossLevel
+        ? ((state.clock.getElapsedTime() * 137) % 36) - 18
+        : nextPowerUpX.current;
+      const spawnZ = isBossLevel
+        ? 265 + ((state.clock.getElapsedTime() * 53) % 80)
+        : scrollPosition + 15;
+      
       addPowerUp({
         id: `powerup-${state.clock.getElapsedTime()}-${scrollPosition}`,
-        position: { x: nextPowerUpX.current, y: 0.5, z: scrollPosition + 15 },
+        position: { x: spawnX, y: 0.5, z: spawnZ },
         type: nextPowerUpType.current,
         collected: false,
       });
@@ -109,14 +120,24 @@ export function PowerUps() {
       nextPowerUpX.current = ((state.clock.getElapsedTime() * 137) % 24) - 12;
     }
     
-    if (!grenadeLimitReached && grenadeSpawnTimer.current > 25 && scrollPosition - lastGrenadeSpawnPosition.current > 20) {
+    const shouldSpawnGrenade = isBossLevel
+      ? (!grenadeLimitReached && grenadeSpawnTimer.current > 20)
+      : (grenadeSpawnTimer.current > 25 && scrollPosition - lastGrenadeSpawnPosition.current > 20);
+    
+    if (shouldSpawnGrenade) {
       grenadeSpawnTimer.current = 0;
       lastGrenadeSpawnPosition.current = scrollPosition;
       
-      const grenadeX = ((state.clock.getElapsedTime() * 97) % 20) - 10;
+      const grenadeX = isBossLevel
+        ? ((state.clock.getElapsedTime() * 97) % 30) - 15
+        : ((state.clock.getElapsedTime() * 97) % 20) - 10;
+      const grenadeZ = isBossLevel
+        ? 270 + ((state.clock.getElapsedTime() * 71) % 70)
+        : scrollPosition + 18;
+      
       addPowerUp({
         id: `grenade-${state.clock.getElapsedTime()}-${scrollPosition}`,
-        position: { x: grenadeX, y: 0.5, z: scrollPosition + 18 },
+        position: { x: grenadeX, y: 0.5, z: grenadeZ },
         type: "grenade",
         collected: false,
       });
