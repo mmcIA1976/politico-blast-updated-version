@@ -13,6 +13,86 @@ enum Controls {
   shoot = "shoot",
 }
 
+const POWER_UP_COLORS: Record<string, number> = {
+  speedBoost: 0x00ff00,
+  powerShot: 0xff0000,
+  rapidFire: 0xff8800,
+  tripleShot: 0x0088ff,
+};
+
+const HALO_RADII = [0.9, 1.2, 1.5, 1.8];
+const HALO_SPEEDS = [2, -2.5, 3, -3.5];
+
+function PowerUpHalo({ powerUp, index }: { powerUp: ActivePowerUp; index: number }) {
+  const lightRef = useRef<THREE.PointLight>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state, delta) => {
+    if (!lightRef.current || !ringRef.current) return;
+
+    const now = state.clock.getElapsedTime();
+    const remaining = powerUp.expiresAt - now;
+    const total = powerUp.duration;
+    const ratio = Math.max(0, Math.min(1, remaining / total));
+
+    if (ratio <= 0) {
+      lightRef.current.visible = false;
+      ringRef.current.visible = false;
+      return;
+    }
+
+    const blinkThreshold = total * 0.25;
+    let intensity = ratio;
+
+    if (remaining < blinkThreshold && remaining > 0) {
+      const blinkSpeed = remaining < blinkThreshold * 0.5 ? 12 : 6;
+      const blink = Math.sin(now * blinkSpeed * Math.PI) * 0.5 + 0.5;
+      intensity = ratio * blink;
+    }
+
+    const colorHex = POWER_UP_COLORS[powerUp.type] || 0xffffff;
+    const color = new THREE.Color(colorHex);
+
+    lightRef.current.color.copy(color);
+    lightRef.current.intensity = intensity * 2.5;
+    lightRef.current.visible = true;
+
+    const mat = ringRef.current.material as THREE.MeshStandardMaterial;
+    mat.emissive.copy(color);
+    mat.emissiveIntensity = intensity * 2.5;
+    mat.opacity = intensity * 0.7;
+    ringRef.current.visible = true;
+    ringRef.current.rotation.x = Math.PI / 2;
+    ringRef.current.rotation.z += delta * HALO_SPEEDS[index % HALO_SPEEDS.length];
+  });
+
+  const radius = HALO_RADII[index % HALO_RADII.length];
+  const yOffset = -0.3 + index * 0.15;
+
+  return (
+    <group>
+      <pointLight
+        ref={lightRef}
+        position={[0, 0.5, 0]}
+        distance={4}
+        decay={2}
+        visible={false}
+      />
+      <mesh ref={ringRef} position={[0, yOffset, 0]} visible={false}>
+        <torusGeometry args={[radius, 0.06, 8, 32]} />
+        <meshStandardMaterial
+          color="#000000"
+          emissive="#ffffff"
+          emissiveIntensity={2}
+          transparent
+          opacity={0.7}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 function checkCollision(pos: Vec3, obstacles: Array<{ position: Vec3; size: Vec3 }>): boolean {
   const playerSize = { x: 0.8, y: 1, z: 0.8 };
   
@@ -38,8 +118,6 @@ export function Player() {
   
   const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
-  const haloRef = useRef<THREE.PointLight>(null);
-  const haloRingRef = useRef<THREE.Mesh>(null);
   
   useEffect(() => {
     const distanceFromLocal = Math.abs(playerPosition.z - localPos.current.z);
@@ -128,55 +206,6 @@ export function Player() {
       }
     }
     
-    const currentAP = useArcadeGame.getState().activePowerUps;
-    const now = state.clock.getElapsedTime();
-    
-    const powerUpColors: Record<string, THREE.Color> = {
-      speedBoost: new THREE.Color(0x00ff00),
-      powerShot: new THREE.Color(0xff0000),
-      rapidFire: new THREE.Color(0xff8800),
-      tripleShot: new THREE.Color(0x0088ff),
-    };
-    
-    const priority = ["powerShot", "tripleShot", "rapidFire", "speedBoost"];
-    let dominantPU: ActivePowerUp | null = null;
-    for (const t of priority) {
-      const found = currentAP.find(p => p.type === t);
-      if (found) { dominantPU = found; break; }
-    }
-    
-    if (haloRef.current && haloRingRef.current) {
-      if (dominantPU) {
-        const remaining = dominantPU.expiresAt - now;
-        const total = dominantPU.duration;
-        const ratio = Math.max(0, Math.min(1, remaining / total));
-        
-        const blinkThreshold = total * 0.25;
-        let intensity = ratio;
-        
-        if (remaining < blinkThreshold && remaining > 0) {
-          const blinkSpeed = remaining < blinkThreshold * 0.5 ? 12 : 6;
-          const blink = Math.sin(now * blinkSpeed * Math.PI) * 0.5 + 0.5;
-          intensity = ratio * blink;
-        }
-        
-        const color = powerUpColors[dominantPU.type] || new THREE.Color(0xffffff);
-        haloRef.current.color.copy(color);
-        haloRef.current.intensity = intensity * 3;
-        haloRef.current.visible = true;
-        
-        const ringMat = haloRingRef.current.material as THREE.MeshStandardMaterial;
-        ringMat.emissive.copy(color);
-        ringMat.emissiveIntensity = intensity * 2;
-        ringMat.opacity = intensity * 0.6;
-        haloRingRef.current.visible = true;
-        haloRingRef.current.rotation.x = Math.PI / 2;
-        haloRingRef.current.rotation.z += delta * 2;
-      } else {
-        haloRef.current.visible = false;
-        haloRingRef.current.visible = false;
-      }
-    }
   });
   
   return (
@@ -216,25 +245,9 @@ export function Player() {
         </mesh>
       </group>
       
-      <pointLight
-        ref={haloRef}
-        position={[0, 0.5, 0]}
-        distance={5}
-        decay={2}
-        visible={false}
-      />
-      
-      <mesh ref={haloRingRef} position={[0, -0.3, 0]} visible={false}>
-        <torusGeometry args={[1.0, 0.08, 8, 32]} />
-        <meshStandardMaterial
-          color="#000000"
-          emissive="#ffffff"
-          emissiveIntensity={2}
-          transparent
-          opacity={0.6}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      {activePowerUps.map((pu, i) => (
+        <PowerUpHalo key={`${pu.type}-${pu.startedAt}`} powerUp={pu} index={i} />
+      ))}
     </mesh>
   );
 }
