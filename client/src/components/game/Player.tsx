@@ -21,10 +21,10 @@ const POWER_UP_COLORS: Record<string, THREE.Color> = {
 };
 
 const HALO_CONFIG: Record<string, { radius: number; speed: number; yOffset: number }> = {
-  speedBoost: { radius: 0.9, speed: 2, yOffset: -0.3 },
-  powerShot: { radius: 1.2, speed: -2.5, yOffset: -0.15 },
-  rapidFire: { radius: 1.5, speed: 3, yOffset: 0.0 },
-  tripleShot: { radius: 1.8, speed: -3.5, yOffset: 0.15 },
+  speedBoost: { radius: 1.3, speed: 2, yOffset: -0.2 },
+  powerShot: { radius: 1.3, speed: -2.5, yOffset: -0.1 },
+  rapidFire: { radius: 1.3, speed: 3, yOffset: 0.0 },
+  tripleShot: { radius: 1.3, speed: -3.5, yOffset: 0.1 },
 };
 
 const DEFAULT_COLOR = new THREE.Color(0xffffff);
