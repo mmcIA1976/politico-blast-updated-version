@@ -81,6 +81,14 @@ export interface Debris {
   lifetime: number;
 }
 
+export interface ScorePopup {
+  id: string;
+  position: Vec3;
+  points: number;
+  lifetime: number;
+  maxLifetime: number;
+}
+
 export interface TouchControls {
   forward: boolean;
   back: boolean;
@@ -143,6 +151,9 @@ interface ArcadeGameState {
   debris: Debris[];
   addDebris: (debris: Debris[]) => void;
   updateDebris: (delta: number) => void;
+  scorePopups: ScorePopup[];
+  addScorePopup: (popup: ScorePopup) => void;
+  updateScorePopups: (delta: number) => void;
 }
 
 const initialPlayerPosition: Vec3 = { x: 0, y: 0, z: -5 };
@@ -168,6 +179,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     grenadeCount: 3,
     touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
     debris: [],
+    scorePopups: [],
     
     setPhase: (phase) => set({ phase }),
     
@@ -307,6 +319,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       grenadeCount: 3,
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
       debris: [],
+      scorePopups: [],
     }),
     
     clearBattlefield: () => set({
@@ -315,6 +328,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       powerUps: [],
       grenades: [],
       debris: [],
+      scorePopups: [],
     }),
     
     addDebris: (newDebris) => set((state) => ({
@@ -332,12 +346,30 @@ export const useArcadeGame = create<ArcadeGameState>()(
           },
           velocity: {
             x: d.velocity.x * 0.98,
-            y: d.velocity.y - 15 * delta, // Gravedad
+            y: d.velocity.y - 15 * delta,
             z: d.velocity.z * 0.98,
           },
           lifetime: d.lifetime - delta,
         }))
         .filter(d => d.lifetime > 0)
+    })),
+    
+    addScorePopup: (popup) => set((state) => ({
+      scorePopups: [...state.scorePopups, popup]
+    })),
+    
+    updateScorePopups: (delta) => set((state) => ({
+      scorePopups: state.scorePopups
+        .map(p => ({
+          ...p,
+          position: {
+            x: p.position.x,
+            y: p.position.y + 2.5 * delta,
+            z: p.position.z,
+          },
+          lifetime: p.lifetime - delta,
+        }))
+        .filter(p => p.lifetime > 0)
     })),
   }))
 );

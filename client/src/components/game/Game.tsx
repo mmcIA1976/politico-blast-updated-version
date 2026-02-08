@@ -5,6 +5,7 @@ import { Player } from "./Player";
 import { Bullets } from "./Bullets";
 import { Grenades } from "./Grenades";
 import { Debris } from "./Debris";
+import { FloatingScores } from "./FloatingScores";
 import { Enemies } from "./Enemies";
 import { PowerUps } from "./PowerUps";
 import { ScrollingBackground } from "./ScrollingBackground";
@@ -81,6 +82,7 @@ export function Game() {
             <Bullets />
             <Grenades />
             <Debris />
+            <FloatingScores />
             <Enemies />
             <PowerUps />
             <GameManager />

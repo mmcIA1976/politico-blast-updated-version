@@ -86,6 +86,8 @@ export function GameManager() {
     enemies,
     addDebris,
     updateDebris,
+    addScorePopup,
+    updateScorePopups,
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
@@ -110,8 +112,8 @@ export function GameManager() {
       updateActivePowerUps(currentTime);
     }
     
-    // Actualizar debris
     updateDebris(delta);
+    updateScorePopups(delta);
     
     const newScrollPosition = Math.max(scrollPosition, playerPosition.z);
     if (Math.abs(newScrollPosition - lastScrollUpdate.current) > 0.5) {
@@ -281,7 +283,9 @@ export function GameManager() {
                   });
                 }
                 
+                let grenadeKillScore = 25;
                 if (enemy.type === "scooter") {
+                  grenadeKillScore = 200;
                   scoreToAdd += 200;
                   bulletCounter++;
                   addPowerUp({
@@ -296,10 +300,21 @@ export function GameManager() {
                   deathUtt.pitch = 0.8;
                   speechSynthesis.speak(deathUtt);
                 } else if (enemy.isSpecial) {
+                  grenadeKillScore = 75;
                   scoreToAdd += 75;
                 } else {
+                  grenadeKillScore = 25;
                   scoreToAdd += 25;
                 }
+                
+                bulletCounter++;
+                addScorePopup({
+                  id: `sp${bulletCounter}`,
+                  position: { x: enemy.position.x, y: enemy.position.y + 2, z: enemy.position.z },
+                  points: grenadeKillScore,
+                  lifetime: 1.2,
+                  maxLifetime: 1.2,
+                });
               }
             });
             
@@ -322,23 +337,33 @@ export function GameManager() {
                 if (dmg) {
                   const newHealth = e.health - dmg.damage;
                   if (newHealth <= 0) {
-                    // Boss muerto
+                    let bossKillScore = 0;
                     if (e.type === "boss") {
+                      bossKillScore = 500;
                       addScore(500);
                       stopBossMusic();
-                      // Transición al nivel 8 después de matar al boss 1
                       setTimeout(() => {
                         clearBattlefield();
                         setScrollPosition(315);
                         setLevel(8);
                       }, 1500);
                     } else if (e.type === "toucan") {
+                      bossKillScore = 750;
                       addScore(750);
                       stopBossMusic();
-                      // Victoria después de matar al boss 2
                       setTimeout(() => {
                         setPhase("victory");
                       }, 1500);
+                    }
+                    if (bossKillScore > 0) {
+                      bulletCounter++;
+                      addScorePopup({
+                        id: `sp${bulletCounter}`,
+                        position: { x: e.position.x, y: e.position.y + 3, z: e.position.z },
+                        points: bossKillScore,
+                        lifetime: 2.0,
+                        maxLifetime: 2.0,
+                      });
                     }
                     const isBoss1 = e.type === "boss";
                     const isBoss2 = e.type === "toucan";
@@ -976,10 +1001,11 @@ export function GameManager() {
                 playHit();
                 
                 if (enemies[j].health <= 0 && !enemies[j].dying) {
-                  // Iniciar animación de muerte
                   enemies[j] = { ...enemies[j], dying: true, dyingProgress: 0 };
                   
+                  let killScore = 0;
                   if (enemy.type === "boss") {
+                    killScore = 500;
                     scoreToAdd += 500;
                     stopBossMusic();
                     setTimeout(() => {
@@ -988,10 +1014,12 @@ export function GameManager() {
                       setLevel(8);
                     }, 1500);
                   } else if (enemy.type === "toucan") {
+                    killScore = 1000;
                     scoreToAdd += 1000;
                     stopBossMusic();
                     shouldEndGame = true;
                   } else if (enemy.type === "scooter") {
+                    killScore = 200;
                     scoreToAdd += 200;
                     bulletCounter++;
                     addPowerUp({
@@ -1006,10 +1034,21 @@ export function GameManager() {
                     deathUtt.pitch = 0.8;
                     speechSynthesis.speak(deathUtt);
                   } else if (enemy.type === "gorilla" || enemy.type === "penguin") {
+                    killScore = 150;
                     scoreToAdd += 150;
                   } else {
+                    killScore = 100;
                     scoreToAdd += 100;
                   }
+                  
+                  bulletCounter++;
+                  addScorePopup({
+                    id: `sp${bulletCounter}`,
+                    position: { x: enemy.position.x, y: enemy.position.y + 2, z: enemy.position.z },
+                    points: killScore,
+                    lifetime: 1.2,
+                    maxLifetime: 1.2,
+                  });
                   
                   // Special enemy drops reward
                   if (enemy.isSpecial) {
