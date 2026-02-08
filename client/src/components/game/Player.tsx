@@ -29,7 +29,8 @@ const HALO_CONFIG: Record<string, { radius: number; speed: number; yOffset: numb
 
 const DEFAULT_COLOR = new THREE.Color(0xffffff);
 
-function PowerUpHalo({ powerUp }: { powerUp: ActivePowerUp }) {
+function PowerUpHalo({ powerUp, playerMeshRef }: { powerUp: ActivePowerUp; playerMeshRef: React.RefObject<THREE.Mesh> }) {
+  const groupRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
   const ringRef = useRef<THREE.Mesh>(null);
 
@@ -37,7 +38,11 @@ function PowerUpHalo({ powerUp }: { powerUp: ActivePowerUp }) {
   const color = POWER_UP_COLORS[powerUp.type] || DEFAULT_COLOR;
 
   useFrame((state, delta) => {
-    if (!lightRef.current || !ringRef.current) return;
+    if (!groupRef.current || !lightRef.current || !ringRef.current) return;
+
+    if (playerMeshRef.current) {
+      groupRef.current.position.copy(playerMeshRef.current.position);
+    }
 
     const now = state.clock.getElapsedTime();
     const remaining = powerUp.expiresAt - now;
@@ -73,7 +78,7 @@ function PowerUpHalo({ powerUp }: { powerUp: ActivePowerUp }) {
   });
 
   return (
-    <group>
+    <group ref={groupRef}>
       <pointLight
         ref={lightRef}
         position={[0, 0.5, 0]}
@@ -212,47 +217,47 @@ export function Player() {
   });
   
   return (
-    <mesh ref={meshRef} position={[0, 0.5, 0]} castShadow>
-      <boxGeometry args={[0.8, 1, 0.8]} />
-      <meshStandardMaterial color="#1e40af" />
-      
-      <mesh position={[0, 0.6, 0]}>
-        <sphereGeometry args={[0.3, 16, 16]} />
-        <meshStandardMaterial color="#ffcc99" />
-      </mesh>
-      
-      <mesh position={[-0.3, 0, 0.3]} rotation={[0, 0, Math.PI / 6]}>
-        <boxGeometry args={[0.15, 0.6, 0.15]} />
-        <meshStandardMaterial color="#ffcc99" />
-      </mesh>
-      
-      <mesh position={[0.3, 0, 0.3]} rotation={[0, 0, -Math.PI / 6]}>
-        <boxGeometry args={[0.15, 0.6, 0.15]} />
-        <meshStandardMaterial color="#ffcc99" />
-      </mesh>
-      
-      <group position={[0, 0.5, -0.41]}>
-        <mesh position={[0, 0.2, 0]}>
-          <boxGeometry args={[0.5, 0.15, 0.02]} />
-          <meshStandardMaterial color="#c60b1e" />
+    <>
+      <mesh ref={meshRef} position={[0, 0.5, 0]} castShadow>
+        <boxGeometry args={[0.8, 1, 0.8]} />
+        <meshStandardMaterial color="#1e40af" />
+        
+        <mesh position={[0, 0.6, 0]}>
+          <sphereGeometry args={[0.3, 16, 16]} />
+          <meshStandardMaterial color="#ffcc99" />
         </mesh>
         
-        <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[0.5, 0.15, 0.02]} />
-          <meshStandardMaterial color="#ffc400" />
+        <mesh position={[-0.3, 0, 0.3]} rotation={[0, 0, Math.PI / 6]}>
+          <boxGeometry args={[0.15, 0.6, 0.15]} />
+          <meshStandardMaterial color="#ffcc99" />
         </mesh>
         
-        <mesh position={[0, -0.2, 0]}>
-          <boxGeometry args={[0.5, 0.15, 0.02]} />
-          <meshStandardMaterial color="#c60b1e" />
+        <mesh position={[0.3, 0, 0.3]} rotation={[0, 0, -Math.PI / 6]}>
+          <boxGeometry args={[0.15, 0.6, 0.15]} />
+          <meshStandardMaterial color="#ffcc99" />
         </mesh>
-      </group>
+        
+        <group position={[0, 0.5, -0.41]}>
+          <mesh position={[0, 0.2, 0]}>
+            <boxGeometry args={[0.5, 0.15, 0.02]} />
+            <meshStandardMaterial color="#c60b1e" />
+          </mesh>
+          
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.5, 0.15, 0.02]} />
+            <meshStandardMaterial color="#ffc400" />
+          </mesh>
+          
+          <mesh position={[0, -0.2, 0]}>
+            <boxGeometry args={[0.5, 0.15, 0.02]} />
+            <meshStandardMaterial color="#c60b1e" />
+          </mesh>
+        </group>
+      </mesh>
       
-      <group scale={(level === 7 || level === 14) ? [1/1.4, 1/1.4, 1/1.4] : [1, 1, 1]}>
-        {activePowerUps.map((pu) => (
-          <PowerUpHalo key={pu.type} powerUp={pu} />
-        ))}
-      </group>
-    </mesh>
+      {activePowerUps.map((pu) => (
+        <PowerUpHalo key={pu.type} powerUp={pu} playerMeshRef={meshRef} />
+      ))}
+    </>
   );
 }

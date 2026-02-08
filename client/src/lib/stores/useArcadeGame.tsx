@@ -249,9 +249,13 @@ export const useArcadeGame = create<ArcadeGameState>()(
       return { activePowerUps: newActivePowerUps };
     }),
     
-    updateActivePowerUps: (currentTime) => set((state) => ({
-      activePowerUps: state.activePowerUps.filter(p => currentTime < p.expiresAt)
-    })),
+    updateActivePowerUps: (currentTime) => {
+      const state = get();
+      const hasExpired = state.activePowerUps.some(p => currentTime >= p.expiresAt);
+      if (hasExpired) {
+        set({ activePowerUps: state.activePowerUps.filter(p => currentTime < p.expiresAt) });
+      }
+    },
     
     hasActivePowerUp: (type) => {
       const state = get();
