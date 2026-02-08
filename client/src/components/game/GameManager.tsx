@@ -108,9 +108,7 @@ export function GameManager() {
     
     frameCounter.current++;
     
-    if (frameCounter.current % 3 === 0) {
-      updateActivePowerUps(currentTime);
-    }
+    updateActivePowerUps(currentTime);
     
     updateDebris(delta);
     updateScorePopups(delta);

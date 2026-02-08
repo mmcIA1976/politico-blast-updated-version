@@ -13,19 +13,28 @@ enum Controls {
   shoot = "shoot",
 }
 
-const POWER_UP_COLORS: Record<string, number> = {
-  speedBoost: 0x00ff00,
-  powerShot: 0xff0000,
-  rapidFire: 0xff8800,
-  tripleShot: 0x0088ff,
+const POWER_UP_COLORS: Record<string, THREE.Color> = {
+  speedBoost: new THREE.Color(0x00ff00),
+  powerShot: new THREE.Color(0xff0000),
+  rapidFire: new THREE.Color(0xff8800),
+  tripleShot: new THREE.Color(0x0088ff),
 };
 
-const HALO_RADII = [0.9, 1.2, 1.5, 1.8];
-const HALO_SPEEDS = [2, -2.5, 3, -3.5];
+const HALO_CONFIG: Record<string, { radius: number; speed: number; yOffset: number }> = {
+  speedBoost: { radius: 0.9, speed: 2, yOffset: -0.3 },
+  powerShot: { radius: 1.2, speed: -2.5, yOffset: -0.15 },
+  rapidFire: { radius: 1.5, speed: 3, yOffset: 0.0 },
+  tripleShot: { radius: 1.8, speed: -3.5, yOffset: 0.15 },
+};
 
-function PowerUpHalo({ powerUp, index }: { powerUp: ActivePowerUp; index: number }) {
+const DEFAULT_COLOR = new THREE.Color(0xffffff);
+
+function PowerUpHalo({ powerUp }: { powerUp: ActivePowerUp }) {
   const lightRef = useRef<THREE.PointLight>(null);
   const ringRef = useRef<THREE.Mesh>(null);
+
+  const config = HALO_CONFIG[powerUp.type] || { radius: 1.0, speed: 2, yOffset: 0 };
+  const color = POWER_UP_COLORS[powerUp.type] || DEFAULT_COLOR;
 
   useFrame((state, delta) => {
     if (!lightRef.current || !ringRef.current) return;
@@ -50,9 +59,6 @@ function PowerUpHalo({ powerUp, index }: { powerUp: ActivePowerUp; index: number
       intensity = ratio * blink;
     }
 
-    const colorHex = POWER_UP_COLORS[powerUp.type] || 0xffffff;
-    const color = new THREE.Color(colorHex);
-
     lightRef.current.color.copy(color);
     lightRef.current.intensity = intensity * 2.5;
     lightRef.current.visible = true;
@@ -63,11 +69,8 @@ function PowerUpHalo({ powerUp, index }: { powerUp: ActivePowerUp; index: number
     mat.opacity = intensity * 0.7;
     ringRef.current.visible = true;
     ringRef.current.rotation.x = Math.PI / 2;
-    ringRef.current.rotation.z += delta * HALO_SPEEDS[index % HALO_SPEEDS.length];
+    ringRef.current.rotation.z += delta * config.speed;
   });
-
-  const radius = HALO_RADII[index % HALO_RADII.length];
-  const yOffset = -0.3 + index * 0.15;
 
   return (
     <group>
@@ -78,8 +81,8 @@ function PowerUpHalo({ powerUp, index }: { powerUp: ActivePowerUp; index: number
         decay={2}
         visible={false}
       />
-      <mesh ref={ringRef} position={[0, yOffset, 0]} visible={false}>
-        <torusGeometry args={[radius, 0.06, 8, 32]} />
+      <mesh ref={ringRef} position={[0, config.yOffset, 0]} visible={false}>
+        <torusGeometry args={[config.radius, 0.06, 8, 32]} />
         <meshStandardMaterial
           color="#000000"
           emissive="#ffffff"
@@ -245,8 +248,8 @@ export function Player() {
         </mesh>
       </group>
       
-      {activePowerUps.map((pu, i) => (
-        <PowerUpHalo key={`${pu.type}-${pu.startedAt}`} powerUp={pu} index={i} />
+      {activePowerUps.map((pu) => (
+        <PowerUpHalo key={pu.type} powerUp={pu} />
       ))}
     </mesh>
   );

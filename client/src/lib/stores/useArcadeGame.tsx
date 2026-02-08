@@ -329,6 +329,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       grenades: [],
       debris: [],
       scorePopups: [],
+      activePowerUps: [],
     }),
     
     addDebris: (newDebris) => set((state) => ({
