@@ -1,14 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useArcadeGame, type TouchControls as TouchControlsType } from "@/lib/stores/useArcadeGame";
 
-type DiagonalControl = "forward-left" | "forward-right" | "back-left" | "back-right";
-type DpadControl = "forward" | "back" | "left" | "right" | DiagonalControl;
-
-const DPAD_CONTROLS: DpadControl[] = [
-  "forward-left", "forward", "forward-right",
-  "left", "right",
-  "back-left", "back", "back-right",
-];
+type DpadControl = "forward" | "back" | "left" | "right" | "forward-left" | "forward-right" | "back-left" | "back-right";
 
 function setDpadDirection(control: DpadControl | null, setTouchControl: (key: keyof TouchControlsType, value: boolean) => void) {
   setTouchControl("forward", false);
@@ -28,11 +21,26 @@ function setDpadDirection(control: DpadControl | null, setTouchControl: (key: ke
   else if (control === "back-right") { setTouchControl("back", true); setTouchControl("right", true); }
 }
 
+function getDpadControlFromPosition(relX: number, relY: number): DpadControl | null {
+  const col = relX < 0.33 ? 0 : relX < 0.66 ? 1 : 2;
+  const row = relY < 0.33 ? 0 : relY < 0.66 ? 1 : 2;
+
+  if (row === 0 && col === 0) return "forward-left";
+  if (row === 0 && col === 1) return "forward";
+  if (row === 0 && col === 2) return "forward-right";
+  if (row === 1 && col === 0) return "left";
+  if (row === 1 && col === 2) return "right";
+  if (row === 2 && col === 0) return "back-left";
+  if (row === 2 && col === 1) return "back";
+  if (row === 2 && col === 2) return "back-right";
+  return null;
+}
+
 export function MobileControls() {
   const { phase, setTouchControl } = useArcadeGame();
   const [isMobile, setIsMobile] = useState(false);
   const activeDpadRef = useRef<DpadControl | null>(null);
-  const dpadButtonsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const dpadContainerRef = useRef<HTMLDivElement>(null);
   const shootingRef = useRef(false);
   const grenadeRef = useRef(false);
   const [renderTick, setRenderTick] = useState(0);
@@ -45,12 +53,11 @@ export function MobileControls() {
         window.innerWidth <= 1024
       );
     };
-    
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-  
+
   useEffect(() => {
     return () => {
       setTouchControl("forward", false);
@@ -70,57 +77,61 @@ export function MobileControls() {
     }
   }, []);
 
-  const findDpadControlAtPoint = useCallback((x: number, y: number): DpadControl | null => {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el) return null;
-    const control = el.getAttribute("data-dpad");
-    if (control && DPAD_CONTROLS.includes(control as DpadControl)) {
-      return control as DpadControl;
-    }
-    return null;
-  }, []);
+  const resolveTouch = useCallback((clientX: number, clientY: number) => {
+    const container = dpadContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const relX = (clientX - rect.left) / rect.width;
+    const relY = (clientY - rect.top) / rect.height;
 
-  const handleDpadTouch = useCallback((x: number, y: number) => {
-    const control = findDpadControlAtPoint(x, y);
-    if (control !== activeDpadRef.current) {
-      activeDpadRef.current = control;
-      setDpadDirection(control, setTouchControl);
+    if (relX < -0.15 || relX > 1.15 || relY < -0.15 || relY > 1.15) {
+      if (activeDpadRef.current !== null) {
+        activeDpadRef.current = null;
+        setDpadDirection(null, setTouchControl);
+        scheduleRender();
+      }
+      return;
+    }
+
+    const clamped = getDpadControlFromPosition(
+      Math.max(0, Math.min(1, relX)),
+      Math.max(0, Math.min(1, relY))
+    );
+
+    if (clamped !== activeDpadRef.current) {
+      activeDpadRef.current = clamped;
+      setDpadDirection(clamped, setTouchControl);
       scheduleRender();
     }
-  }, [findDpadControlAtPoint, setTouchControl, scheduleRender]);
+  }, [setTouchControl, scheduleRender]);
 
-  const handleDpadEnd = useCallback(() => {
+  const onDpadTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (t) resolveTouch(t.clientX, t.clientY);
+  }, [resolveTouch]);
+
+  const onDpadTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (t) resolveTouch(t.clientX, t.clientY);
+  }, [resolveTouch]);
+
+  const onDpadTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
     activeDpadRef.current = null;
     setDpadDirection(null, setTouchControl);
     scheduleRender();
   }, [setTouchControl, scheduleRender]);
 
-  const onDpadTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (touch) handleDpadTouch(touch.clientX, touch.clientY);
-  }, [handleDpadTouch]);
-
-  const onDpadTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (touch) handleDpadTouch(touch.clientX, touch.clientY);
-  }, [handleDpadTouch]);
-
-  const onDpadTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    handleDpadEnd();
-  }, [handleDpadEnd]);
-
   if (!isMobile || phase !== "playing") return null;
 
   const isDpadActive = (control: DpadControl) => activeDpadRef.current === control;
 
-  const getDpadButtonStyle = (control: DpadControl, size: "normal" | "small" = "normal") => {
+  const dpadBtnStyle = (control: DpadControl, size: "normal" | "small" = "normal"): React.CSSProperties => {
     const active = isDpadActive(control);
     const btnSize = size === "small" ? "44px" : "52px";
     const fontSize = size === "small" ? "16px" : "20px";
-    
     return {
       width: btnSize,
       height: btnSize,
@@ -132,12 +143,12 @@ export function MobileControls() {
       justifyContent: "center",
       fontSize,
       color: "white",
-      userSelect: "none" as const,
-      WebkitUserSelect: "none" as const,
-      touchAction: "none" as const,
+      userSelect: "none",
+      WebkitUserSelect: "none",
+      touchAction: "none",
       WebkitTapHighlightColor: "transparent",
       outline: "none",
-      pointerEvents: "none" as const,
+      pointerEvents: "none",
     };
   };
 
@@ -159,6 +170,7 @@ export function MobileControls() {
       }}
     >
       <div
+        ref={dpadContainerRef}
         style={{
           display: "grid",
           gridTemplateColumns: "44px 52px 44px",
@@ -172,19 +184,19 @@ export function MobileControls() {
         onTouchCancel={onDpadTouchEnd}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <button data-dpad="forward-left" style={getDpadButtonStyle("forward-left", "small")}>↖</button>
-        <button data-dpad="forward" style={getDpadButtonStyle("forward")}>▲</button>
-        <button data-dpad="forward-right" style={getDpadButtonStyle("forward-right", "small")}>↗</button>
-        
-        <button data-dpad="left" style={getDpadButtonStyle("left")}>◄</button>
+        <div style={dpadBtnStyle("forward-left", "small")}>↖</div>
+        <div style={dpadBtnStyle("forward")}>▲</div>
+        <div style={dpadBtnStyle("forward-right", "small")}>↗</div>
+
+        <div style={dpadBtnStyle("left")}>◄</div>
         <div style={{ width: "52px", height: "52px" }} />
-        <button data-dpad="right" style={getDpadButtonStyle("right")}>►</button>
-        
-        <button data-dpad="back-left" style={getDpadButtonStyle("back-left", "small")}>↙</button>
-        <button data-dpad="back" style={getDpadButtonStyle("back")}>▼</button>
-        <button data-dpad="back-right" style={getDpadButtonStyle("back-right", "small")}>↘</button>
+        <div style={dpadBtnStyle("right")}>►</div>
+
+        <div style={dpadBtnStyle("back-left", "small")}>↙</div>
+        <div style={dpadBtnStyle("back")}>▼</div>
+        <div style={dpadBtnStyle("back-right", "small")}>↘</div>
       </div>
-      
+
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
         <button
           style={{
@@ -199,41 +211,21 @@ export function MobileControls() {
             alignItems: "center",
             justifyContent: "center",
             color: "white",
-            userSelect: "none" as const,
-            WebkitUserSelect: "none" as const,
-            touchAction: "none" as const,
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            touchAction: "none",
             WebkitTapHighlightColor: "transparent",
             outline: "none",
           }}
-          onPointerDown={(e) => {
-            e.preventDefault();
-            grenadeRef.current = true;
-            setTouchControl("throwingGrenade", true);
-            scheduleRender();
-          }}
-          onPointerUp={(e) => {
-            e.preventDefault();
-            grenadeRef.current = false;
-            setTouchControl("throwingGrenade", false);
-            scheduleRender();
-          }}
-          onPointerCancel={(e) => {
-            e.preventDefault();
-            grenadeRef.current = false;
-            setTouchControl("throwingGrenade", false);
-            scheduleRender();
-          }}
-          onPointerLeave={(e) => {
-            e.preventDefault();
-            grenadeRef.current = false;
-            setTouchControl("throwingGrenade", false);
-            scheduleRender();
-          }}
+          onPointerDown={(e) => { e.preventDefault(); grenadeRef.current = true; setTouchControl("throwingGrenade", true); scheduleRender(); }}
+          onPointerUp={(e) => { e.preventDefault(); grenadeRef.current = false; setTouchControl("throwingGrenade", false); scheduleRender(); }}
+          onPointerCancel={(e) => { e.preventDefault(); grenadeRef.current = false; setTouchControl("throwingGrenade", false); scheduleRender(); }}
+          onPointerLeave={(e) => { e.preventDefault(); grenadeRef.current = false; setTouchControl("throwingGrenade", false); scheduleRender(); }}
           onContextMenu={(e) => e.preventDefault()}
         >
           💣
         </button>
-        
+
         <button
           style={{
             width: "80px",
@@ -247,36 +239,16 @@ export function MobileControls() {
             alignItems: "center",
             justifyContent: "center",
             color: "white",
-            userSelect: "none" as const,
-            WebkitUserSelect: "none" as const,
-            touchAction: "none" as const,
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            touchAction: "none",
             WebkitTapHighlightColor: "transparent",
             outline: "none",
           }}
-          onPointerDown={(e) => {
-            e.preventDefault();
-            shootingRef.current = true;
-            setTouchControl("shooting", true);
-            scheduleRender();
-          }}
-          onPointerUp={(e) => {
-            e.preventDefault();
-            shootingRef.current = false;
-            setTouchControl("shooting", false);
-            scheduleRender();
-          }}
-          onPointerCancel={(e) => {
-            e.preventDefault();
-            shootingRef.current = false;
-            setTouchControl("shooting", false);
-            scheduleRender();
-          }}
-          onPointerLeave={(e) => {
-            e.preventDefault();
-            shootingRef.current = false;
-            setTouchControl("shooting", false);
-            scheduleRender();
-          }}
+          onPointerDown={(e) => { e.preventDefault(); shootingRef.current = true; setTouchControl("shooting", true); scheduleRender(); }}
+          onPointerUp={(e) => { e.preventDefault(); shootingRef.current = false; setTouchControl("shooting", false); scheduleRender(); }}
+          onPointerCancel={(e) => { e.preventDefault(); shootingRef.current = false; setTouchControl("shooting", false); scheduleRender(); }}
+          onPointerLeave={(e) => { e.preventDefault(); shootingRef.current = false; setTouchControl("shooting", false); scheduleRender(); }}
           onContextMenu={(e) => e.preventDefault()}
         >
           FUEGO
