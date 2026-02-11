@@ -28,7 +28,7 @@ export function LevelSky() {
   }, [level]);
 
   useFrame(() => {
-    currentColor.current.lerp(targetColor.current, 0.03);
+    currentColor.current.lerp(targetColor.current, 0.01);
     if (scene.background instanceof THREE.Color) {
       scene.background.copy(currentColor.current);
     } else {
