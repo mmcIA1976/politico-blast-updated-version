@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useArcadeGame, type Vec3 } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Vec3, type Enemy } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
 
 enum Controls {
@@ -33,6 +33,93 @@ const GRENADE_COOLDOWN = 2.0;
 const EXPLOSION_RADIUS = 8;
 const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
+
+const enemyPool: Enemy[] = [];
+
+interface EnemySpawnSeed {
+  id: string;
+  position: Vec3;
+  health: number;
+  type: Enemy["type"];
+  shootTimer: number;
+  movePattern: Enemy["movePattern"];
+  spawnTime: number;
+  initialX: number;
+  isSpecial?: boolean;
+  enraged?: boolean;
+  enragedProgress?: number;
+  enrageMode?: Enemy["enrageMode"];
+  chargeDirX?: number;
+  chargeDirZ?: number;
+  charging?: boolean;
+  lastHitTime?: number;
+  scooterPhraseTime?: number;
+}
+
+const createEmptyEnemy = (): Enemy => ({
+  id: "",
+  position: { x: 0, y: 0, z: 0 },
+  health: 1,
+  type: "politician",
+  shootTimer: 1,
+  movePattern: "straight",
+  spawnTime: 0,
+  initialX: 0,
+});
+
+const acquireEnemy = (): Enemy => {
+  return enemyPool.pop() ?? createEmptyEnemy();
+};
+
+const resetEnemyForPool = (enemy: Enemy) => {
+  enemy.dying = false;
+  enemy.dyingProgress = 0;
+  enemy.enraged = false;
+  enemy.enragedProgress = 0;
+  enemy.lastEnrageTime = undefined;
+  enemy.enrageMode = undefined;
+  enemy.chargeDirX = undefined;
+  enemy.chargeDirZ = undefined;
+  enemy.charging = false;
+  enemy.lastHitTime = undefined;
+  enemy.scooterPhraseTime = undefined;
+};
+
+const releaseEnemyToPool = (enemy: Enemy) => {
+  resetEnemyForPool(enemy);
+  enemyPool.push(enemy);
+};
+
+const spawnEnemyFromSeed = (seed: EnemySpawnSeed): Enemy => {
+  const enemy = acquireEnemy();
+  enemy.id = seed.id;
+  enemy.position.x = seed.position.x;
+  enemy.position.y = seed.position.y;
+  enemy.position.z = seed.position.z;
+  enemy.health = seed.health;
+  enemy.type = seed.type;
+  enemy.shootTimer = seed.shootTimer;
+  enemy.movePattern = seed.movePattern;
+  enemy.spawnTime = seed.spawnTime;
+  enemy.initialX = seed.initialX;
+  enemy.isSpecial = seed.isSpecial;
+  enemy.enraged = seed.enraged;
+  enemy.enragedProgress = seed.enragedProgress;
+  enemy.enrageMode = seed.enrageMode;
+  enemy.chargeDirX = seed.chargeDirX;
+  enemy.chargeDirZ = seed.chargeDirZ;
+  enemy.charging = seed.charging;
+  enemy.lastHitTime = seed.lastHitTime;
+  enemy.scooterPhraseTime = seed.scooterPhraseTime;
+  enemy.dying = false;
+  enemy.dyingProgress = 0;
+  return enemy;
+};
+
+const releaseAllEnemies = () => {
+  const current = useArcadeGame.getState().enemies;
+  current.forEach(releaseEnemyToPool);
+};
 
 // Max enemies per level (not boss levels)
 const BASE_MAX_ENEMIES: Record<number, number> = {
@@ -335,7 +422,10 @@ export function GameManager() {
             mutateEnemies(currentEnemies => {
               const result: typeof currentEnemies = [];
               for (const e of currentEnemies) {
-                if (killIds.includes(e.id)) continue;
+                if (killIds.includes(e.id)) {
+                  releaseEnemyToPool(e);
+                  continue;
+                }
                 
                 const dmg = bossDamage.find(b => b.id === e.id);
                 if (dmg) {
@@ -347,6 +437,7 @@ export function GameManager() {
                       addScore(500);
                       stopBossMusic();
                       setTimeout(() => {
+                        releaseAllEnemies();
                         clearBattlefield();
                         setScrollPosition(315);
                         setLevel(8);
@@ -356,6 +447,7 @@ export function GameManager() {
                       addScore(750);
                       stopBossMusic();
                       setTimeout(() => {
+                        releaseAllEnemies();
                         setPhase("victory");
                       }, 1500);
                     }
@@ -373,6 +465,7 @@ export function GameManager() {
                     const isBoss2 = e.type === "toucan";
                     const isZooPhase = level >= 8;
                     playEnemyScream(isBoss1, isZooPhase, isBoss2, level);
+                    releaseEnemyToPool(e);
                     continue;
                   }
                   result.push({ ...e, health: newHealth });
@@ -415,28 +508,7 @@ export function GameManager() {
       updateGrenades(updatedGrenades);
     }
     
-    const enemiesToSpawn: Array<{
-      id: string;
-      position: Vec3;
-      health: number;
-      type: "politician" | "boss" | "gorilla" | "penguin" | "toucan" | "scooter";
-      shootTimer: number;
-      movePattern: "straight" | "zigzag" | "circular" | "formation";
-      spawnTime: number;
-      initialX: number;
-      isSpecial?: boolean;
-      dying?: boolean;
-      dyingProgress?: number;
-      enraged?: boolean;
-      enragedProgress?: number;
-      lastEnrageTime?: number;
-      enrageMode?: "jump" | "shake";
-      chargeDirX?: number;
-      chargeDirZ?: number;
-      charging?: boolean;
-      lastHitTime?: number;
-      scooterPhraseTime?: number;
-    }> = [];
+    const enemiesToSpawn: Enemy[] = [];
     
     // Reset enemy counter when level changes
     if (lastLevel.current !== level) {
@@ -444,34 +516,40 @@ export function GameManager() {
     }
     
     if (level === 7 && lastLevel.current !== 7) {
+      releaseAllEnemies();
       clearBattlefield();
       bulletCounter++;
-      enemiesToSpawn.push({
-        id: `boss${bulletCounter}`,
-        position: { x: 0, y: 0.7, z: 295 },
-        health: 15,
-        type: "boss",
-        shootTimer: 1.5,
-        movePattern: "circular",
-        spawnTime: currentTime,
-        initialX: 0,
-      });
+      enemiesToSpawn.push(
+        spawnEnemyFromSeed({
+          id: `boss${bulletCounter}`,
+          position: { x: 0, y: 0.7, z: 295 },
+          health: 15,
+          type: "boss",
+          shootTimer: 1.5,
+          movePattern: "circular",
+          spawnTime: currentTime,
+          initialX: 0,
+        })
+      );
       playBossEntrance();
     }
     
     if (level === 14 && lastLevel.current !== 14) {
+      releaseAllEnemies();
       clearBattlefield();
       bulletCounter++;
-      enemiesToSpawn.push({
-        id: `boss2${bulletCounter}`,
-        position: { x: 0, y: 0.8, z: 295 },
-        health: 20,
-        type: "toucan",
-        shootTimer: 1.2,
-        movePattern: "circular",
-        spawnTime: currentTime,
-        initialX: 0,
-      });
+      enemiesToSpawn.push(
+        spawnEnemyFromSeed({
+          id: `boss2${bulletCounter}`,
+          position: { x: 0, y: 0.8, z: 295 },
+          health: 20,
+          type: "toucan",
+          shootTimer: 1.2,
+          movePattern: "circular",
+          spawnTime: currentTime,
+          initialX: 0,
+        })
+      );
       playBossEntrance(true);
     }
     
@@ -515,17 +593,19 @@ export function GameManager() {
         const xPos = ((currentTime * 13 + i * 5) % 24) - 12;
         const isSpecial = enemySpawnCounter % 15 === 0;
         
-        enemiesToSpawn.push({
-          id: `e${bulletCounter}`,
-          position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
-          health: isSpecial ? enemyHealth + 1 : enemyHealth,
-          type: "politician",
-          shootTimer: (currentTime % 3) + 1,
-          movePattern: patterns[patternIndex],
-          spawnTime: currentTime,
-          initialX: xPos,
-          isSpecial,
-        });
+        enemiesToSpawn.push(
+          spawnEnemyFromSeed({
+            id: `e${bulletCounter}`,
+            position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
+            health: isSpecial ? enemyHealth + 1 : enemyHealth,
+            type: "politician",
+            shootTimer: (currentTime % 3) + 1,
+            movePattern: patterns[patternIndex],
+            spawnTime: currentTime,
+            initialX: xPos,
+            isSpecial,
+          })
+        );
       }
       playEnemyScream(false, false, false, level);
     }
@@ -550,17 +630,19 @@ export function GameManager() {
         const enemyType = i % 2 === 0 ? "gorilla" : "penguin";
         const isSpecial = enemySpawnCounter % 15 === 0;
         
-        enemiesToSpawn.push({
-          id: `z${bulletCounter}`,
-          position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
-          health: isSpecial ? enemyHealth + 1 : enemyHealth,
-          type: enemyType,
-          shootTimer: (currentTime % 3) + 1,
-          movePattern: patterns[patternIndex],
-          spawnTime: currentTime,
-          initialX: xPos,
-          isSpecial,
-        });
+        enemiesToSpawn.push(
+          spawnEnemyFromSeed({
+            id: `z${bulletCounter}`,
+            position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
+            health: isSpecial ? enemyHealth + 1 : enemyHealth,
+            type: enemyType,
+            shootTimer: (currentTime % 3) + 1,
+            movePattern: patterns[patternIndex],
+            spawnTime: currentTime,
+            initialX: xPos,
+            isSpecial,
+          })
+        );
       }
       playEnemyScream(false, true, false, level);
     }
@@ -573,17 +655,19 @@ export function GameManager() {
       scooterSpawnedForLevel.current = level;
       bulletCounter++;
       const startX = level % 2 === 0 ? -10 : 10;
-      enemiesToSpawn.push({
-        id: `scooter${bulletCounter}`,
-        position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
-        health: 2,
-        scooterPhraseTime: currentTime,
-        type: "scooter",
-        shootTimer: 2.5,
-        movePattern: "zigzag",
-        spawnTime: currentTime,
-        initialX: startX,
-      });
+      enemiesToSpawn.push(
+        spawnEnemyFromSeed({
+          id: `scooter${bulletCounter}`,
+          position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
+          health: 2,
+          scooterPhraseTime: currentTime,
+          type: "scooter",
+          shootTimer: 2.5,
+          movePattern: "zigzag",
+          spawnTime: currentTime,
+          initialX: startX,
+        })
+      );
       
       const scooterPhrases = [
         "¡¡Un segarro amego!!",
@@ -1013,6 +1097,7 @@ export function GameManager() {
                     scoreToAdd += 500;
                     stopBossMusic();
                     setTimeout(() => {
+                      releaseAllEnemies();
                       clearBattlefield();
                       setScrollPosition(315);
                       setLevel(8);
@@ -1108,7 +1193,13 @@ export function GameManager() {
       }
       
       if (enemiesToRemove.length > 0) {
-        return enemies.filter(e => !enemiesToRemove.includes(e.id));
+        const removalSet = new Set(enemiesToRemove);
+        enemies.forEach(e => {
+          if (removalSet.has(e.id)) {
+            releaseEnemyToPool(e);
+          }
+        });
+        return enemies.filter(e => !removalSet.has(e.id));
       }
       return enemies;
     });
@@ -1125,6 +1216,7 @@ export function GameManager() {
     }
     
     if (shouldEndGame) {
+      releaseAllEnemies();
       setPhase("victory");
     }
     
