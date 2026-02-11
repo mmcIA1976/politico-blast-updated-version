@@ -10,6 +10,8 @@ export interface Vec3 {
   z: number;
 }
 
+export type PlayerBulletStyle = "default" | "triple" | "power";
+
 export interface Bullet {
   id: string;
   position: Vec3;
@@ -17,6 +19,7 @@ export interface Bullet {
   speed: number;
   fromPlayer: boolean;
   damage?: number;
+  style?: PlayerBulletStyle;
 }
 
 export interface Grenade {

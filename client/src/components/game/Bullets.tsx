@@ -1,15 +1,23 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useArcadeGame, type Bullet } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Bullet, type PlayerBulletStyle } from "@/lib/stores/useArcadeGame";
 import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
-function SimpleBullet({ isPlayer, isBanana, isRose }: { isPlayer: boolean; isBanana: boolean; isRose: boolean }) {
+const PLAYER_BULLET_COLORS: Record<PlayerBulletStyle, string> = {
+  default: "#ff1b2d",
+  triple: "#4dc4ff",
+  power: "#ff8a00",
+};
+
+function SimpleBullet({ isPlayer, isBanana, isRose, style }: { isPlayer: boolean; isBanana: boolean; isRose: boolean; style?: PlayerBulletStyle }) {
   if (isPlayer) {
+    const bulletStyle = style ?? "default";
+    const color = PLAYER_BULLET_COLORS[bulletStyle];
     return (
       <mesh>
-        <sphereGeometry args={[0.2, 6, 6]} />
-        <meshBasicMaterial color="#8B4513" />
+        <sphereGeometry args={[0.22, 10, 10]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} toneMapped={false} />
       </mesh>
     );
   }
@@ -120,6 +128,7 @@ export function Bullets() {
             isPlayer={bullet.fromPlayer} 
             isBanana={bullet.id.startsWith("banana")} 
             isRose={bullet.id.startsWith("rose")}
+            style={bullet.style}
           />
         </group>
       ))}

@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useArcadeGame, type Vec3, type Enemy } from "@/lib/stores/useArcadeGame";
+import { useArcadeGame, type Vec3, type Enemy, type PlayerBulletStyle } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
 
 enum Controls {
@@ -235,6 +235,7 @@ export function GameManager() {
         
         const offsets = [-0.4, 0, 0.4];
         const angles = [-angleSpread, 0, angleSpread];
+        const tripleStyle: PlayerBulletStyle = "triple";
         
         for (let i = 0; i < 3; i++) {
           bulletCounter++;
@@ -250,11 +251,13 @@ export function GameManager() {
             speed: 30,
             fromPlayer: true,
             damage: bulletDamage,
+            style: tripleStyle,
           });
         }
       } else {
         bulletCounter++;
         const bulletId = `b${bulletCounter}`;
+        const style: PlayerBulletStyle = hasPowerShot ? "power" : "default";
         
         addBullet({
           id: bulletId,
@@ -263,6 +266,7 @@ export function GameManager() {
           speed: 30,
           fromPlayer: true,
           damage: bulletDamage,
+          style,
         });
       }
       
