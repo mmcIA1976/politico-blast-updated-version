@@ -41,7 +41,7 @@ export function Debris() {
   }, [color, debris, dummy]);
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, MAX_DEBRIS_INSTANCES]}>
+    <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, MAX_DEBRIS_INSTANCES]} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial vertexColors toneMapped={false} />
     </instancedMesh>

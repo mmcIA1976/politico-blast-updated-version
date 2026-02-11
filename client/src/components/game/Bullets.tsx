@@ -169,6 +169,7 @@ export function Bullets() {
           key={style}
           ref={refs[style]}
           args={[undefined as any, undefined as any, MAX_PLAYER_BULLETS_PER_STYLE]}
+          frustumCulled={false}
         >
           <sphereGeometry args={[0.22, 10, 10]} />
           <meshStandardMaterial
