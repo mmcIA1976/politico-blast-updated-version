@@ -606,28 +606,21 @@ export function GameManager() {
     const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter" && e.type !== "booth").length;
     
     if (level >= 3 && level % 3 === 0 && !boothSpawnedLevels.current[level]) {
-      const rangeStart = getLevelRangeStart(level);
-      const alreadyPassed = scrollPosition > rangeStart + 40;
-      const inSpawnWindow = scrollPosition > rangeStart + 20 && scrollPosition < rangeStart + 35;
-      if (inSpawnWindow && !boothActive.current) {
-        boothSpawnedLevels.current[level] = true;
-        boothActive.current = true;
-        bulletCounter++;
-        enemiesToSpawn.push(
-          spawnEnemyFromSeed({
-            id: `booth-${level}-${bulletCounter}`,
-            position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: playerPosition.z + 18 },
-            health: 4,
-            type: "booth",
-            shootTimer: 5,
-            movePattern: "straight",
-            spawnTime: currentTime,
-            initialX: level % 2 === 0 ? -18 : 18,
-          })
-        );
-      } else if (alreadyPassed) {
-        boothSpawnedLevels.current[level] = true;
-      }
+      boothSpawnedLevels.current[level] = true;
+      boothActive.current = true;
+      bulletCounter++;
+      enemiesToSpawn.push(
+        spawnEnemyFromSeed({
+          id: `booth-${level}-${bulletCounter}`,
+          position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: playerPosition.z + 18 },
+          health: 4,
+          type: "booth",
+          shootTimer: 5,
+          movePattern: "straight",
+          spawnTime: currentTime,
+          initialX: level % 2 === 0 ? -18 : 18,
+        })
+      );
     }
     
     if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
