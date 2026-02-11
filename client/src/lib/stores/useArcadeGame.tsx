@@ -84,6 +84,8 @@ export interface Debris {
   lifetime: number;
 }
 
+const MAX_DEBRIS = 250;
+
 export interface ScorePopup {
   id: string;
   position: Vec3;
@@ -339,9 +341,14 @@ export const useArcadeGame = create<ArcadeGameState>()(
       activePowerUps: [],
     }),
     
-    addDebris: (newDebris) => set((state) => ({
-      debris: [...state.debris, ...newDebris]
-    })),
+    addDebris: (newDebris) => set((state) => {
+      if (!newDebris.length) return { debris: state.debris };
+      const merged = [...state.debris, ...newDebris];
+      if (merged.length > MAX_DEBRIS) {
+        merged.splice(0, merged.length - MAX_DEBRIS);
+      }
+      return { debris: merged };
+    }),
     
     updateDebris: (delta) => set((state) => ({
       debris: state.debris

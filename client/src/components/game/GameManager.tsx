@@ -121,6 +121,8 @@ const releaseAllEnemies = () => {
   current.forEach(releaseEnemyToPool);
 };
 
+const DEBRIS_SHARDS_PER_ENEMY = 4;
+
 // Max enemies per level (not boss levels)
 const BASE_MAX_ENEMIES: Record<number, number> = {
   1: 12,
@@ -356,9 +358,9 @@ export function GameManager() {
                 
                 // Crear trozos que salen disparados
                 const colors = ["#dc2626", "#7f1d1d", "#991b1b", "#450a0a", "#fef08a"];
-                for (let i = 0; i < 8; i++) {
+                for (let i = 0; i < DEBRIS_SHARDS_PER_ENEMY; i++) {
                   debrisCounter++;
-                  const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
+                  const angle = (i / DEBRIS_SHARDS_PER_ENEMY) * Math.PI * 2 + Math.random() * 0.5;
                   const speed = 8 + Math.random() * 12;
                   newDebris.push({
                     id: `debris_${enemy.id}_${debrisCounter}`,
