@@ -35,20 +35,26 @@ const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
 
 // Max enemies per level (not boss levels)
+const BASE_MAX_ENEMIES: Record<number, number> = {
+  1: 12,
+  2: 15,
+  3: 18,
+  4: 20,
+  5: 22,
+  6: 25,
+  8: 15,
+  9: 18,
+  10: 20,
+  11: 22,
+  12: 25,
+  13: 28,
+};
+
 const getMaxEnemiesForLevel = (level: number): number => {
-  if (level === 1) return 12;
-  if (level === 2) return 15;
-  if (level === 3) return 18;
-  if (level === 4) return 20;
-  if (level === 5) return 22;
-  if (level === 6) return 25;
-  if (level === 8) return 15;
-  if (level === 9) return 18;
-  if (level === 10) return 20;
-  if (level === 11) return 22;
-  if (level === 12) return 25;
-  if (level === 13) return 28;
-  return 0;
+  const base = BASE_MAX_ENEMIES[level] ?? 0;
+  if (!base) return 0;
+  const reduced = Math.max(1, Math.floor(base * 0.8));
+  return reduced;
 };
 
 export function GameManager() {
@@ -490,10 +496,10 @@ export function GameManager() {
     const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
     const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter").length;
     
-    if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 8) {
+    if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
       enemySpawnTimer.current = 0;
       
-      let numEnemies = Math.min(3, remainingToSpawn);
+      let numEnemies = Math.min(2, remainingToSpawn);
       let enemyHealth = 1;
       
       if (level >= 3) enemyHealth = 2;
@@ -524,10 +530,10 @@ export function GameManager() {
       playEnemyScream(false, false, false, level);
     }
     
-    if (isPhase2 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 8) {
+    if (isPhase2 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
       enemySpawnTimer.current = 0;
       
-      let numEnemies = Math.min(3, remainingToSpawn);
+      let numEnemies = Math.min(2, remainingToSpawn);
       let enemyHealth = 2;
       
       if (level >= 10) enemyHealth = 3;

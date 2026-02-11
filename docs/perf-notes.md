@@ -1,6 +1,6 @@
 # Politico Blast – Performance Notes
 
-_Last updated: 2026-02-10_
+_Last updated: 2026-02-11_
 
 ## Baseline checklist
 - [x] Repository cloned locally (deploy key, read-only)
@@ -25,7 +25,7 @@ _Last updated: 2026-02-10_
 ## Early observations (static review)
 - **Player + input**: `useFrame` pulls `useArcadeGame.getState()` each frame and writes back to Zustand, which can trigger frequent store updates → React re-render pressure.
 - **Bullets**: Each projectile is a React node backed by standard geometries → lots of draw calls; consider instancing / merged geometries + GPU attributes.
-- **Enemies**: Heavy use of individual meshes with lights per enemy. Lighting cost spikes on levels with many specials; look into shared materials + instanced emissive mats.
+- **Enemies**: Heavy use of individual meshes with lights per enemy. Lighting cost spikes on levels with many specials; look into shared materials + instanced emissive mats. _Mitigations in progress:_ reduced simultaneous ground enemies by 20 % (wave size + max-per-level) to keep FPS stable while we build pooling/batching.
 - **State arrays**: `updateBullets`, `updateGrenades`, `updateDebris`, etc., allocate new arrays every frame. Pooling or mutating buffers inside `useMemo` + `useRef` could lower GC.
 - **LODs / culling**: Player boundary clamps exist, but background/props still render outside camera. Add distance-based visibility / simplified materials for far objects.
 
