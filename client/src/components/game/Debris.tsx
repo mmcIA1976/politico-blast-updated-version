@@ -5,7 +5,8 @@ import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 const MAX_DEBRIS_INSTANCES = 250;
 
 export function Debris() {
-  const debris = useArcadeGame((state) => state.debris.slice(-MAX_DEBRIS_INSTANCES));
+  const allDebris = useArcadeGame((state) => state.debris);
+  const debris = useMemo(() => allDebris.slice(-MAX_DEBRIS_INSTANCES), [allDebris]);
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
