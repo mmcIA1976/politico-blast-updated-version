@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useArcadeGame, type Bullet, type PlayerBulletStyle } from "@/lib/stores/useArcadeGame";
@@ -10,19 +10,11 @@ const PLAYER_BULLET_COLORS: Record<PlayerBulletStyle, string> = {
   power: "#ff8a00",
 };
 
-function SimpleBullet({ isPlayer, isBanana, isRose, style }: { isPlayer: boolean; isBanana: boolean; isRose: boolean; style?: PlayerBulletStyle }) {
-  if (isPlayer) {
-    const bulletStyle = style ?? "default";
-    const color = PLAYER_BULLET_COLORS[bulletStyle];
-    return (
-      <mesh>
-        <sphereGeometry args={[0.22, 10, 10]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} toneMapped={false} />
-      </mesh>
-    );
-  }
-  
-  if (isBanana) {
+const PLAYER_STYLES: PlayerBulletStyle[] = ["default", "triple", "power"];
+const MAX_PLAYER_BULLETS_PER_STYLE = 120;
+
+function EnemyBullet({ bullet }: { bullet: Bullet }) {
+  if (bullet.id.startsWith("banana")) {
     return (
       <group rotation={[0, 0, Math.PI / 4]}>
         <mesh>
@@ -37,7 +29,7 @@ function SimpleBullet({ isPlayer, isBanana, isRose, style }: { isPlayer: boolean
     );
   }
   
-  if (isRose) {
+  if (bullet.id.startsWith("rose")) {
     return (
       <group>
         <mesh position={[0, 0, 0]}>
@@ -79,6 +71,20 @@ function SimpleBullet({ isPlayer, isBanana, isRose, style }: { isPlayer: boolean
 export function Bullets() {
   const { bullets, updateBullets } = useArcadeGame();
   const frameCounter = useRef(0);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const playerBuckets = useMemo(
+    () => ({
+      default: [] as Bullet[],
+      triple: [] as Bullet[],
+      power: [] as Bullet[],
+    }),
+    []
+  );
+  const refs: Record<PlayerBulletStyle, React.RefObject<THREE.InstancedMesh>> = {
+    default: useRef<THREE.InstancedMesh>(null),
+    triple: useRef<THREE.InstancedMesh>(null),
+    power: useRef<THREE.InstancedMesh>(null),
+  };
   
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
@@ -96,7 +102,6 @@ export function Bullets() {
       const newY = bullet.position.y + bullet.direction.y * bullet.speed * delta;
       const newZ = bullet.position.z + bullet.direction.z * bullet.speed * delta;
       
-      // Player bullets can travel further in all directions
       const maxDistanceBehind = bullet.fromPlayer ? 25 : 5;
       const maxDistanceAhead = bullet.fromPlayer ? 50 : 20;
       const isBehindPlayer = newZ < playerZ - maxDistanceBehind;
@@ -120,16 +125,63 @@ export function Bullets() {
     }
   });
   
+  useEffect(() => {
+    playerBuckets.default.length = 0;
+    playerBuckets.triple.length = 0;
+    playerBuckets.power.length = 0;
+    
+    for (let i = 0; i < bullets.length; i++) {
+      const bullet = bullets[i];
+      if (bullet.fromPlayer) {
+        const style = bullet.style ?? "default";
+        playerBuckets[style].push(bullet);
+      }
+    }
+    
+    PLAYER_STYLES.forEach((style) => {
+      const mesh = refs[style].current;
+      if (!mesh) return;
+      const bucket = playerBuckets[style];
+      const count = Math.min(bucket.length, MAX_PLAYER_BULLETS_PER_STYLE);
+      for (let i = 0; i < count; i++) {
+        const b = bucket[i];
+        dummy.position.set(b.position.x, b.position.y, b.position.z);
+        dummy.scale.setScalar(1);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+      }
+      for (let i = count; i < MAX_PLAYER_BULLETS_PER_STYLE; i++) {
+        dummy.position.set(0, -999, 0);
+        dummy.scale.set(0, 0, 0);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+  }, [bullets, dummy, playerBuckets]);
+  
+  const enemyBullets = useMemo(() => bullets.filter((b) => !b.fromPlayer), [bullets]);
+  
   return (
     <group>
-      {bullets.map((bullet) => (
-        <group key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
-          <SimpleBullet 
-            isPlayer={bullet.fromPlayer} 
-            isBanana={bullet.id.startsWith("banana")} 
-            isRose={bullet.id.startsWith("rose")}
-            style={bullet.style}
+      {PLAYER_STYLES.map((style) => (
+        <instancedMesh
+          key={style}
+          ref={refs[style]}
+          args={[undefined as any, undefined as any, MAX_PLAYER_BULLETS_PER_STYLE]}
+        >
+          <sphereGeometry args={[0.22, 10, 10]} />
+          <meshStandardMaterial
+            color={PLAYER_BULLET_COLORS[style]}
+            emissive={PLAYER_BULLET_COLORS[style]}
+            emissiveIntensity={0.7}
+            toneMapped={false}
           />
+        </instancedMesh>
+      ))}
+      {enemyBullets.map((bullet) => (
+        <group key={bullet.id} position={[bullet.position.x, bullet.position.y, bullet.position.z]}>
+          <EnemyBullet bullet={bullet} />
         </group>
       ))}
     </group>
