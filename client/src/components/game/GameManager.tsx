@@ -196,6 +196,7 @@ export function GameManager() {
   const levelEnemiesSpawned = useRef(0);
   const scooterSpawnedForLevel = useRef(0);
   const boothSpawnedLevels = useRef<Record<number, boolean>>({});
+  const boothActive = useRef(false);
   const enemyPhraseTimer = useRef(0);
   
   useFrame((state, rawDelta) => {
@@ -535,6 +536,7 @@ export function GameManager() {
     if (lastLevel.current !== level) {
       if (level < lastLevel.current) {
         boothSpawnedLevels.current = {};
+        boothActive.current = false;
       }
       levelEnemiesSpawned.current = 0;
     }
@@ -599,20 +601,24 @@ export function GameManager() {
     const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter" && e.type !== "booth").length;
     
     if (level >= 1 && level % 3 === 0 && !boothSpawnedLevels.current[level]) {
-      boothSpawnedLevels.current[level] = true;
-      bulletCounter++;
-      enemiesToSpawn.push(
-        spawnEnemyFromSeed({
-          id: `booth-${level}-${bulletCounter}`,
-          position: { x: 18 * (level % 2 === 0 ? -1 : 1), y: 0.5, z: playerPosition.z + 12 },
-          health: 4,
-          type: "booth",
-          shootTimer: 5,
-          movePattern: "straight",
-          spawnTime: currentTime,
-          initialX: 18 * (level % 2 === 0 ? -1 : 1),
-        })
-      );
+      const midpointReached = scrollPosition > level * 45;
+      if (midpointReached && !boothActive.current) {
+        boothSpawnedLevels.current[level] = true;
+        boothActive.current = true;
+        bulletCounter++;
+        enemiesToSpawn.push(
+          spawnEnemyFromSeed({
+            id: `booth-${level}-${bulletCounter}`,
+            position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: playerPosition.z + 20 },
+            health: 4,
+            type: "booth",
+            shootTimer: 5,
+            movePattern: "straight",
+            spawnTime: currentTime,
+            initialX: level % 2 === 0 ? -18 : 18,
+          })
+        );
+      }
     }
     
     if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
@@ -1172,6 +1178,7 @@ export function GameManager() {
                   } else if (enemy.type === "booth") {
                     killScore = 150;
                     scoreToAdd += 150;
+                    boothActive.current = false;
                     addArmorCharges(2);
                     bulletCounter++;
                     addScorePopup({
