@@ -19,6 +19,7 @@ import { LevelTransition } from "./LevelTransition";
 import { MobileControls } from "./MobileControls";
 import { DebugControls } from "./DebugControls";
 import { PerfOverlay } from "./PerfOverlay";
+import { SpeechManager } from "./SpeechManager";
 
 enum Controls {
   forward = "forward",
@@ -97,6 +98,7 @@ export function Game() {
         <LevelTransition />
         <MobileControls />
         <DebugControls />
+        <SpeechManager />
       </KeyboardControls>
     </>
   );

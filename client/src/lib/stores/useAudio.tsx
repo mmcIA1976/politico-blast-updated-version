@@ -1,5 +1,14 @@
 import { create } from "zustand";
 
+interface SpeechRequest {
+  id: number;
+  text: string;
+  lang?: string;
+  rate?: number;
+  pitch?: number;
+  volume?: number;
+}
+
 interface AudioState {
   backgroundMusic: HTMLAudioElement | null;
   backgroundMusic2: HTMLAudioElement | null;
@@ -10,6 +19,7 @@ interface AudioState {
   currentPhase: number;
   lastPhrase: string;
   lastPhraseTime: number;
+  speechQueue: SpeechRequest[];
   
   // Setter functions
   setBackgroundMusic: (music: HTMLAudioElement) => void;
@@ -18,6 +28,9 @@ interface AudioState {
   setSuccessSound: (sound: HTMLAudioElement) => void;
   setCurrentPhase: (phase: number) => void;
   stopBossMusic: () => void;
+  enqueueSpeech: (request: Omit<SpeechRequest, "id">) => void;
+  dequeueSpeech: () => SpeechRequest | undefined;
+  clearSpeechQueue: () => void;
   
   // Control functions
   toggleMute: () => void;
@@ -30,6 +43,8 @@ interface AudioState {
   playGrenadePickup: () => void;
 }
 
+let speechCounter = 0;
+
 export const useAudio = create<AudioState>((set, get) => ({
   backgroundMusic: null,
   backgroundMusic2: null,
@@ -40,6 +55,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   currentPhase: 1,
   lastPhrase: "",
   lastPhraseTime: 0,
+  speechQueue: [],
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
   setBackgroundMusic2: (music) => set({ backgroundMusic2: music }),
@@ -53,6 +69,25 @@ export const useAudio = create<AudioState>((set, get) => ({
       bossMusic.pause();
       bossMusic.currentTime = 0;
     }
+  },
+  
+  enqueueSpeech: (request) => {
+    const { isMuted } = get();
+    if (isMuted) return;
+    speechCounter += 1;
+    set((state) => ({ speechQueue: [...state.speechQueue, { id: speechCounter, lang: "es-ES", ...request }] }));
+  },
+  
+  dequeueSpeech: () => {
+    const { speechQueue } = get();
+    if (speechQueue.length === 0) return undefined;
+    const [next, ...rest] = speechQueue;
+    set({ speechQueue: rest });
+    return next;
+  },
+  
+  clearSpeechQueue: () => {
+    set({ speechQueue: [] });
   },
   
   toggleMute: () => {
@@ -100,118 +135,102 @@ export const useAudio = create<AudioState>((set, get) => ({
   },
   
   playPlayerDamage: () => {
-    const { isMuted } = get();
+    const { isMuted, enqueueSpeech } = get();
     if (isMuted) return;
-    
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const painSound = new SpeechSynthesisUtterance("¡Puto rojo!");
-      painSound.lang = 'es-ES';
-      painSound.rate = 1.3;
-      painSound.pitch = 1.1;
-      painSound.volume = 1.0;
-      
-      window.speechSynthesis.speak(painSound);
-    }
+    enqueueSpeech({ text: "¡Puto rojo!", rate: 1.3, pitch: 1.1, volume: 1.0 });
   },
   
   playEnemyScream: (isBoss = false, isZooPhase = false, isBoss2 = false, level = 0) => {
-    const { isMuted, lastPhrase, lastPhraseTime } = get();
+    const { isMuted, lastPhrase, lastPhraseTime, enqueueSpeech } = get();
     if (isMuted) return;
     
     const now = Date.now();
     const cooldown = isBoss || isBoss2 ? 4000 : 6000;
     if (now - lastPhraseTime < cooldown) return;
     
-    if ('speechSynthesis' in window) {
-      if (window.speechSynthesis.speaking) return;
-      
-      let phrases: string[];
-      
-      if (isBoss2) {
-        phrases = [
-          "¡¡Subir los impuestos a los ricos es bonito!!",
-          "¡¡La izquierda es feminista!!",
-          "¡¡Viva el comunismo!!"
-        ];
-      } else if (isBoss) {
-        phrases = [
-          "¡¡Vas a saber lo que es hacienda!!",
-          "¡¡Te voy a crujir a impuestos!!",
-          "¡¡Tu dinero es mío fascista!!",
-          "¡¡La chiki siempre gana!!",
-          "¡¡Paga tus impuestos facha!!",
-          "¡¡Hacienda somos todos!!"
-        ];
-      } else if (level === 8) {
-        phrases = [
-          "¡¡A ver si te atreves a subirte a un tren!!",
-          "¡¡Renfe está en sus mejores momentos!!",
-          "¡¡Aquí en el Senado no se puede legislar!!",
-          "¡¡Pedro Sánchez es el puto amo!!",
-          "¡¡Si no van los trenes pedalea!!",
-          "¡¡Los trenes no van por culpa de Franco!!",
-          "¡¡Renfe funciona perfectamente!!"
-        ];
-      } else if (isZooPhase) {
-        phrases = [
-          "¡Eso es bulo!",
-          "¡¡Basta de bulos!!",
-          "¡¡Si no van los trenes pedalea!!",
-          "¡¡Los trenes no van por culpa de Franco!!",
-          "¡¡El poder legislativo me lo paso por el ombligo!!",
-          "¡¡La culpa es del PP!!",
-          "¡¡Eso es desinformación de la ultraderecha!!",
-          "¡¡Renfe funciona perfectamente!!",
-          "¡¡Vox es el nuevo fascismo!!",
-          "¡¡Los bulos de la derecha!!",
-          "¡¡Eso lo dice la fachosfera!!"
-        ];
-      } else if (level === 1) {
-        phrases = [
-          "¡¡No os metáis con Jésica, que es muy trabajadora!!",
-          "¡¡Jésica es inocente!!",
-          "¡¡Yo no sabía nada de los ERE!!",
-          "¡La ultra derecha nos ataca!",
-          "¡¡Detener a los fascistas!!"
-        ];
-      } else if (level === 2) {
-        phrases = [
-          "¡¡Los medios mienten!!",
-          "¡¡Eso es bulo de la derecha!!",
-          "¡La ultra derecha nos ataca!",
-          "¡¡Detener a los fascistas!!"
-        ];
-      } else if (level === 3) {
-        phrases = [
-          "¡¡Pedro es nuestro líder!!",
-          "¡¡Viva el PSOE!!",
-          "¡La ultra derecha nos ataca!",
-          "¡¡Detener a los fascistas!!"
-        ];
-      } else {
-        phrases = [
-          "¡La ultra derecha nos ataca!",
-          "¡¡Detener a los fascistas!!",
-          "¡¡No pasarán!!",
-          "¡¡Viva la república!!"
-        ];
-      }
-      
-      const available = phrases.filter(p => p !== lastPhrase);
-      const chosen = available[Math.floor(Math.random() * available.length)] || phrases[0];
-      
-      set({ lastPhrase: chosen, lastPhraseTime: now });
-      
-      const utterance = new SpeechSynthesisUtterance(chosen);
-      utterance.lang = 'es-ES';
-      utterance.rate = isBoss ? 1.0 : 1.3;
-      utterance.pitch = isBoss ? 0.9 : 1.2;
-      utterance.volume = 0.7;
-      
-      window.speechSynthesis.speak(utterance);
+    let phrases: string[];
+    
+    if (isBoss2) {
+      phrases = [
+        "¡¡Subir los impuestos a los ricos es bonito!!",
+        "¡¡La izquierda es feminista!!",
+        "¡¡Viva el comunismo!!"
+      ];
+    } else if (isBoss) {
+      phrases = [
+        "¡¡Vas a saber lo que es hacienda!!",
+        "¡¡Te voy a crujir a impuestos!!",
+        "¡¡Tu dinero es mío fascista!!",
+        "¡¡La chiki siempre gana!!",
+        "¡¡Paga tus impuestos facha!!",
+        "¡¡Hacienda somos todos!!"
+      ];
+    } else if (level === 8) {
+      phrases = [
+        "¡¡A ver si te atreves a subirte a un tren!!",
+        "¡¡Renfe está en sus mejores momentos!!",
+        "¡¡Aquí en el Senado no se puede legislar!!",
+        "¡¡Pedro Sánchez es el puto amo!!",
+        "¡¡Si no van los trenes pedalea!!",
+        "¡¡Los trenes no van por culpa de Franco!!",
+        "¡¡Renfe funciona perfectamente!!"
+      ];
+    } else if (isZooPhase) {
+      phrases = [
+        "¡Eso es bulo!",
+        "¡¡Basta de bulos!!",
+        "¡¡Si no van los trenes pedalea!!",
+        "¡¡Los trenes no van por culpa de Franco!!",
+        "¡¡El poder legislativo me lo paso por el ombligo!!",
+        "¡¡La culpa es del PP!!",
+        "¡¡Eso es desinformación de la ultraderecha!!",
+        "¡¡Renfe funciona perfectamente!!",
+        "¡¡Vox es el nuevo fascismo!!",
+        "¡¡Los bulos de la derecha!!",
+        "¡¡Eso lo dice la fachosfera!!"
+      ];
+    } else if (level === 1) {
+      phrases = [
+        "¡¡No os metáis con Jésica, que es muy trabajadora!!",
+        "¡¡Jésica es inocente!!",
+        "¡¡Yo no sabía nada de los ERE!!",
+        "¡La ultra derecha nos ataca!",
+        "¡¡Detener a los fascistas!!"
+      ];
+    } else if (level === 2) {
+      phrases = [
+        "¡¡Los medios mienten!!",
+        "¡¡Eso es bulo de la derecha!!",
+        "¡La ultra derecha nos ataca!",
+        "¡¡Detener a los fascistas!!"
+      ];
+    } else if (level === 3) {
+      phrases = [
+        "¡¡Pedro es nuestro líder!!",
+        "¡¡Viva el PSOE!!",
+        "¡La ultra derecha nos ataca!",
+        "¡¡Detener a los fascistas!!"
+      ];
+    } else {
+      phrases = [
+        "¡La ultra derecha nos ataca!",
+        "¡¡Detener a los fascistas!!",
+        "¡¡No pasarán!!",
+        "¡¡Viva la república!!"
+      ];
     }
+    
+    const available = phrases.filter(p => p !== lastPhrase);
+    const chosen = available[Math.floor(Math.random() * available.length)] || phrases[0];
+    
+    set({ lastPhrase: chosen, lastPhraseTime: now });
+    
+    enqueueSpeech({
+      text: chosen,
+      rate: isBoss ? 1.0 : 1.3,
+      pitch: isBoss ? 0.9 : 1.2,
+      volume: 0.7,
+    });
   },
   
   playBossEntrance: (isBoss2 = false) => {
@@ -239,67 +258,34 @@ export const useAudio = create<AudioState>((set, get) => ({
     bossAudio.volume = 0.10;
     bossAudio.play().catch(e => console.log("Boss music play prevented:", e));
     
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const boss1Phrases = [
-        "¡¡Soy la chiki, María Jesús Montero!!",
-        "¡¡Te voy a subir los impuestos quiero tu dinero!!",
-        "¡¡Hacienda viene a por ti facha!!"
-      ];
-      const phrase = isBoss2 
-        ? "¡¡Soy Yolanda Díaz y vengo a por ti fascista!!"
-        : boss1Phrases[Math.floor(Math.random() * boss1Phrases.length)];
-      
-      const utterance1 = new SpeechSynthesisUtterance(phrase);
-      utterance1.lang = 'es-ES';
-      utterance1.rate = isBoss2 ? 1.1 : 1.0;
-      utterance1.pitch = isBoss2 ? 1.2 : 0.8;
-      utterance1.volume = 0.9;
-      
-      const utterance2 = new SpeechSynthesisUtterance(phrase);
-      utterance2.lang = 'es-ES';
-      utterance2.rate = isBoss2 ? 1.1 : 1.0;
-      utterance2.pitch = isBoss2 ? 1.2 : 0.8;
-      utterance2.volume = 0.9;
-      
-      window.speechSynthesis.speak(utterance1);
-      
-      utterance1.onend = () => {
-        window.speechSynthesis.speak(utterance2);
-      };
-    }
+    const boss1Phrases = [
+      "¡¡Soy la chiki, María Jesús Montero!!",
+      "¡¡Te voy a subir los impuestos quiero tu dinero!!",
+      "¡¡Hacienda viene a por ti facha!!"
+    ];
+    const phrase = isBoss2 
+      ? "¡¡Soy Yolanda Díaz y vengo a por ti fascista!!"
+      : boss1Phrases[Math.floor(Math.random() * boss1Phrases.length)];
+    
+    const request = {
+      text: phrase,
+      rate: isBoss2 ? 1.1 : 1.0,
+      pitch: isBoss2 ? 1.2 : 0.8,
+      volume: 0.9,
+    };
+    get().enqueueSpeech(request);
+    get().enqueueSpeech(request);
   },
   
   playGrenadeExplosion: () => {
-    const { isMuted } = get();
+    const { isMuted, enqueueSpeech } = get();
     if (isMuted) return;
-    
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const explosionSound = new SpeechSynthesisUtterance("¡¡BOOM!!");
-      explosionSound.lang = 'es-ES';
-      explosionSound.rate = 0.6;
-      explosionSound.pitch = 0.4;
-      explosionSound.volume = 1.0;
-      
-      window.speechSynthesis.speak(explosionSound);
-    }
+    enqueueSpeech({ text: "¡¡BOOM!!", rate: 0.6, pitch: 0.4, volume: 1.0 });
   },
   
   playGrenadePickup: () => {
-    const { isMuted } = get();
+    const { isMuted, enqueueSpeech } = get();
     if (isMuted) return;
-    
-    if ('speechSynthesis' in window) {
-      const pickupSound = new SpeechSynthesisUtterance("¡Granada!");
-      pickupSound.lang = 'es-ES';
-      pickupSound.rate = 1.3;
-      pickupSound.pitch = 1.4;
-      pickupSound.volume = 0.8;
-      
-      window.speechSynthesis.speak(pickupSound);
-    }
+    enqueueSpeech({ text: "¡Granada!", rate: 1.3, pitch: 1.4, volume: 0.8 });
   }
 }));
