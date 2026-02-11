@@ -197,6 +197,11 @@ export function GameManager() {
   const scooterSpawnedForLevel = useRef(0);
   const boothSpawnedLevels = useRef<Record<number, boolean>>({});
   const boothActive = useRef(false);
+
+  const getLevelRangeStart = (lvl: number) => {
+    if (lvl <= 1) return 0;
+    return 45 * (lvl - 1);
+  };
   const enemyPhraseTimer = useRef(0);
   
   useFrame((state, rawDelta) => {
@@ -600,16 +605,18 @@ export function GameManager() {
     const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
     const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter" && e.type !== "booth").length;
     
-    if (level >= 1 && level % 3 === 0 && !boothSpawnedLevels.current[level]) {
-      const midpointReached = scrollPosition > level * 45;
-      if (midpointReached && !boothActive.current) {
+    if (level >= 3 && level % 3 === 0 && !boothSpawnedLevels.current[level]) {
+      const rangeStart = getLevelRangeStart(level);
+      const alreadyPassed = scrollPosition > rangeStart + 40;
+      const inSpawnWindow = scrollPosition > rangeStart + 20 && scrollPosition < rangeStart + 35;
+      if (inSpawnWindow && !boothActive.current) {
         boothSpawnedLevels.current[level] = true;
         boothActive.current = true;
         bulletCounter++;
         enemiesToSpawn.push(
           spawnEnemyFromSeed({
             id: `booth-${level}-${bulletCounter}`,
-            position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: playerPosition.z + 20 },
+            position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: playerPosition.z + 18 },
             health: 4,
             type: "booth",
             shootTimer: 5,
@@ -618,6 +625,8 @@ export function GameManager() {
             initialX: level % 2 === 0 ? -18 : 18,
           })
         );
+      } else if (alreadyPassed) {
+        boothSpawnedLevels.current[level] = true;
       }
     }
     
@@ -1262,12 +1271,18 @@ export function GameManager() {
       
       if (enemiesToRemove.length > 0) {
         const removalSet = new Set(enemiesToRemove);
-        enemies.forEach(e => {
+        const survivors: typeof enemies = [];
+        for (const e of enemies) {
           if (removalSet.has(e.id)) {
+            if (e.type === "booth") {
+              boothActive.current = false;
+            }
             releaseEnemyToPool(e);
+          } else {
+            survivors.push(e);
           }
-        });
-        return enemies.filter(e => !removalSet.has(e.id));
+        }
+        return survivors;
       }
       return enemies;
     });
