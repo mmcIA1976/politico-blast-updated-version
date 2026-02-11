@@ -183,6 +183,8 @@ export function GameManager() {
     updateDebris,
     addScorePopup,
     updateScorePopups,
+    addArmorCharges,
+    consumeArmorCharge,
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
@@ -193,6 +195,7 @@ export function GameManager() {
   const lastScrollUpdate = useRef(0);
   const levelEnemiesSpawned = useRef(0);
   const scooterSpawnedForLevel = useRef(0);
+  const boothSpawnedLevels = useRef<Record<number, boolean>>({});
   const enemyPhraseTimer = useRef(0);
   
   useFrame((state, rawDelta) => {
@@ -396,6 +399,18 @@ export function GameManager() {
                   deathUtt.rate = 1.2;
                   deathUtt.pitch = 0.8;
                   speechSynthesis.speak(deathUtt);
+                } else if (enemy.type === "booth") {
+                  grenadeKillScore = 150;
+                  scoreToAdd += 150;
+                  addArmorCharges(2);
+                  bulletCounter++;
+                  addScorePopup({
+                    id: `armor${bulletCounter}`,
+                    position: { x: enemy.position.x, y: enemy.position.y + 2.5, z: enemy.position.z },
+                    points: 0,
+                    lifetime: 1.5,
+                    maxLifetime: 1.5,
+                  });
                 } else if (enemy.isSpecial) {
                   grenadeKillScore = 75;
                   scoreToAdd += 75;
@@ -518,6 +533,9 @@ export function GameManager() {
     
     // Reset enemy counter when level changes
     if (lastLevel.current !== level) {
+      if (level < lastLevel.current) {
+        boothSpawnedLevels.current = {};
+      }
       levelEnemiesSpawned.current = 0;
     }
     
@@ -578,7 +596,24 @@ export function GameManager() {
     
     const maxEnemies = getMaxEnemiesForLevel(level);
     const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
-    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter").length;
+    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter" && e.type !== "booth").length;
+    
+    if (level >= 1 && level % 3 === 0 && !boothSpawnedLevels.current[level]) {
+      boothSpawnedLevels.current[level] = true;
+      bulletCounter++;
+      enemiesToSpawn.push(
+        spawnEnemyFromSeed({
+          id: `booth-${level}-${bulletCounter}`,
+          position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: newScrollPosition + 18 },
+          health: 4,
+          type: "booth",
+          shootTimer: 5,
+          movePattern: "straight",
+          spawnTime: currentTime,
+          initialX: level % 2 === 0 ? -18 : 18,
+        })
+      );
+    }
     
     if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
       enemySpawnTimer.current = 0;
@@ -745,6 +780,10 @@ export function GameManager() {
           return { ...enemy, dyingProgress: newDyingProgress };
         }
         
+        if (enemy.type === "booth") {
+          return enemy;
+        }
+        
         const age = currentTime - enemy.spawnTime;
         let newX = enemy.position.x;
         let newZ = enemy.position.z;
@@ -837,9 +876,11 @@ export function GameManager() {
           let newLastHitTime = lastHit;
           if (distToPlayer < 1.8 && (currentTime - enemy.spawnTime) > 1.5 && hitCooldown) {
             playPlayerDamage();
-            loseLife();
+            if (!consumeArmorCharge()) {
+              loseLife();
+            }
             newLastHitTime = currentTime;
-            console.log("SCOOTER HIT PLAYER! -1 vida, sigue su curso");
+            console.log("SCOOTER HIT PLAYER! daño absorbido?",);
           }
           
           let newScooterPhraseTime = enemy.scooterPhraseTime || enemy.spawnTime;
@@ -1128,6 +1169,18 @@ export function GameManager() {
                     deathUtt.rate = 1.2;
                     deathUtt.pitch = 0.8;
                     speechSynthesis.speak(deathUtt);
+                  } else if (enemy.type === "booth") {
+                    killScore = 150;
+                    scoreToAdd += 150;
+                    addArmorCharges(2);
+                    bulletCounter++;
+                    addScorePopup({
+                      id: `armor${bulletCounter}`,
+                      position: { x: enemy.position.x, y: enemy.position.y + 2.5, z: enemy.position.z },
+                      points: 0,
+                      lifetime: 1.5,
+                      maxLifetime: 1.5,
+                    });
                   } else if (enemy.type === "gorilla" || enemy.type === "penguin") {
                     killScore = 150;
                     scoreToAdd += 150;
@@ -1175,8 +1228,10 @@ export function GameManager() {
           const distance2D = Math.sqrt(dx * dx + dz * dz);
           if (distance2D < 1.0 && !bulletsToRemove.includes(bullet.id)) {
             bulletsToRemove.push(bullet.id);
-            loseLife();
-            playPlayerDamage();
+            if (!consumeArmorCharge()) {
+              loseLife();
+              playPlayerDamage();
+            }
           }
         }
       }

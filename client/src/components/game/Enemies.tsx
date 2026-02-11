@@ -225,6 +225,41 @@ function ToucanEnemy({ faceTexture, enraged, enragedProgress }: { faceTexture: T
   );
 }
 
+function BoothEnemy({ health }: { health: number }) {
+  return (
+    <group>
+      <mesh position={[0, 0.6, 0]} castShadow>
+        <boxGeometry args={[2.5, 1.2, 2.0]} />
+        <meshStandardMaterial color="#e53935" />
+      </mesh>
+      <mesh position={[0, 1.4, 0]} castShadow>
+        <boxGeometry args={[2.7, 0.4, 2.2]} />
+        <meshStandardMaterial color="#b71c1c" />
+      </mesh>
+      <mesh position={[0, 2.2, 0]}>
+        <planeGeometry args={[3, 1.2]} />
+        <meshStandardMaterial color="#a30000" />
+      </mesh>
+      <mesh position={[0, 2.25, 0.01]}>
+        <circleGeometry args={[0.4, 24]} />
+        <meshStandardMaterial color="#ff1744" />
+      </mesh>
+      <mesh position={[-0.5, 2.25, 0.02]}>
+        <circleGeometry args={[0.2, 24]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.5, 2.25, 0.02]}>
+        <circleGeometry args={[0.2, 24]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0, 0.1, 0]}> 
+        <boxGeometry args={[2.6, 0.2, 2.1]} />
+        <meshStandardMaterial color="#5d4037" />
+      </mesh>
+    </group>
+  );
+}
+
 function ScooterEnemy() {
   return (
     <group>
@@ -323,6 +358,9 @@ export function Enemies() {
             )}
             {enemy.type === "scooter" && (
               <ScooterEnemy />
+            )}
+            {enemy.type === "booth" && (
+              <BoothEnemy health={enemy.health} />
             )}
           </group>
         );

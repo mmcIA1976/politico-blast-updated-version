@@ -37,7 +37,7 @@ export interface Enemy {
   id: string;
   position: Vec3;
   health: number;
-  type: "politician" | "boss" | "gorilla" | "penguin" | "toucan" | "scooter";
+  type: "politician" | "boss" | "gorilla" | "penguin" | "toucan" | "scooter" | "booth";
   shootTimer: number;
   movePattern: "straight" | "zigzag" | "circular" | "formation";
   spawnTime: number;
@@ -121,6 +121,7 @@ interface ArcadeGameState {
   grenades: Grenade[];
   grenadeCount: number;
   touchControls: TouchControls;
+  armorCharges: number;
   
   setPhase: (phase: GamePhase) => void;
   setTouchControl: (control: keyof TouchControls, value: boolean) => void;
@@ -151,6 +152,8 @@ interface ArcadeGameState {
   useGrenadeFromInventory: () => boolean;
   addGrenadeToInventory: (count?: number) => void;
   loseLife: () => void;
+  addArmorCharges: (amount: number) => void;
+  consumeArmorCharge: () => boolean;
   restart: () => void;
   clearBattlefield: () => void;
   debris: Debris[];
@@ -183,6 +186,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
     grenades: [],
     grenadeCount: 3,
     touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
+    armorCharges: 0,
     debris: [],
     scorePopups: [],
     
@@ -301,6 +305,19 @@ export const useArcadeGame = create<ArcadeGameState>()(
       grenadeCount: Math.min(6, state.grenadeCount + count)
     })),
     
+    addArmorCharges: (amount) => set((state) => ({
+      armorCharges: Math.min(4, state.armorCharges + amount)
+    })),
+    
+    consumeArmorCharge: () => {
+      const state = get();
+      if (state.armorCharges > 0) {
+        set({ armorCharges: state.armorCharges - 1 });
+        return true;
+      }
+      return false;
+    },
+    
     loseLife: () => set((state) => {
       const newLives = state.lives - 1;
       if (newLives <= 0) {
@@ -326,6 +343,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       lastGrenadeTime: 0,
       grenades: [],
       grenadeCount: 3,
+      armorCharges: 0,
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
       debris: [],
       scorePopups: [],
