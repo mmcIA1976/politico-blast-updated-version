@@ -10,8 +10,8 @@ const SKY_SEQUENCE = [
   "#050914", // noche
 ];
 
-const BAND_POSITIONS = [-28, 28];
-const BAND_SIZE: [number, number] = [40, 60];
+const BAND_POSITIONS = [-32, 32];
+const BAND_SIZE: [number, number] = [220, 45];
 
 export function LevelSky() {
   const level = useArcadeGame((state) => state.level);
@@ -38,12 +38,13 @@ export function LevelSky() {
     <>
       <color attach="background" args={[attachColor]} />
       {BAND_POSITIONS.map((x, idx) => (
-        <mesh key={idx} position={[x, 8, 0]} rotation={[0, x > 0 ? -Math.PI / 2.2 : Math.PI / 2.2, 0]}>
+        <mesh key={idx} position={[x, 20, 60]} rotation={[0, x > 0 ? -Math.PI / 2 : Math.PI / 2, 0]}> 
           <planeGeometry args={BAND_SIZE} />
           <meshStandardMaterial
+            side={THREE.DoubleSide}
             transparent
-            opacity={0.75}
-            emissiveIntensity={0.2}
+            opacity={0.85}
+            emissiveIntensity={0.15}
             ref={(mat) => {
               if (mat) bandMaterials.current[idx] = mat;
             }}
