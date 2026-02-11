@@ -604,13 +604,13 @@ export function GameManager() {
       enemiesToSpawn.push(
         spawnEnemyFromSeed({
           id: `booth-${level}-${bulletCounter}`,
-          position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: newScrollPosition + 18 },
+          position: { x: 18 * (level % 2 === 0 ? -1 : 1), y: 0.5, z: playerPosition.z + 12 },
           health: 4,
           type: "booth",
           shootTimer: 5,
           movePattern: "straight",
           spawnTime: currentTime,
-          initialX: level % 2 === 0 ? -18 : 18,
+          initialX: 18 * (level % 2 === 0 ? -1 : 1),
         })
       );
     }
