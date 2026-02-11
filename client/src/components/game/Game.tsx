@@ -20,6 +20,7 @@ import { MobileControls } from "./MobileControls";
 import { DebugControls } from "./DebugControls";
 import { PerfOverlay } from "./PerfOverlay";
 import { SpeechManager } from "./SpeechManager";
+import { LevelSky } from "./LevelSky";
 
 enum Controls {
   forward = "forward",
@@ -73,7 +74,7 @@ export function Game() {
           }}
           frameloop="always"
         >
-          <color attach="background" args={["#1a1a2e"]} />
+          <LevelSky />
           {!isMobile && <PerfOverlay />}
           
           <Lights />
