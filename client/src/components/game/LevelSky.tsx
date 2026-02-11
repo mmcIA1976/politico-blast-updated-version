@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 const SKY_SEQUENCE = [
-  "#4f6fae", // amanecer azul anaranjado
+  "#f5a26c", // amanecer
   "#8fd3ff", // mediodía
   "#314068", // atardecer
   "#050914", // noche
@@ -12,15 +12,9 @@ const SKY_SEQUENCE = [
 
 export function LevelSky() {
   const level = useArcadeGame((state) => state.level);
-  const { scene } = useThree();
   const currentColor = useRef(new THREE.Color(SKY_SEQUENCE[0]));
   const targetColor = useRef(new THREE.Color(SKY_SEQUENCE[0]));
-
-  useEffect(() => {
-    if (!scene.background) {
-      scene.background = currentColor.current.clone();
-    }
-  }, [scene]);
+  const attachColor = useMemo(() => currentColor.current.clone(), []);
 
   useEffect(() => {
     const idx = ((level - 1) % SKY_SEQUENCE.length + SKY_SEQUENCE.length) % SKY_SEQUENCE.length;
@@ -28,13 +22,9 @@ export function LevelSky() {
   }, [level]);
 
   useFrame(() => {
-    currentColor.current.lerp(targetColor.current, 0.01);
-    if (scene.background instanceof THREE.Color) {
-      scene.background.copy(currentColor.current);
-    } else {
-      scene.background = currentColor.current.clone();
-    }
+    currentColor.current.lerp(targetColor.current, 0.02);
+    attachColor.copy(currentColor.current);
   });
 
-  return null;
+  return <color attach="background" args={[attachColor]} />;
 }
