@@ -18,6 +18,7 @@ import { BossHealthBar } from "./BossHealthBar";
 import { LevelTransition } from "./LevelTransition";
 import { MobileControls } from "./MobileControls";
 import { DebugControls } from "./DebugControls";
+import { PerfOverlay } from "./PerfOverlay";
 
 enum Controls {
   forward = "forward",
@@ -72,6 +73,7 @@ export function Game() {
           frameloop="always"
         >
           <color attach="background" args={["#1a1a2e"]} />
+          {!isMobile && <PerfOverlay />}
           
           <Lights />
           
