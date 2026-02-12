@@ -4,6 +4,7 @@ import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3, type Enemy, type PlayerBulletStyle } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
+import { getNextLevel } from "./systems/progressionSystem";
 
 enum Controls {
   forward = "forward",
@@ -1297,18 +1298,10 @@ export function GameManager() {
       setPhase("victory");
     }
     
-    if (scrollPosition > 45 && level === 1) setLevel(2);
-    else if (scrollPosition > 90 && level === 2) setLevel(3);
-    else if (scrollPosition > 135 && level === 3) setLevel(4);
-    else if (scrollPosition > 180 && level === 4) setLevel(5);
-    else if (scrollPosition > 225 && level === 5) setLevel(6);
-    else if (scrollPosition > 270 && level === 6) setLevel(7);
-    else if (scrollPosition > 360 && level === 8) setLevel(9);
-    else if (scrollPosition > 405 && level === 9) setLevel(10);
-    else if (scrollPosition > 450 && level === 10) setLevel(11);
-    else if (scrollPosition > 495 && level === 11) setLevel(12);
-    else if (scrollPosition > 540 && level === 12) setLevel(13);
-    else if (scrollPosition > 585 && level === 13) setLevel(14);
+    const nextLevel = getNextLevel(level, scrollPosition);
+    if (nextLevel !== null) {
+      setLevel(nextLevel);
+    }
   });
   
   return null;
