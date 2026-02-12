@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useArcadeGame, type TouchControls as TouchControlsType } from "@/lib/stores/useArcadeGame";
 
 type DpadControl = "forward" | "back" | "left" | "right" | "forward-left" | "forward-right" | "back-left" | "back-right";

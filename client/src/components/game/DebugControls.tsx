@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function DebugControls() {

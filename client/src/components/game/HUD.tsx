@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
 

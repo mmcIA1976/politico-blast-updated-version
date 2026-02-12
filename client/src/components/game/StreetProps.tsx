@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useArcadeGame, type Obstacle } from "@/lib/stores/useArcadeGame";
 import * as THREE from "three";
 
