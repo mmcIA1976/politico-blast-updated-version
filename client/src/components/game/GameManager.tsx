@@ -197,26 +197,6 @@ export function GameManager() {
   const scooterSpawnedForLevel = useRef(0);
   const boothSpawnedLevels = useRef<Record<number, boolean>>({});
 
-// Implementing PSOE flag animation
-const flagImage = '/assets/images/psoe_flag.jpg';
-// Lógica para animar la bandera sobre la caseta
-const animateFlag = () => {
-    const flagElement = document.createElement('img');
-    flagElement.src = flagImage;
-    flagElement.style.position = 'absolute';
-    flagElement.style.width = '100px';
-    flagElement.style.animation = 'wave 2s infinite'; // Añadir animación de olas
-    // Posicionar la bandera en la caseta
-    const boothPosition = getBoothPosition(); // Supone que existe esta función
-    flagElement.style.left = boothPosition.x + 'px';
-    flagElement.style.top = boothPosition.y + 'px';
-    document.body.appendChild(flagElement);
-};
-
-// Llamar a la función de animación en el momento adecuado
-useEffect(() => {
-    animateFlag();
-}, [/* Dependencias, si es necesario */]);
   const boothActive = useRef(false);
 
   const getLevelRangeStart = (lvl: number) => {

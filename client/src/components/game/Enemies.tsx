@@ -322,8 +322,8 @@ function ScooterEnemy() {
 export function Enemies() {
   const { enemies, level } = useArcadeGame();
   const faceTexture = useTexture("/textures/politician_face.jpg");
-  const faceTexture2 = useTexture("/textures/politician_face_2.jpg");
-  const bossFaceTexture = useTexture("/textures/boss_face.jpg");
+  const faceTexture2 = useTexture("/textures/politician_face_2.png");
+  const bossFaceTexture = useTexture("/textures/boss_face.png");
   const oscarPuenteFace = useTexture("/textures/oscar_puente_face.png");
   const felixBolanosFace = useTexture("/textures/felix_bolanos_face.jpg");
   const yolandaDiazFace = useTexture("/textures/yolanda_diaz_face.png");
