@@ -1259,15 +1259,16 @@ export function GameManager() {
       
       // Aplicar actualizaciones de enrage a los enemigos
       if (enragedUpdates.length > 0) {
-        enemies = enemies.map(e => {
-          const update = enragedUpdates.find(u => u.id === e.id);
+        const enragedUpdatesById = new Map(enragedUpdates.map((update) => [update.id, update]));
+        enemies = enemies.map((e) => {
+          const update = enragedUpdatesById.get(e.id);
           if (update) {
-            return { 
-              ...e, 
-              enraged: update.enraged, 
+            return {
+              ...e,
+              enraged: update.enraged,
               enragedProgress: update.enragedProgress,
               lastEnrageTime: update.lastEnrageTime !== undefined ? update.lastEnrageTime : e.lastEnrageTime,
-              enrageMode: update.enrageMode !== undefined ? update.enrageMode : e.enrageMode
+              enrageMode: update.enrageMode !== undefined ? update.enrageMode : e.enrageMode,
             };
           }
           return e;
