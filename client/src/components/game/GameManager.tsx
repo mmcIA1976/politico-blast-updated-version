@@ -777,6 +777,8 @@ export function GameManager() {
     mutateEnemies((currentEnemies) => {
       let enemies = enemiesToSpawn.length > 0 ? [...currentEnemies, ...enemiesToSpawn] : currentEnemies;
       const enemiesToRemove: string[] = [];
+      const enemiesToRemoveSet = new Set<string>();
+      const bulletsToRemoveSet = new Set<string>();
       const enragedUpdates: Array<{ id: string; enraged: boolean; enragedProgress: number; lastEnrageTime?: number; enrageMode?: "jump" | "shake" }> = [];
       
       enemies = enemies.map(enemy => {
@@ -785,6 +787,7 @@ export function GameManager() {
           const newDyingProgress = (enemy.dyingProgress || 0) + delta * 2;
           if (newDyingProgress >= 1) {
             enemiesToRemove.push(enemy.id);
+            enemiesToRemoveSet.add(enemy.id);
             return enemy;
           }
           return { ...enemy, dyingProgress: newDyingProgress };
@@ -1088,6 +1091,7 @@ export function GameManager() {
         const isBossType = enemy.type === "boss" || enemy.type === "toucan";
         if (newZ < playerPosition.z - 8 && !isBossType) {
           enemiesToRemove.push(enemy.id);
+          enemiesToRemoveSet.add(enemy.id);
           return enemy;
         }
         
@@ -1135,14 +1139,15 @@ export function GameManager() {
         if (bullet.fromPlayer) {
           for (let j = 0; j < enemies.length; j++) {
             const enemy = enemies[j];
-            if (!enemiesToRemove.includes(enemy.id)) {
+            if (!enemiesToRemoveSet.has(enemy.id)) {
               // Scooter tiene 1.5s de invulnerabilidad al aparecer
               if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) continue;
               const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
-              if (distanceSq < 1 && !bulletsToRemove.includes(bullet.id)) {
+              if (distanceSq < 1 && !bulletsToRemoveSet.has(bullet.id)) {
                 const damage = bullet.damage || 1;
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
+                bulletsToRemoveSet.add(bullet.id);
                 playHit();
                 
                 if (enemies[j].health <= 0 && !enemies[j].dying) {
@@ -1237,8 +1242,9 @@ export function GameManager() {
           const dx = bullet.position.x - playerPosition.x;
           const dz = bullet.position.z - playerPosition.z;
           const distance2DSq = dx * dx + dz * dz;
-          if (distance2DSq < 1.0 && !bulletsToRemove.includes(bullet.id)) {
+          if (distance2DSq < 1.0 && !bulletsToRemoveSet.has(bullet.id)) {
             bulletsToRemove.push(bullet.id);
+            bulletsToRemoveSet.add(bullet.id);
             if (!consumeArmorCharge()) {
               loseLife();
               playPlayerDamage();
@@ -1265,10 +1271,9 @@ export function GameManager() {
       }
       
       if (enemiesToRemove.length > 0) {
-        const removalSet = new Set(enemiesToRemove);
         const survivors: typeof enemies = [];
         for (const e of enemies) {
-          if (removalSet.has(e.id)) {
+          if (enemiesToRemoveSet.has(e.id)) {
             if (e.type === "booth") {
               boothActive.current = false;
             }
