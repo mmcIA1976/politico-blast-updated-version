@@ -40,6 +40,8 @@ const SCOOTER_INVULNERABILITY_DURATION = 1.5;
 
 const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
 
+const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
+
 const enemyPool: Enemy[] = [];
 
 interface EnemySpawnSeed {
