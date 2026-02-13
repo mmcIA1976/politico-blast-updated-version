@@ -1,16 +1,26 @@
-export function getNextLevel(currentLevel: number, scrollPosition: number): number | null {
-  if (scrollPosition > 45 && currentLevel === 1) return 2;
-  if (scrollPosition > 90 && currentLevel === 2) return 3;
-  if (scrollPosition > 135 && currentLevel === 3) return 4;
-  if (scrollPosition > 180 && currentLevel === 4) return 5;
-  if (scrollPosition > 225 && currentLevel === 5) return 6;
-  if (scrollPosition > 270 && currentLevel === 6) return 7;
-  if (scrollPosition > 360 && currentLevel === 8) return 9;
-  if (scrollPosition > 405 && currentLevel === 9) return 10;
-  if (scrollPosition > 450 && currentLevel === 10) return 11;
-  if (scrollPosition > 495 && currentLevel === 11) return 12;
-  if (scrollPosition > 540 && currentLevel === 12) return 13;
-  if (scrollPosition > 585 && currentLevel === 13) return 14;
+interface LevelTransition {
+  toLevel: number;
+  minScroll: number;
+}
 
-  return null;
+const LEVEL_TRANSITIONS: Record<number, LevelTransition> = {
+  1: { toLevel: 2, minScroll: 45 },
+  2: { toLevel: 3, minScroll: 90 },
+  3: { toLevel: 4, minScroll: 135 },
+  4: { toLevel: 5, minScroll: 180 },
+  5: { toLevel: 6, minScroll: 225 },
+  6: { toLevel: 7, minScroll: 270 },
+  8: { toLevel: 9, minScroll: 360 },
+  9: { toLevel: 10, minScroll: 405 },
+  10: { toLevel: 11, minScroll: 450 },
+  11: { toLevel: 12, minScroll: 495 },
+  12: { toLevel: 13, minScroll: 540 },
+  13: { toLevel: 14, minScroll: 585 },
+};
+
+export function getNextLevel(currentLevel: number, scrollPosition: number): number | null {
+  const transition = LEVEL_TRANSITIONS[currentLevel];
+  if (!transition) return null;
+
+  return scrollPosition > transition.minScroll ? transition.toLevel : null;
 }
