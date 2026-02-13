@@ -450,15 +450,17 @@ export function GameManager() {
             // Aplicar daño a bosses y matar enemigos normales
             mutateEnemies(currentEnemies => {
               const result: typeof currentEnemies = [];
+              const killIdSet = new Set(killIds);
+              const bossDamageById = new Map(bossDamage.map(({ id, damage }) => [id, damage]));
               for (const e of currentEnemies) {
-                if (killIds.includes(e.id)) {
+                if (killIdSet.has(e.id)) {
                   releaseEnemyToPool(e);
                   continue;
                 }
                 
-                const dmg = bossDamage.find(b => b.id === e.id);
-                if (dmg) {
-                  const newHealth = e.health - dmg.damage;
+                const damage = bossDamageById.get(e.id);
+                if (damage !== undefined) {
+                  const newHealth = e.health - damage;
                   if (newHealth <= 0) {
                     let bossKillScore = 0;
                     if (e.type === "boss") {
