@@ -37,6 +37,8 @@ const HIT_RADIUS_SQ = 1.0;
 const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
 
+const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
+
 const enemyPool: Enemy[] = [];
 
 interface EnemySpawnSeed {
@@ -1226,8 +1228,7 @@ export function GameManager() {
                       addGrenadeToInventory(1);
                       playGrenadePickup();
                     } else {
-                      const powerUpTypes: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
-                      const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+                      const randomType = POWER_UP_TYPES[Math.floor(Math.random() * POWER_UP_TYPES.length)];
                       bulletCounter++;
                       addPowerUp({
                         id: `pu${bulletCounter}`,
