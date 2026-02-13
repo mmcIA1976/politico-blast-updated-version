@@ -4,6 +4,7 @@ import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3, type Enemy, type PlayerBulletStyle } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
+import { getNextLevel } from "./systems/progressionSystem";
 
 enum Controls {
   forward = "forward",
@@ -18,11 +19,11 @@ const tempVec3A = new THREE.Vector3();
 const tempVec3B = new THREE.Vector3();
 const tempVec3C = new THREE.Vector3();
 
-function vec3Distance(a: Vec3, b: Vec3): number {
+function vec3DistanceSq(a: Vec3, b: Vec3): number {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   const dz = a.z - b.z;
-  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  return dx * dx + dy * dy + dz * dz;
 }
 
 let bulletCounter = 0;
@@ -31,8 +32,12 @@ let grenadeCounter = 0;
 const GRENADE_DISTANCE = 15;
 const GRENADE_COOLDOWN = 2.0;
 const EXPLOSION_RADIUS = 8;
+const EXPLOSION_RADIUS_SQ = EXPLOSION_RADIUS * EXPLOSION_RADIUS;
+const HIT_RADIUS_SQ = 1.0;
 const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
+
+const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
 
 const enemyPool: Enemy[] = [];
 
@@ -339,10 +344,10 @@ export function GameManager() {
             .map((enemy, idx) => ({
               enemy,
               idx,
-              dist: vec3Distance(enemy.position, explosionPos)
+              distSq: vec3DistanceSq(enemy.position, explosionPos)
             }))
-            .filter(e => e.dist < EXPLOSION_RADIUS)
-            .sort((a, b) => a.dist - b.dist)
+            .filter(e => e.distSq < EXPLOSION_RADIUS_SQ)
+            .sort((a, b) => a.distSq - b.distSq)
             .slice(0, 6);
           
           if (nearbyEnemies.length > 0) {
@@ -449,15 +454,17 @@ export function GameManager() {
             // Aplicar daño a bosses y matar enemigos normales
             mutateEnemies(currentEnemies => {
               const result: typeof currentEnemies = [];
+              const killIdSet = new Set(killIds);
+              const bossDamageById = new Map(bossDamage.map(({ id, damage }) => [id, damage]));
               for (const e of currentEnemies) {
-                if (killIds.includes(e.id)) {
+                if (killIdSet.has(e.id)) {
                   releaseEnemyToPool(e);
                   continue;
                 }
                 
-                const dmg = bossDamage.find(b => b.id === e.id);
-                if (dmg) {
-                  const newHealth = e.health - dmg.damage;
+                const damage = bossDamageById.get(e.id);
+                if (damage !== undefined) {
+                  const newHealth = e.health - damage;
                   if (newHealth <= 0) {
                     let bossKillScore = 0;
                     if (e.type === "boss") {
@@ -776,6 +783,8 @@ export function GameManager() {
     mutateEnemies((currentEnemies) => {
       let enemies = enemiesToSpawn.length > 0 ? [...currentEnemies, ...enemiesToSpawn] : currentEnemies;
       const enemiesToRemove: string[] = [];
+      const enemiesToRemoveSet = new Set<string>();
+      const bulletsToRemoveSet = new Set<string>();
       const enragedUpdates: Array<{ id: string; enraged: boolean; enragedProgress: number; lastEnrageTime?: number; enrageMode?: "jump" | "shake" }> = [];
       
       enemies = enemies.map(enemy => {
@@ -784,6 +793,7 @@ export function GameManager() {
           const newDyingProgress = (enemy.dyingProgress || 0) + delta * 2;
           if (newDyingProgress >= 1) {
             enemiesToRemove.push(enemy.id);
+            enemiesToRemoveSet.add(enemy.id);
             return enemy;
           }
           return { ...enemy, dyingProgress: newDyingProgress };
@@ -1087,6 +1097,7 @@ export function GameManager() {
         const isBossType = enemy.type === "boss" || enemy.type === "toucan";
         if (newZ < playerPosition.z - 8 && !isBossType) {
           enemiesToRemove.push(enemy.id);
+          enemiesToRemoveSet.add(enemy.id);
           return enemy;
         }
         
@@ -1114,7 +1125,6 @@ export function GameManager() {
             });
           }
           
-          const isBossType = enemy.type === "boss" || enemy.type === "toucan";
           return {
             ...enemy,
             shootTimer: isBossType ? 1.2 : enemy.type === "gorilla" ? 1.5 + Math.random() : 2 + Math.random() * 2,
@@ -1134,14 +1144,15 @@ export function GameManager() {
         if (bullet.fromPlayer) {
           for (let j = 0; j < enemies.length; j++) {
             const enemy = enemies[j];
-            if (!enemiesToRemove.includes(enemy.id)) {
+            if (!enemiesToRemoveSet.has(enemy.id)) {
               // Scooter tiene 1.5s de invulnerabilidad al aparecer
               if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) continue;
-              const distance = vec3Distance(bullet.position, enemy.position);
-              if (distance < 1 && !bulletsToRemove.includes(bullet.id)) {
+              const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
+              if (distanceSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
                 const damage = bullet.damage || 1;
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
+                bulletsToRemoveSet.add(bullet.id);
                 playHit();
                 
                 if (enemies[j].health <= 0 && !enemies[j].dying) {
@@ -1217,8 +1228,7 @@ export function GameManager() {
                       addGrenadeToInventory(1);
                       playGrenadePickup();
                     } else {
-                      const powerUpTypes: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
-                      const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+                      const randomType = POWER_UP_TYPES[Math.floor(Math.random() * POWER_UP_TYPES.length)];
                       bulletCounter++;
                       addPowerUp({
                         id: `pu${bulletCounter}`,
@@ -1235,9 +1245,10 @@ export function GameManager() {
         } else {
           const dx = bullet.position.x - playerPosition.x;
           const dz = bullet.position.z - playerPosition.z;
-          const distance2D = Math.sqrt(dx * dx + dz * dz);
-          if (distance2D < 1.0 && !bulletsToRemove.includes(bullet.id)) {
+          const distance2DSq = dx * dx + dz * dz;
+          if (distance2DSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
             bulletsToRemove.push(bullet.id);
+            bulletsToRemoveSet.add(bullet.id);
             if (!consumeArmorCharge()) {
               loseLife();
               playPlayerDamage();
@@ -1264,10 +1275,9 @@ export function GameManager() {
       }
       
       if (enemiesToRemove.length > 0) {
-        const removalSet = new Set(enemiesToRemove);
         const survivors: typeof enemies = [];
         for (const e of enemies) {
-          if (removalSet.has(e.id)) {
+          if (enemiesToRemoveSet.has(e.id)) {
             if (e.type === "booth") {
               boothActive.current = false;
             }
@@ -1297,18 +1307,10 @@ export function GameManager() {
       setPhase("victory");
     }
     
-    if (scrollPosition > 45 && level === 1) setLevel(2);
-    else if (scrollPosition > 90 && level === 2) setLevel(3);
-    else if (scrollPosition > 135 && level === 3) setLevel(4);
-    else if (scrollPosition > 180 && level === 4) setLevel(5);
-    else if (scrollPosition > 225 && level === 5) setLevel(6);
-    else if (scrollPosition > 270 && level === 6) setLevel(7);
-    else if (scrollPosition > 360 && level === 8) setLevel(9);
-    else if (scrollPosition > 405 && level === 9) setLevel(10);
-    else if (scrollPosition > 450 && level === 10) setLevel(11);
-    else if (scrollPosition > 495 && level === 11) setLevel(12);
-    else if (scrollPosition > 540 && level === 12) setLevel(13);
-    else if (scrollPosition > 585 && level === 13) setLevel(14);
+    const nextLevel = getNextLevel(level, scrollPosition);
+    if (nextLevel !== null) {
+      setLevel(nextLevel);
+    }
   });
   
   return null;
