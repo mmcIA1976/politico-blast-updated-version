@@ -45,8 +45,6 @@ const SCOOTER_INVULNERABILITY_DURATION = 1.5;
 const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
 const BOSS_LEVELS = new Set([7, 14]);
 
-const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
-
 const enemyPool: Enemy[] = [];
 
 interface EnemySpawnSeed {
@@ -370,7 +368,6 @@ export function GameManager() {
               // Scooter invulnerable durante 1.5s
               if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < SCOOTER_INVULNERABILITY_DURATION) return;
               const isBoss = isBossEnemyType(enemy.type);
-              const isBoss = enemy.type === "boss" || enemy.type === "toucan";
               
               if (isBoss) {
                 // Bosses reciben 3 puntos de daño por granada
