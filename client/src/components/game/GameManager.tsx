@@ -32,6 +32,8 @@ let grenadeCounter = 0;
 const GRENADE_DISTANCE = 15;
 const GRENADE_COOLDOWN = 2.0;
 const EXPLOSION_RADIUS = 8;
+const EXPLOSION_RADIUS_SQ = EXPLOSION_RADIUS * EXPLOSION_RADIUS;
+const HIT_RADIUS_SQ = 1.0;
 const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
 
@@ -342,7 +344,7 @@ export function GameManager() {
               idx,
               distSq: vec3DistanceSq(enemy.position, explosionPos)
             }))
-            .filter(e => e.distSq < EXPLOSION_RADIUS * EXPLOSION_RADIUS)
+            .filter(e => e.distSq < EXPLOSION_RADIUS_SQ)
             .sort((a, b) => a.distSq - b.distSq)
             .slice(0, 6);
           
@@ -1121,7 +1123,6 @@ export function GameManager() {
             });
           }
           
-          const isBossType = enemy.type === "boss" || enemy.type === "toucan";
           return {
             ...enemy,
             shootTimer: isBossType ? 1.2 : enemy.type === "gorilla" ? 1.5 + Math.random() : 2 + Math.random() * 2,
@@ -1145,7 +1146,7 @@ export function GameManager() {
               // Scooter tiene 1.5s de invulnerabilidad al aparecer
               if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) continue;
               const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
-              if (distanceSq < 1 && !bulletsToRemoveSet.has(bullet.id)) {
+              if (distanceSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
                 const damage = bullet.damage || 1;
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
@@ -1244,7 +1245,7 @@ export function GameManager() {
           const dx = bullet.position.x - playerPosition.x;
           const dz = bullet.position.z - playerPosition.z;
           const distance2DSq = dx * dx + dz * dz;
-          if (distance2DSq < 1.0 && !bulletsToRemoveSet.has(bullet.id)) {
+          if (distance2DSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
             bulletsToRemove.push(bullet.id);
             bulletsToRemoveSet.add(bullet.id);
             if (!consumeArmorCharge()) {
