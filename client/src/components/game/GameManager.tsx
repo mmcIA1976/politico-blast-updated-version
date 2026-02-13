@@ -19,11 +19,11 @@ const tempVec3A = new THREE.Vector3();
 const tempVec3B = new THREE.Vector3();
 const tempVec3C = new THREE.Vector3();
 
-function vec3Distance(a: Vec3, b: Vec3): number {
+function vec3DistanceSq(a: Vec3, b: Vec3): number {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   const dz = a.z - b.z;
-  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  return dx * dx + dy * dy + dz * dz;
 }
 
 let bulletCounter = 0;
@@ -340,10 +340,10 @@ export function GameManager() {
             .map((enemy, idx) => ({
               enemy,
               idx,
-              dist: vec3Distance(enemy.position, explosionPos)
+              distSq: vec3DistanceSq(enemy.position, explosionPos)
             }))
-            .filter(e => e.dist < EXPLOSION_RADIUS)
-            .sort((a, b) => a.dist - b.dist)
+            .filter(e => e.distSq < EXPLOSION_RADIUS * EXPLOSION_RADIUS)
+            .sort((a, b) => a.distSq - b.distSq)
             .slice(0, 6);
           
           if (nearbyEnemies.length > 0) {
@@ -1138,8 +1138,8 @@ export function GameManager() {
             if (!enemiesToRemove.includes(enemy.id)) {
               // Scooter tiene 1.5s de invulnerabilidad al aparecer
               if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) continue;
-              const distance = vec3Distance(bullet.position, enemy.position);
-              if (distance < 1 && !bulletsToRemove.includes(bullet.id)) {
+              const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
+              if (distanceSq < 1 && !bulletsToRemove.includes(bullet.id)) {
                 const damage = bullet.damage || 1;
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
@@ -1236,8 +1236,8 @@ export function GameManager() {
         } else {
           const dx = bullet.position.x - playerPosition.x;
           const dz = bullet.position.z - playerPosition.z;
-          const distance2D = Math.sqrt(dx * dx + dz * dz);
-          if (distance2D < 1.0 && !bulletsToRemove.includes(bullet.id)) {
+          const distance2DSq = dx * dx + dz * dz;
+          if (distance2DSq < 1.0 && !bulletsToRemove.includes(bullet.id)) {
             bulletsToRemove.push(bullet.id);
             if (!consumeArmorCharge()) {
               loseLife();
