@@ -36,6 +36,9 @@ const EXPLOSION_RADIUS_SQ = EXPLOSION_RADIUS * EXPLOSION_RADIUS;
 const HIT_RADIUS_SQ = 1.0;
 const BOSS_ENRAGE_INTERVAL = 10; // Cada 10 segundos (para pruebas)
 const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
+const SCOOTER_INVULNERABILITY_DURATION = 1.5;
+
+const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
 
 const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
 
@@ -360,7 +363,7 @@ export function GameManager() {
             
             nearbyEnemies.forEach(({ enemy }) => {
               // Scooter invulnerable durante 1.5s
-              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) return;
+              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < SCOOTER_INVULNERABILITY_DURATION) return;
               const isBoss = enemy.type === "boss" || enemy.type === "toucan";
               
               if (isBoss) {
@@ -1146,7 +1149,7 @@ export function GameManager() {
             const enemy = enemies[j];
             if (!enemiesToRemoveSet.has(enemy.id)) {
               // Scooter tiene 1.5s de invulnerabilidad al aparecer
-              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < 1.5) continue;
+              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < SCOOTER_INVULNERABILITY_DURATION) continue;
               const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
               if (distanceSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
                 const damage = bullet.damage || 1;
