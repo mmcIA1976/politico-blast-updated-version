@@ -19,6 +19,10 @@ const tempVec3A = new THREE.Vector3();
 const tempVec3B = new THREE.Vector3();
 const tempVec3C = new THREE.Vector3();
 
+function isBossEnemyType(type: Enemy["type"]): boolean {
+  return type === "boss" || type === "toucan";
+}
+
 function vec3DistanceSq(a: Vec3, b: Vec3): number {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
@@ -39,6 +43,7 @@ const BOSS_ENRAGE_DURATION = 2.5; // Duración del ataque especial
 const SCOOTER_INVULNERABILITY_DURATION = 1.5;
 
 const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
+const BOSS_LEVELS = new Set([7, 14]);
 
 const POWER_UP_TYPES: Array<"tripleShot" | "speedBoost" | "powerShot" | "rapidFire"> = ["tripleShot", "speedBoost", "powerShot", "rapidFire"];
 
@@ -364,6 +369,7 @@ export function GameManager() {
             nearbyEnemies.forEach(({ enemy }) => {
               // Scooter invulnerable durante 1.5s
               if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < SCOOTER_INVULNERABILITY_DURATION) return;
+              const isBoss = isBossEnemyType(enemy.type);
               const isBoss = enemy.type === "boss" || enemy.type === "toucan";
               
               if (isBoss) {
@@ -604,7 +610,7 @@ export function GameManager() {
       enemySpawnTimer.current += delta;
     }
     
-    if (level === 7 || level === 14) {
+    if (BOSS_LEVELS.has(level)) {
       enemyPhraseTimer.current += delta;
       if (enemyPhraseTimer.current > 8) {
         enemyPhraseTimer.current = 0;
@@ -708,7 +714,7 @@ export function GameManager() {
     }
     
     // Spawn scooter when regular enemies are cleared (not on boss levels)
-    const isBossLevel = level === 7 || level === 14;
+    const isBossLevel = BOSS_LEVELS.has(level);
     const scooterCount = enemies.filter(e => e.type === "scooter").length;
     const enoughEnemiesSpawned = levelEnemiesSpawned.current >= 4;
     if (!isBossLevel && (isPhase1 || isPhase2) && enoughEnemiesSpawned && currentEnemyCount === 0 && scooterSpawnedForLevel.current !== level) {
@@ -760,7 +766,7 @@ export function GameManager() {
     for (let i = 0; i < bullets.length; i++) {
       if (!bullets[i].fromPlayer) enemyBulletCount++;
     }
-    const maxEnemyBullets = (level === 7 || level === 14) ? 8 : 15;
+    const maxEnemyBullets = (BOSS_LEVELS.has(level)) ? 8 : 15;
     
     if (frameCounter.current % 2 === 0) {
       mutatePowerUps((currentPowerUps) => {
@@ -938,7 +944,7 @@ export function GameManager() {
             newZ -= delta * 1.5;
             break;
           case "circular":
-            if (enemy.type === "boss" || enemy.type === "toucan") {
+            if (isBossEnemyType(enemy.type)) {
               const dx = playerPosition.x - enemy.position.x;
               const dz = playerPosition.z - enemy.position.z;
               const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
@@ -1097,7 +1103,7 @@ export function GameManager() {
             newZ -= delta * 2.5;
         }
         
-        const isBossType = enemy.type === "boss" || enemy.type === "toucan";
+        const isBossType = isBossEnemyType(enemy.type);
         if (newZ < playerPosition.z - 8 && !isBossType) {
           enemiesToRemove.push(enemy.id);
           enemiesToRemoveSet.add(enemy.id);
