@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useKeyboardControls } from "@react-three/drei";
+import { useKeyboardControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useArcadeGame, type Vec3, type ActivePowerUp } from "@/lib/stores/useArcadeGame";
 import { updatePlayerWorldPosition, updatePlayerWorldDirection } from "@/lib/stores/playerPositionRef";
@@ -28,6 +28,110 @@ const HALO_CONFIG: Record<string, { radius: number; speed: number; yOffset: numb
 };
 
 const DEFAULT_COLOR = new THREE.Color(0xffffff);
+
+function ArmorUpEffect({ playerMeshRef, amount }: { playerMeshRef: React.RefObject<THREE.Mesh>; amount: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const shieldRef = useRef<THREE.Mesh>(null);
+  const innerShieldRef = useRef<THREE.Mesh>(null);
+  const outerRingRef = useRef<THREE.Mesh>(null);
+  const progressRef = useRef(0);
+
+  useFrame((state, delta) => {
+    if (!groupRef.current || !shieldRef.current || !innerShieldRef.current || !outerRingRef.current) return;
+
+    if (playerMeshRef.current) {
+      groupRef.current.position.copy(playerMeshRef.current.position);
+    }
+
+    // Animación de aparición y desaparición (1.3 segundos total) - usando ref en lugar de state
+    progressRef.current = Math.min(progressRef.current + delta / 1.3, 1);
+    const progress = progressRef.current;
+
+    const scale = progress < 0.15 ? progress / 0.15 : progress > 0.85 ? (1 - progress) / 0.15 : 1;
+    shieldRef.current.scale.setScalar(scale * 2.5);
+    innerShieldRef.current.scale.setScalar(scale * 2.2);
+    outerRingRef.current.scale.setScalar(scale * 2.8);
+    
+    // Rotación del escudo
+    shieldRef.current.rotation.y += delta * 3;
+    innerShieldRef.current.rotation.y -= delta * 2;
+    outerRingRef.current.rotation.y += delta * 4;
+    
+    // Opacidad
+    const mat = shieldRef.current.material as THREE.MeshStandardMaterial;
+    const innerMat = innerShieldRef.current.material as THREE.MeshStandardMaterial;
+    const outerMat = outerRingRef.current.material as THREE.MeshStandardMaterial;
+    mat.opacity = scale * 0.7;
+    innerMat.opacity = scale * 0.5;
+    outerMat.opacity = scale * 0.8;
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Escudo hexagonal exterior */}
+      <mesh ref={shieldRef} position={[0, 1, 0]}>
+        <cylinderGeometry args={[1.5, 1.5, 0.15, 6]} />
+        <meshStandardMaterial
+          color="#00ffff"
+          emissive="#00ffff"
+          emissiveIntensity={3}
+          transparent
+          opacity={0.7}
+          side={THREE.DoubleSide}
+          metalness={0.8}
+          roughness={0.2}
+        />
+      </mesh>
+      
+      {/* Escudo hexagonal interior */}
+      <mesh ref={innerShieldRef} position={[0, 1, 0]}>
+        <cylinderGeometry args={[1.2, 1.2, 0.1, 6]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive="#00ffff"
+          emissiveIntensity={2}
+          transparent
+          opacity={0.5}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      
+      {/* Anillo exterior giratorio */}
+      <mesh ref={outerRingRef} position={[0, 1, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.8, 0.1, 6, 6]} />
+        <meshStandardMaterial
+          color="#00ffff"
+          emissive="#00ffff"
+          emissiveIntensity={4}
+          transparent
+          opacity={0.8}
+        />
+      </mesh>
+      
+      {/* Luz del escudo más intensa */}
+      <pointLight position={[0, 1, 0]} intensity={8} distance={8} color="#00ffff" />
+      <pointLight position={[0, 1.5, 0]} intensity={6} distance={6} color="#ffffff" />
+      
+      {/* Texto "ARMOR UP X2" más grande */}
+      <Html position={[0, 3, 0]} center>
+        <div
+          style={{
+            color: "#00ffff",
+            fontSize: "36px",
+            fontWeight: "bold",
+            textShadow: "0 0 15px #00ffff, 0 0 30px #00ffff, 0 0 45px #00ffff",
+            whiteSpace: "nowrap",
+            animation: "pulse 0.5s ease-in-out infinite",
+            userSelect: "none",
+            letterSpacing: "2px",
+          }}
+        >
+          ARMOR UP X{amount}
+        </div>
+      </Html>
+    </group>
+  );
+}
 
 function PowerUpHalo({ powerUp, playerMeshRef }: { powerUp: ActivePowerUp; playerMeshRef: React.RefObject<THREE.Mesh> }) {
   const groupRef = useRef<THREE.Group>(null);
@@ -124,7 +228,7 @@ export function Player() {
   const frameCount = useRef(0);
   const lastSyncedZ = useRef(0);
   
-  const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives, level } = useArcadeGame();
+  const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives, level, isLevelTransitioning, showArmorUpEffect, armorUpAmount } = useArcadeGame();
   const [, getKeys] = useKeyboardControls<Controls>();
   
   useEffect(() => {
@@ -139,7 +243,7 @@ export function Player() {
   }, [playerPosition.z, lives]);
   
   useFrame((state, delta) => {
-    if (phase !== "playing" || !meshRef.current) return;
+    if (phase !== "playing" || !meshRef.current || isLevelTransitioning) return;
     
     const dt = Math.min(delta, 0.05);
     
@@ -258,6 +362,10 @@ export function Player() {
       {activePowerUps.map((pu) => (
         <PowerUpHalo key={pu.type} powerUp={pu} playerMeshRef={meshRef} />
       ))}
+      
+      {showArmorUpEffect && (
+        <ArmorUpEffect playerMeshRef={meshRef} amount={armorUpAmount} />
+      )}
     </>
   );
 }

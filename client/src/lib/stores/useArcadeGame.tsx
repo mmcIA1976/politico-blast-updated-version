@@ -37,6 +37,7 @@ export interface Enemy {
   id: string;
   position: Vec3;
   health: number;
+  maxHealth: number;
   type: "politician" | "boss" | "gorilla" | "penguin" | "toucan" | "scooter" | "booth";
   shootTimer: number;
   movePattern: "straight" | "zigzag" | "circular" | "formation";
@@ -122,6 +123,9 @@ interface ArcadeGameState {
   grenadeCount: number;
   touchControls: TouchControls;
   armorCharges: number;
+  isLevelTransitioning: boolean;
+  showArmorUpEffect: boolean;
+  armorUpAmount: number;
   
   setPhase: (phase: GamePhase) => void;
   setTouchControl: (control: keyof TouchControls, value: boolean) => void;
@@ -129,6 +133,7 @@ interface ArcadeGameState {
   addScore: (points: number) => void;
   setScore: (score: number) => void;
   setLevel: (level: number) => void;
+  setIsLevelTransitioning: (transitioning: boolean) => void;
   setScrollPosition: (position: number) => void;
   setPlayerPosition: (position: Vec3) => void;
   setPlayerDirection: (direction: Vec3) => void;
@@ -154,6 +159,7 @@ interface ArcadeGameState {
   loseLife: () => void;
   addArmorCharges: (amount: number) => void;
   consumeArmorCharge: () => boolean;
+  setShowArmorUpEffect: (show: boolean) => void;
   restart: () => void;
   clearBattlefield: () => void;
   debris: Debris[];
@@ -189,6 +195,9 @@ export const useArcadeGame = create<ArcadeGameState>()(
     armorCharges: 0,
     debris: [],
     scorePopups: [],
+    isLevelTransitioning: false,
+    showArmorUpEffect: false,
+    armorUpAmount: 0,
     
     setPhase: (phase) => set({ phase }),
     
@@ -203,6 +212,8 @@ export const useArcadeGame = create<ArcadeGameState>()(
     setScore: (score) => set({ score }),
     
     setLevel: (level) => set({ level }),
+    
+    setIsLevelTransitioning: (transitioning) => set({ isLevelTransitioning: transitioning }),
     
     setScrollPosition: (position) => set({ scrollPosition: position }),
     
@@ -305,9 +316,20 @@ export const useArcadeGame = create<ArcadeGameState>()(
       grenadeCount: Math.min(6, state.grenadeCount + count)
     })),
     
-    addArmorCharges: (amount) => set((state) => ({
-      armorCharges: Math.min(4, state.armorCharges + amount)
-    })),
+    addArmorCharges: (amount) => set((state) => {
+      // Activar el efecto visual
+      set({ showArmorUpEffect: true, armorUpAmount: amount });
+      // Desactivar después de 1.3 segundos
+      setTimeout(() => {
+        set({ showArmorUpEffect: false });
+      }, 1300);
+      
+      return {
+        armorCharges: Math.min(4, state.armorCharges + amount)
+      };
+    }),
+    
+    setShowArmorUpEffect: (show) => set({ showArmorUpEffect: show }),
     
     consumeArmorCharge: () => {
       const state = get();
@@ -347,6 +369,9 @@ export const useArcadeGame = create<ArcadeGameState>()(
       touchControls: { forward: false, back: false, left: false, right: false, shooting: false, throwingGrenade: false },
       debris: [],
       scorePopups: [],
+      isLevelTransitioning: false,
+      showArmorUpEffect: false,
+      armorUpAmount: 0,
     }),
     
     clearBattlefield: () => set({
@@ -361,48 +386,64 @@ export const useArcadeGame = create<ArcadeGameState>()(
     
     addDebris: (newDebris) => set((state) => {
       if (!newDebris.length) return { debris: state.debris };
-      const merged = [...state.debris, ...newDebris];
-      if (merged.length > MAX_DEBRIS) {
-        merged.splice(0, merged.length - MAX_DEBRIS);
+      // Optimización: evitar crear array si no es necesario
+      if (state.debris.length + newDebris.length <= MAX_DEBRIS) {
+        return { debris: [...state.debris, ...newDebris] };
       }
+      const merged = [...state.debris, ...newDebris];
+      merged.splice(0, merged.length - MAX_DEBRIS);
       return { debris: merged };
     }),
     
-    updateDebris: (delta) => set((state) => ({
-      debris: state.debris
-        .map(d => ({
-          ...d,
-          position: {
-            x: d.position.x + d.velocity.x * delta,
-            y: Math.max(0, d.position.y + d.velocity.y * delta),
-            z: d.position.z + d.velocity.z * delta,
-          },
-          velocity: {
-            x: d.velocity.x * 0.98,
-            y: d.velocity.y - 15 * delta,
-            z: d.velocity.z * 0.98,
-          },
-          lifetime: d.lifetime - delta,
-        }))
-        .filter(d => d.lifetime > 0)
-    })),
+    updateDebris: (delta) => set((state) => {
+      // Optimización: actualizar in-place cuando sea posible
+      const updated = [];
+      for (let i = 0; i < state.debris.length; i++) {
+        const d = state.debris[i];
+        const newLifetime = d.lifetime - delta;
+        if (newLifetime > 0) {
+          updated.push({
+            ...d,
+            position: {
+              x: d.position.x + d.velocity.x * delta,
+              y: Math.max(0, d.position.y + d.velocity.y * delta),
+              z: d.position.z + d.velocity.z * delta,
+            },
+            velocity: {
+              x: d.velocity.x * 0.98,
+              y: d.velocity.y - 15 * delta,
+              z: d.velocity.z * 0.98,
+            },
+            lifetime: newLifetime,
+          });
+        }
+      }
+      return { debris: updated };
+    }),
     
     addScorePopup: (popup) => set((state) => ({
       scorePopups: [...state.scorePopups, popup]
     })),
     
-    updateScorePopups: (delta) => set((state) => ({
-      scorePopups: state.scorePopups
-        .map(p => ({
-          ...p,
-          position: {
-            x: p.position.x,
-            y: p.position.y + 2.5 * delta,
-            z: p.position.z,
-          },
-          lifetime: p.lifetime - delta,
-        }))
-        .filter(p => p.lifetime > 0)
-    })),
+    updateScorePopups: (delta) => set((state) => {
+      // Optimización: actualizar in-place cuando sea posible
+      const updated = [];
+      for (let i = 0; i < state.scorePopups.length; i++) {
+        const p = state.scorePopups[i];
+        const newLifetime = p.lifetime - delta;
+        if (newLifetime > 0) {
+          updated.push({
+            ...p,
+            position: {
+              x: p.position.x,
+              y: p.position.y + 2.5 * delta,
+              z: p.position.z,
+            },
+            lifetime: newLifetime,
+          });
+        }
+      }
+      return { scorePopups: updated };
+    }),
   }))
 );

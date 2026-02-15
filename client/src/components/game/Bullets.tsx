@@ -69,7 +69,7 @@ function EnemyBullet({ bullet }: { bullet: Bullet }) {
 }
 
 export function Bullets() {
-  const { bullets, updateBullets } = useArcadeGame();
+  const { bullets, updateBullets, isLevelTransitioning } = useArcadeGame();
   const frameCounter = useRef(0);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const playerBuckets = useMemo(
@@ -87,8 +87,14 @@ export function Bullets() {
   };
   
   useFrame((_, rawDelta) => {
+    // Pausar durante transiciones de nivel
+    if (isLevelTransitioning) return;
+    
     const delta = Math.min(rawDelta, 0.05);
     frameCounter.current++;
+    
+    // Optimización: solo actualizar cada 2 frames
+    if (frameCounter.current % 2 !== 0) return;
     
     if (bullets.length === 0) return;
     

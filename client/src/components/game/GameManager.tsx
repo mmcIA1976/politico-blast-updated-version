@@ -51,6 +51,7 @@ interface EnemySpawnSeed {
   id: string;
   position: Vec3;
   health: number;
+  maxHealth: number;
   type: Enemy["type"];
   shootTimer: number;
   movePattern: Enemy["movePattern"];
@@ -71,6 +72,7 @@ const createEmptyEnemy = (): Enemy => ({
   id: "",
   position: { x: 0, y: 0, z: 0 },
   health: 1,
+  maxHealth: 1,
   type: "politician",
   shootTimer: 1,
   movePattern: "straight",
@@ -108,6 +110,7 @@ const spawnEnemyFromSeed = (seed: EnemySpawnSeed): Enemy => {
   enemy.position.y = seed.position.y;
   enemy.position.z = seed.position.z;
   enemy.health = seed.health;
+  enemy.maxHealth = seed.maxHealth;
   enemy.type = seed.type;
   enemy.shootTimer = seed.shootTimer;
   enemy.movePattern = seed.movePattern;
@@ -199,7 +202,7 @@ export function GameManager() {
   } = useArcadeGame();
   
   const [, getKeys] = useKeyboardControls<Controls>();
-  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance, playGrenadeExplosion, playGrenadePickup, stopBossMusic } = useAudio();
+  const { playHit, playPlayerDamage, playEnemyScream, playBossEntrance, playGrenadeExplosion, playGrenadePickup, stopBossMusic, playBoothDestruction } = useAudio();
   const enemySpawnTimer = useRef(0);
   const lastLevel = useRef(1);
   const frameCounter = useRef(0);
@@ -219,15 +222,26 @@ export function GameManager() {
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
     
+    // Pausar el juego durante transiciones de nivel
+    const { isLevelTransitioning } = useArcadeGame.getState();
+    if (isLevelTransitioning) return;
+    
     const delta = Math.min(rawDelta, 0.05);
     const currentTime = state.clock.getElapsedTime();
     
     frameCounter.current++;
     
+    // Reducir frecuencia de actualizaciones costosas
+    const shouldUpdateCollisions = frameCounter.current % 2 === 0;
+    const shouldUpdatePowerUps = frameCounter.current % 3 === 0;
+    
     updateActivePowerUps(currentTime);
     
-    updateDebris(delta);
-    updateScorePopups(delta);
+    // Actualizar debris y popups con menos frecuencia
+    if (shouldUpdateCollisions) {
+      updateDebris(delta * 2);
+      updateScorePopups(delta * 2);
+    }
     
     const newScrollPosition = Math.max(scrollPosition, playerPosition.z);
     if (Math.abs(newScrollPosition - lastScrollUpdate.current) > 0.5) {
@@ -421,6 +435,7 @@ export function GameManager() {
                   grenadeKillScore = 150;
                   scoreToAdd += 150;
                   addArmorCharges(2);
+                  playBoothDestruction(); // Sonido de explosión
                   bulletCounter++;
                   addScorePopup({
                     id: `armor${bulletCounter}`,
@@ -569,6 +584,7 @@ export function GameManager() {
           id: `boss${bulletCounter}`,
           position: { x: 0, y: 0.7, z: 295 },
           health: 15,
+          maxHealth: 15,
           type: "boss",
           shootTimer: 1.5,
           movePattern: "circular",
@@ -588,6 +604,7 @@ export function GameManager() {
           id: `boss2${bulletCounter}`,
           position: { x: 0, y: 0.8, z: 295 },
           health: 20,
+          maxHealth: 20,
           type: "toucan",
           shootTimer: 1.2,
           movePattern: "circular",
@@ -628,6 +645,7 @@ export function GameManager() {
           id: `booth-${level}-${bulletCounter}`,
           position: { x: level % 2 === 0 ? -18 : 18, y: 0.5, z: playerPosition.z + 18 },
           health: 4,
+          maxHealth: 4,
           type: "booth",
           shootTimer: 5,
           movePattern: "straight",
@@ -661,6 +679,7 @@ export function GameManager() {
             id: `e${bulletCounter}`,
             position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
             health: isSpecial ? enemyHealth + 1 : enemyHealth,
+            maxHealth: isSpecial ? enemyHealth + 1 : enemyHealth,
             type: "politician",
             shootTimer: (currentTime % 3) + 1,
             movePattern: patterns[patternIndex],
@@ -698,6 +717,7 @@ export function GameManager() {
             id: `z${bulletCounter}`,
             position: { x: xPos, y: 0.5, z: newScrollPosition + 15 },
             health: isSpecial ? enemyHealth + 1 : enemyHealth,
+            maxHealth: isSpecial ? enemyHealth + 1 : enemyHealth,
             type: enemyType,
             shootTimer: (currentTime % 3) + 1,
             movePattern: patterns[patternIndex],
@@ -723,6 +743,7 @@ export function GameManager() {
           id: `scooter${bulletCounter}`,
           position: { x: startX, y: 0.5, z: playerPosition.z + 8 },
           health: 2,
+          maxHealth: 2,
           scooterPhraseTime: currentTime,
           type: "scooter",
           shootTimer: 2.5,
@@ -765,13 +786,14 @@ export function GameManager() {
     }
     const maxEnemyBullets = (BOSS_LEVELS.has(level)) ? 8 : 15;
     
-    if (frameCounter.current % 2 === 0) {
+    // Actualizar power-ups con menos frecuencia
+    if (shouldUpdatePowerUps) {
       mutatePowerUps((currentPowerUps) => {
         let changed = false;
         const result = [];
         for (let i = 0; i < currentPowerUps.length; i++) {
           const p = currentPowerUps[i];
-          const newZ = p.position.z - delta * 2;
+          const newZ = p.position.z - delta * 3;
           if (newZ > -15) {
             if (newZ !== p.position.z) changed = true;
             result.push({
@@ -1145,16 +1167,18 @@ export function GameManager() {
         };
       });
       
-      for (let i = 0; i < bullets.length; i++) {
-        const bullet = bullets[i];
-        if (bullet.fromPlayer) {
-          for (let j = 0; j < enemies.length; j++) {
-            const enemy = enemies[j];
-            if (!enemiesToRemoveSet.has(enemy.id)) {
-              // Scooter tiene 1.5s de invulnerabilidad al aparecer
-              if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < SCOOTER_INVULNERABILITY_DURATION) continue;
-              const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
-              if (distanceSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
+      // Optimización: solo verificar colisiones cada 2 frames
+      if (shouldUpdateCollisions) {
+        for (let i = 0; i < bullets.length; i++) {
+          const bullet = bullets[i];
+          if (bullet.fromPlayer) {
+            for (let j = 0; j < enemies.length; j++) {
+              const enemy = enemies[j];
+              if (!enemiesToRemoveSet.has(enemy.id)) {
+                // Scooter tiene 1.5s de invulnerabilidad al aparecer
+                if (enemy.type === "scooter" && (currentTime - enemy.spawnTime) < SCOOTER_INVULNERABILITY_DURATION) continue;
+                const distanceSq = vec3DistanceSq(bullet.position, enemy.position);
+                if (distanceSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
                 const damage = bullet.damage || 1;
                 enemies[j] = { ...enemy, health: enemy.health - damage };
                 bulletsToRemove.push(bullet.id);
@@ -1163,6 +1187,11 @@ export function GameManager() {
                 
                 if (enemies[j].health <= 0 && !enemies[j].dying) {
                   enemies[j] = { ...enemies[j], dying: true, dyingProgress: 0 };
+                  
+                  // Reproducir sonido de explosión para booth
+                  if (enemy.type === "booth") {
+                    playBoothDestruction();
+                  }
                   
                   let killScore = 0;
                   if (enemy.type === "boss") {
@@ -1200,6 +1229,7 @@ export function GameManager() {
                     scoreToAdd += 150;
                     boothActive.current = false;
                     addArmorCharges(2);
+                    playBoothDestruction(); // Sonido de explosión
                     bulletCounter++;
                     addScorePopup({
                       id: `armor${bulletCounter}`,
@@ -1244,20 +1274,21 @@ export function GameManager() {
                       });
                     }
                   }
+                  }
                 }
               }
             }
-          }
-        } else {
-          const dx = bullet.position.x - playerPosition.x;
-          const dz = bullet.position.z - playerPosition.z;
-          const distance2DSq = dx * dx + dz * dz;
-          if (distance2DSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
-            bulletsToRemove.push(bullet.id);
-            bulletsToRemoveSet.add(bullet.id);
-            if (!consumeArmorCharge()) {
-              loseLife();
-              playPlayerDamage();
+          } else {
+            const dx = bullet.position.x - playerPosition.x;
+            const dz = bullet.position.z - playerPosition.z;
+            const distance2DSq = dx * dx + dz * dz;
+            if (distance2DSq < HIT_RADIUS_SQ && !bulletsToRemoveSet.has(bullet.id)) {
+              bulletsToRemove.push(bullet.id);
+              bulletsToRemoveSet.add(bullet.id);
+              if (!consumeArmorCharge()) {
+                loseLife();
+                playPlayerDamage();
+              }
             }
           }
         }

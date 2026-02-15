@@ -68,9 +68,10 @@ export function PowerUps() {
     scrollPosition,
     addPowerUp,
     addGrenadeToInventory,
-    level
+    level,
+    addScorePopup
   } = useArcadeGame();
-  const { playGrenadePickup } = useAudio();
+  const { playGrenadePickup, playPowerUpPickup } = useAudio();
   
   const spawnTimer = useRef(0);
   const grenadeSpawnTimer = useRef(0);
@@ -160,6 +161,19 @@ export function PowerUps() {
             else if (powerUp.type === "rapidFire") duration = 8;
             
             activatePowerUp(powerUp.type, duration, state.clock.getElapsedTime());
+            
+            // Reproducir sonido de power-up
+            playPowerUpPickup();
+            
+            // Mostrar texto "POWER UP!" estilo arcade
+            addScorePopup({
+              id: `powerup-text-${state.clock.getElapsedTime()}`,
+              position: { x: powerUp.position.x, y: powerUp.position.y + 2, z: powerUp.position.z },
+              points: -1, // Valor especial para indicar que es texto de power-up
+              lifetime: 1.0,
+              maxLifetime: 1.0,
+            });
+            
             removePowerUp(powerUp.id);
           }
         }

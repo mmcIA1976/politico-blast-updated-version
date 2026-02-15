@@ -1,21 +1,37 @@
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { useTexture } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 import * as THREE from "three";
 
-function PoliticianEnemy({ level, faceTexture, faceTexture2, isSpecial }: { level: number; faceTexture: THREE.Texture; faceTexture2: THREE.Texture; isSpecial?: boolean }) {
+// Función para calcular el color según el porcentaje de vida
+function getHealthColor(healthPercent: number): string {
+  if (healthPercent > 0.66) return "#ffff00"; // Amarillo (>66% vida)
+  if (healthPercent > 0.33) return "#ff8800"; // Naranja (33-66% vida)
+  return "#ff0000"; // Rojo (<33% vida)
+}
+
+function PoliticianEnemy({ level, faceTexture, faceTexture2, isSpecial, health, maxHealth }: { level: number; faceTexture: THREE.Texture; faceTexture2: THREE.Texture; isSpecial?: boolean; health: number; maxHealth: number }) {
+  const healthPercent = health / maxHealth;
+  const hitColor = getHealthColor(healthPercent);
+  const showHitEffect = health < maxHealth; // Mostrar efecto si ha recibido daño
+  
   const bodyColor = isSpecial ? "#ffd700" : "#ef4444";
+  const emissiveColor = showHitEffect ? hitColor : (isSpecial ? "#ffd700" : "#000000");
+  const emissiveIntensity = showHitEffect ? 0.8 : (isSpecial ? 0.4 : 0);
+  
   return (
     <>
       <mesh position={[0, 0.5, 0]} castShadow>
         <boxGeometry args={[0.7, 1, 0.7]} />
-        <meshStandardMaterial color={bodyColor} emissive={isSpecial ? "#ffd700" : "#000000"} emissiveIntensity={isSpecial ? 0.4 : 0} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 1.4, -0.5]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.0, 32]} />
-        <meshStandardMaterial map={level >= 4 && level <= 6 ? faceTexture2 : faceTexture} />
+        <meshStandardMaterial map={level >= 4 && level <= 6 ? faceTexture2 : faceTexture} emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.3} />
       </mesh>
-      {isSpecial && (
-        <pointLight position={[0, 1, 0]} intensity={2} distance={4} color="#ffd700" />
+      {(isSpecial || showHitEffect) && (
+        <pointLight position={[0, 1, 0]} intensity={showHitEffect ? 3 : 2} distance={4} color={showHitEffect ? hitColor : "#ffd700"} />
       )}
     </>
   );
@@ -68,53 +84,67 @@ function BossEnemy({ bossFaceTexture, enraged, enragedProgress, enrageMode }: { 
   );
 }
 
-function GorillaEnemy({ faceTexture, isSpecial }: { faceTexture: THREE.Texture; isSpecial?: boolean }) {
+function GorillaEnemy({ faceTexture, isSpecial, health, maxHealth }: { faceTexture: THREE.Texture; isSpecial?: boolean; health: number; maxHealth: number }) {
+  const healthPercent = health / maxHealth;
+  const hitColor = getHealthColor(healthPercent);
+  const showHitEffect = health < maxHealth;
+  
   const bodyColor = isSpecial ? "#ffd700" : "#3d2914";
   const headColor = isSpecial ? "#e6c200" : "#2a1d0d";
+  const emissiveColor = showHitEffect ? hitColor : (isSpecial ? "#ffd700" : "#000000");
+  const emissiveIntensity = showHitEffect ? 0.8 : (isSpecial ? 0.4 : 0);
+  
   return (
     <>
       <mesh position={[0, 0.6, 0]} castShadow>
         <boxGeometry args={[1.0, 1.2, 0.9]} />
-        <meshStandardMaterial color={bodyColor} emissive={isSpecial ? "#ffd700" : "#000000"} emissiveIntensity={isSpecial ? 0.4 : 0} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 1.5, 0]} castShadow>
         <sphereGeometry args={[0.5, 12, 12]} />
-        <meshStandardMaterial color={headColor} />
+        <meshStandardMaterial color={headColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.5} />
       </mesh>
       <mesh position={[0, 1.8, -0.4]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.0, 32]} />
-        <meshStandardMaterial map={faceTexture} />
+        <meshStandardMaterial map={faceTexture} emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.3} />
       </mesh>
       <mesh position={[-0.65, 0.4, 0]} castShadow>
         <boxGeometry args={[0.35, 1.0, 0.35]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0.65, 0.4, 0]} castShadow>
         <boxGeometry args={[0.35, 1.0, 0.35]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[-0.3, -0.2, 0]} castShadow>
         <boxGeometry args={[0.3, 0.5, 0.3]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0.3, -0.2, 0]} castShadow>
         <boxGeometry args={[0.3, 0.5, 0.3]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
-      {isSpecial && (
-        <pointLight position={[0, 1, 0]} intensity={2} distance={4} color="#ffd700" />
+      {(isSpecial || showHitEffect) && (
+        <pointLight position={[0, 1, 0]} intensity={showHitEffect ? 3 : 2} distance={4} color={showHitEffect ? hitColor : "#ffd700"} />
       )}
     </>
   );
 }
 
-function PenguinEnemy({ faceTexture, isSpecial }: { faceTexture: THREE.Texture; isSpecial?: boolean }) {
+function PenguinEnemy({ faceTexture, isSpecial, health, maxHealth }: { faceTexture: THREE.Texture; isSpecial?: boolean; health: number; maxHealth: number }) {
+  const healthPercent = health / maxHealth;
+  const hitColor = getHealthColor(healthPercent);
+  const showHitEffect = health < maxHealth;
+  
   const bodyColor = isSpecial ? "#ffd700" : "#1a1a1a";
+  const emissiveColor = showHitEffect ? hitColor : (isSpecial ? "#ffd700" : "#000000");
+  const emissiveIntensity = showHitEffect ? 0.8 : (isSpecial ? 0.4 : 0);
+  
   return (
     <>
       <mesh position={[0, 0.5, 0]} castShadow>
         <boxGeometry args={[0.6, 1.0, 0.5]} />
-        <meshStandardMaterial color={bodyColor} emissive={isSpecial ? "#ffd700" : "#000000"} emissiveIntensity={isSpecial ? 0.4 : 0} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 0.5, -0.2]} castShadow>
         <boxGeometry args={[0.4, 0.8, 0.1]} />
@@ -122,30 +152,30 @@ function PenguinEnemy({ faceTexture, isSpecial }: { faceTexture: THREE.Texture; 
       </mesh>
       <mesh position={[0, 1.2, 0]} castShadow>
         <sphereGeometry args={[0.3, 12, 12]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.5} />
       </mesh>
       <mesh position={[0, 1.5, -0.3]} rotation={[0, Math.PI, 0]}>
         <circleGeometry args={[1.0, 32]} />
-        <meshStandardMaterial map={faceTexture} />
+        <meshStandardMaterial map={faceTexture} emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.3} />
       </mesh>
       <mesh position={[-0.4, 0.5, 0]} rotation={[0, 0, -0.4]} castShadow>
         <boxGeometry args={[0.35, 0.12, 0.2]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0.4, 0.5, 0]} rotation={[0, 0, 0.4]} castShadow>
         <boxGeometry args={[0.35, 0.12, 0.2]} />
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} emissive={emissiveColor} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[-0.15, -0.15, 0]} castShadow>
         <boxGeometry args={[0.2, 0.3, 0.25]} />
-        <meshStandardMaterial color="#ff8c00" />
+        <meshStandardMaterial color="#ff8c00" emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.3} />
       </mesh>
       <mesh position={[0.15, -0.15, 0]} castShadow>
         <boxGeometry args={[0.2, 0.3, 0.25]} />
-        <meshStandardMaterial color="#ff8c00" />
+        <meshStandardMaterial color="#ff8c00" emissive={emissiveColor} emissiveIntensity={emissiveIntensity * 0.3} />
       </mesh>
-      {isSpecial && (
-        <pointLight position={[0, 1, 0]} intensity={2} distance={4} color="#ffd700" />
+      {(isSpecial || showHitEffect) && (
+        <pointLight position={[0, 1, 0]} intensity={showHitEffect ? 3 : 2} distance={4} color={showHitEffect ? hitColor : "#ffd700"} />
       )}
     </>
   );
@@ -225,17 +255,35 @@ function ToucanEnemy({ faceTexture, enraged, enragedProgress }: { faceTexture: T
   );
 }
 
-function BoothEnemy({ health }: { health: number }) {
+function BoothEnemy({ health, maxHealth }: { health: number; maxHealth: number }) {
+  const flagRef = useRef<THREE.Group>(null);
+  const healthPercent = health / maxHealth;
+  const hitColor = getHealthColor(healthPercent);
+  const showHitEffect = health < maxHealth;
+  const emissiveIntensity = showHitEffect ? 0.6 : 0;
+  
+  useFrame((state) => {
+    if (flagRef.current) {
+      // Animación de ondulación de la bandera
+      const time = state.clock.getElapsedTime();
+      flagRef.current.rotation.z = Math.sin(time * 3) * 0.3;
+    }
+  });
+  
   return (
     <group>
+      {/* Estructura de la caseta */}
       <mesh position={[0, 0.6, 0]} castShadow>
         <boxGeometry args={[2.5, 1.2, 2.0]} />
-        <meshStandardMaterial color="#e53935" />
+        <meshStandardMaterial color="#e53935" emissive={showHitEffect ? hitColor : "#000000"} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 1.4, 0]} castShadow>
         <boxGeometry args={[2.7, 0.4, 2.2]} />
-        <meshStandardMaterial color="#b71c1c" />
+        <meshStandardMaterial color="#b71c1c" emissive={showHitEffect ? hitColor : "#000000"} emissiveIntensity={emissiveIntensity} />
       </mesh>
+      {showHitEffect && (
+        <pointLight position={[0, 1.5, 0]} intensity={4} distance={6} color={hitColor} />
+      )}
       <mesh position={[0, 2.2, 0]}>
         <planeGeometry args={[3, 1.2]} />
         <meshStandardMaterial color="#a30000" />
@@ -256,16 +304,42 @@ function BoothEnemy({ health }: { health: number }) {
         <boxGeometry args={[2.6, 0.2, 2.1]} />
         <meshStandardMaterial color="#5d4037" />
       </mesh>
+      
+      {/* Asta de la bandera */}
+      <mesh position={[0, 2.5, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 1.5, 8]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      
+      {/* Bandera roja ondeando */}
+      <group ref={flagRef} position={[0.4, 3.0, 0]}>
+        <mesh>
+          <planeGeometry args={[0.8, 0.5]} />
+          <meshStandardMaterial 
+            color="#ff0000" 
+            emissive="#ff0000"
+            emissiveIntensity={0.5}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        {/* Luz para hacer la bandera más visible */}
+        <pointLight position={[0, 0, 0]} intensity={1.5} distance={3} color="#ff0000" />
+      </group>
     </group>
   );
 }
 
-function ScooterEnemy() {
+function ScooterEnemy({ health, maxHealth }: { health: number; maxHealth: number }) {
+  const healthPercent = health / maxHealth;
+  const hitColor = getHealthColor(healthPercent);
+  const showHitEffect = health < maxHealth;
+  const emissiveIntensity = showHitEffect ? 0.6 : 0;
+  
   return (
     <group>
       <mesh position={[0, 0.15, 0]}>
         <boxGeometry args={[0.6, 0.1, 2.0]} />
-        <meshStandardMaterial color="#cc0000" />
+        <meshStandardMaterial color="#cc0000" emissive={showHitEffect ? hitColor : "#000000"} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 0.25, 0]}>
         <boxGeometry args={[0.5, 0.08, 1.8]} />
@@ -289,12 +363,15 @@ function ScooterEnemy() {
       </mesh>
       <mesh position={[0, 0.7, -0.2]}>
         <boxGeometry args={[0.5, 0.8, 0.4]} />
-        <meshStandardMaterial color="#8B4513" />
+        <meshStandardMaterial color="#8B4513" emissive={showHitEffect ? hitColor : "#000000"} emissiveIntensity={emissiveIntensity} />
       </mesh>
       <mesh position={[0, 1.3, -0.2]}>
         <sphereGeometry args={[0.3, 10, 10]} />
-        <meshStandardMaterial color="#8B4513" />
+        <meshStandardMaterial color="#8B4513" emissive={showHitEffect ? hitColor : "#000000"} emissiveIntensity={emissiveIntensity} />
       </mesh>
+      {showHitEffect && (
+        <pointLight position={[0, 0.7, 0]} intensity={3} distance={4} color={hitColor} />
+      )}
       <mesh position={[0, 1.35, -0.35]}>
         <sphereGeometry args={[0.12, 8, 8]} />
         <meshStandardMaterial color="#222222" />
@@ -342,25 +419,25 @@ export function Enemies() {
             rotation={[dyingRotation, 0, 0]}
           >
             {enemy.type === "politician" && (
-              <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} />
+              <PoliticianEnemy level={level} faceTexture={faceTexture} faceTexture2={faceTexture2} isSpecial={enemy.isSpecial} health={enemy.health} maxHealth={enemy.maxHealth} />
             )}
             {enemy.type === "boss" && (
               <BossEnemy bossFaceTexture={bossFaceTexture} enraged={enemy.enraged} enragedProgress={enemy.enragedProgress} enrageMode={enemy.enrageMode} />
             )}
             {enemy.type === "gorilla" && (
-              <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} />
+              <GorillaEnemy faceTexture={oscarPuenteFace} isSpecial={enemy.isSpecial} health={enemy.health} maxHealth={enemy.maxHealth} />
             )}
             {enemy.type === "penguin" && (
-              <PenguinEnemy faceTexture={felixBolanosFace} isSpecial={enemy.isSpecial} />
+              <PenguinEnemy faceTexture={felixBolanosFace} isSpecial={enemy.isSpecial} health={enemy.health} maxHealth={enemy.maxHealth} />
             )}
             {enemy.type === "toucan" && (
               <ToucanEnemy faceTexture={yolandaDiazFace} enraged={enemy.enraged} enragedProgress={enemy.enragedProgress} />
             )}
             {enemy.type === "scooter" && (
-              <ScooterEnemy />
+              <ScooterEnemy health={enemy.health} maxHealth={enemy.maxHealth} />
             )}
             {enemy.type === "booth" && (
-              <BoothEnemy health={enemy.health} />
+              <BoothEnemy health={enemy.health} maxHealth={enemy.maxHealth} />
             )}
           </group>
         );

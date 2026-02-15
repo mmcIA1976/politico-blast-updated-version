@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function LevelTransition() {
-  const { level } = useArcadeGame();
+  const { level, setIsLevelTransitioning, clearBattlefield } = useArcadeGame();
   const [showTransition, setShowTransition] = useState(false);
   const [displayLevel, setDisplayLevel] = useState(1);
   const prevLevelRef = useRef(1);
@@ -11,11 +11,17 @@ export function LevelTransition() {
     if (level !== prevLevelRef.current && level > 1) {
       setDisplayLevel(level);
       setShowTransition(true);
+      setIsLevelTransitioning(true); // Pausar el juego
+      
+      // Limpiar balas y enemigos inmediatamente al cambiar de nivel
+      clearBattlefield();
+      
       prevLevelRef.current = level;
 
       const timer = setTimeout(() => {
         setShowTransition(false);
-      }, 2000);
+        setIsLevelTransitioning(false); // Reanudar el juego
+      }, 2500); // 2.5 segundos para dar tiempo de carga
 
       return () => {
         clearTimeout(timer);
@@ -23,8 +29,9 @@ export function LevelTransition() {
     } else if (level === 1) {
       prevLevelRef.current = 1;
       setShowTransition(false);
+      setIsLevelTransitioning(false);
     }
-  }, [level]);
+  }, [level, setIsLevelTransitioning]);
 
   if (!showTransition) return null;
 
@@ -44,51 +51,151 @@ export function LevelTransition() {
     <div
       style={{
         position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
         zIndex: 1000,
-        pointerEvents: "none",
-        animation: "levelFadeInOut 2s ease-in-out",
+        pointerEvents: "all", // Bloquear interacción
+        animation: "levelFadeInOut 2.5s ease-in-out",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.95)",
       }}
     >
       <div
         style={{
-          fontSize: "2rem",
-          fontWeight: "bold",
-          color: "#ffd700",
-          textShadow: `
-            0 0 5px #ffd700,
-            0 0 10px #ffd700,
-            0 0 15px #ff8c00,
-            0 0 20px #ff8c00
-          `,
-          letterSpacing: "0.15em",
           textAlign: "center",
-          fontFamily: "Arial, sans-serif",
-          WebkitTextStroke: "1px #000",
+          padding: "2rem",
         }}
       >
-        {getLevelName(displayLevel)}
+        {/* Borde pixelado estilo retro */}
+        <div
+          style={{
+            border: "8px solid #ffd700",
+            borderImage: "repeating-linear-gradient(90deg, #ffd700 0, #ffd700 10px, #ff8c00 10px, #ff8c00 20px) 8",
+            padding: "2rem",
+            backgroundColor: "#1a1a2e",
+            boxShadow: "0 0 30px rgba(255, 215, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5)",
+            imageRendering: "pixelated",
+          }}
+        >
+          {/* Texto "LEVEL UP" estilo arcade */}
+          <div
+            style={{
+              fontSize: "3rem",
+              fontWeight: "bold",
+              color: "#ff0000",
+              textShadow: `
+                3px 3px 0 #000,
+                0 0 10px #ff0000,
+                0 0 20px #ff0000
+              `,
+              letterSpacing: "0.2em",
+              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+              textTransform: "uppercase",
+            }}
+          >
+            ▲ LEVEL UP ▲
+          </div>
+          
+          {/* Nombre del nivel */}
+          <div
+            style={{
+              fontSize: "2rem",
+              fontWeight: "bold",
+              color: "#ffd700",
+              textShadow: `
+                2px 2px 0 #000,
+                0 0 10px #ffd700,
+                0 0 20px #ff8c00
+              `,
+              letterSpacing: "0.15em",
+              fontFamily: "'Courier New', monospace",
+              marginBottom: "1rem",
+            }}
+          >
+            {getLevelName(displayLevel)}
+          </div>
+          
+          {/* Barra de carga pixelada */}
+          <div
+            style={{
+              width: "300px",
+              height: "20px",
+              border: "3px solid #ffd700",
+              backgroundColor: "#000",
+              margin: "1rem auto",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                background: "repeating-linear-gradient(90deg, #00ff00 0, #00ff00 10px, #00cc00 10px, #00cc00 20px)",
+                animation: "loadingBar 2.5s ease-in-out",
+                imageRendering: "pixelated",
+              }}
+            />
+          </div>
+          
+          {/* Texto "READY" parpadeante */}
+          <div
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              color: "#ffffff",
+              textShadow: "2px 2px 0 #000",
+              letterSpacing: "0.2em",
+              fontFamily: "'Courier New', monospace",
+              marginTop: "1rem",
+              animation: "blink 0.5s infinite",
+            }}
+          >
+            ► READY ◄
+          </div>
+        </div>
       </div>
+      
       <style>
         {`
           @keyframes levelFadeInOut {
             0% {
               opacity: 0;
-              transform: translate(-50%, -50%) scale(0.8);
             }
-            25% {
+            8% {
               opacity: 1;
-              transform: translate(-50%, -50%) scale(1);
             }
-            75% {
+            92% {
               opacity: 1;
-              transform: translate(-50%, -50%) scale(1);
             }
             100% {
               opacity: 0;
-              transform: translate(-50%, -50%) scale(0.8);
+            }
+          }
+          
+          @keyframes loadingBar {
+            0% {
+              transform: translateX(-100%);
+            }
+            80% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(0);
+            }
+          }
+          
+          @keyframes blink {
+            0%, 49% {
+              opacity: 1;
+            }
+            50%, 100% {
+              opacity: 0.3;
             }
           }
         `}

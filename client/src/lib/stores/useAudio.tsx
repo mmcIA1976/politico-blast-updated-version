@@ -15,6 +15,7 @@ interface AudioState {
   hitSound: HTMLAudioElement | null;
   successSound: HTMLAudioElement | null;
   bossMusic: HTMLAudioElement | null;
+  explosionSound: HTMLAudioElement | null;
   isMuted: boolean;
   currentPhase: number;
   lastPhrase: string;
@@ -26,6 +27,7 @@ interface AudioState {
   setBackgroundMusic2: (music: HTMLAudioElement) => void;
   setHitSound: (sound: HTMLAudioElement) => void;
   setSuccessSound: (sound: HTMLAudioElement) => void;
+  setExplosionSound: (sound: HTMLAudioElement) => void;
   setCurrentPhase: (phase: number) => void;
   stopBossMusic: () => void;
   enqueueSpeech: (request: Omit<SpeechRequest, "id">) => void;
@@ -41,6 +43,8 @@ interface AudioState {
   playBossEntrance: (isBoss2?: boolean) => void;
   playGrenadeExplosion: () => void;
   playGrenadePickup: () => void;
+  playPowerUpPickup: () => void;
+  playBoothDestruction: () => void;
 }
 
 let speechCounter = 0;
@@ -51,6 +55,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   hitSound: null,
   successSound: null,
   bossMusic: null,
+  explosionSound: null,
   isMuted: false,
   currentPhase: 1,
   lastPhrase: "",
@@ -61,6 +66,7 @@ export const useAudio = create<AudioState>((set, get) => ({
   setBackgroundMusic2: (music) => set({ backgroundMusic2: music }),
   setHitSound: (sound) => set({ hitSound: sound }),
   setSuccessSound: (sound) => set({ successSound: sound }),
+  setExplosionSound: (sound) => set({ explosionSound: sound }),
   setCurrentPhase: (phase) => set({ currentPhase: phase }),
   
   stopBossMusic: () => {
@@ -287,5 +293,35 @@ export const useAudio = create<AudioState>((set, get) => ({
     const { isMuted, enqueueSpeech } = get();
     if (isMuted) return;
     enqueueSpeech({ text: "¡Granada!", rate: 1.3, pitch: 1.4, volume: 0.8 });
+  },
+  
+  playPowerUpPickup: () => {
+    const { successSound, isMuted } = get();
+    if (isMuted) return;
+    
+    // Usar el sonido de éxito (campana) para power-up
+    if (successSound) {
+      const soundClone = successSound.cloneNode() as HTMLAudioElement;
+      soundClone.volume = 0.8;
+      soundClone.playbackRate = 1.2; // Ligeramente más rápido
+      soundClone.play().catch(error => {
+        console.log("Power-up sound play prevented:", error);
+      });
+    }
+  },
+  
+  playBoothDestruction: () => {
+    const { explosionSound, isMuted } = get();
+    if (isMuted) return;
+    
+    // Reproducir sonido de explosión real
+    if (explosionSound) {
+      const soundClone = explosionSound.cloneNode() as HTMLAudioElement;
+      soundClone.volume = 0.8;
+      soundClone.play().catch(error => {
+        console.log("Explosion sound play prevented:", error);
+      });
+      console.log("BOOTH DESTROYED - Playing explosion.mp3");
+    }
   }
 }));

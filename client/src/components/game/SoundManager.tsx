@@ -3,7 +3,7 @@ import { useAudio } from "@/lib/stores/useAudio";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 
 export function SoundManager() {
-  const { setHitSound, setSuccessSound, setBackgroundMusic, setBackgroundMusic2, isMuted, backgroundMusic, backgroundMusic2, currentPhase, setCurrentPhase, bossMusic, stopBossMusic } = useAudio();
+  const { setHitSound, setSuccessSound, setExplosionSound, setBackgroundMusic, setBackgroundMusic2, isMuted, backgroundMusic, backgroundMusic2, currentPhase, setCurrentPhase, bossMusic, stopBossMusic } = useAudio();
   const { phase, level } = useArcadeGame();
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -18,6 +18,10 @@ export function SoundManager() {
     successAudio.volume = 0.4;
     setSuccessSound(successAudio);
     
+    const explosionAudio = new Audio("/sounds/explosion.mp3");
+    explosionAudio.volume = 0.6;
+    setExplosionSound(explosionAudio);
+    
     const bgMusic = new Audio("/sounds/background.mp3");
     bgMusic.volume = 0.2;
     bgMusic.loop = true;
@@ -28,7 +32,7 @@ export function SoundManager() {
     bgMusic2.loop = true;
     bgMusic2.playbackRate = 1.3;
     setBackgroundMusic2(bgMusic2);
-  }, [setHitSound, setSuccessSound, setBackgroundMusic, setBackgroundMusic2]);
+  }, [setHitSound, setSuccessSound, setExplosionSound, setBackgroundMusic, setBackgroundMusic2]);
   
   useEffect(() => {
     const newPhase = level >= 8 ? 2 : 1;
