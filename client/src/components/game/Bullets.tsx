@@ -70,7 +70,9 @@ function EnemyBullet({ bullet }: { bullet: Bullet }) {
 }
 
 export function Bullets() {
-  const { bullets, updateBullets, isLevelTransitioning } = useArcadeGame();
+  const bullets = useArcadeGame(s => s.bullets);
+  const updateBullets = useArcadeGame(s => s.updateBullets);
+  const isLevelTransitioning = useArcadeGame(s => s.isLevelTransitioning);
   const frameCounter = useRef(0);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const playerBuckets = useMemo(

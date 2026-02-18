@@ -228,7 +228,16 @@ export function Player() {
   const frameCount = useRef(0);
   const lastSyncedZ = useRef(0);
   
-  const { phase, hasActivePowerUp, activePowerUps, obstacles, setPlayerPosition, setPlayerDirection, playerPosition, lives, level, isLevelTransitioning, showArmorUpEffect, armorUpAmount } = useArcadeGame();
+  const phase = useArcadeGame(s => s.phase);
+  const activePowerUps = useArcadeGame(s => s.activePowerUps);
+  const obstacles = useArcadeGame(s => s.obstacles);
+  const playerPosition = useArcadeGame(s => s.playerPosition);
+  const lives = useArcadeGame(s => s.lives);
+  const level = useArcadeGame(s => s.level);
+  const isLevelTransitioning = useArcadeGame(s => s.isLevelTransitioning);
+  const setPlayerPosition = useArcadeGame(s => s.setPlayerPosition);
+  const setPlayerDirection = useArcadeGame(s => s.setPlayerDirection);
+  const hasActivePowerUp = useArcadeGame(s => s.hasActivePowerUp);
   const [, getKeys] = useKeyboardControls<Controls>();
   
   useEffect(() => {
@@ -290,7 +299,8 @@ export function Player() {
       
       if (level === 7 || level === 14) {
         newX = Math.max(-28, Math.min(28, newX));
-        newZ = Math.max(255, Math.min(360, newZ));
+        const bossLevelStart = 59 * (level - 1);
+        newZ = Math.max(bossLevelStart - 5, Math.min(bossLevelStart + 55, newZ));
       } else {
         newX = Math.max(-18, Math.min(18, newX));
         newZ = Math.max(-5, newZ);

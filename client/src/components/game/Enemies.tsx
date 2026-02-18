@@ -397,7 +397,8 @@ function ScooterEnemy({ health, maxHealth }: { health: number; maxHealth: number
 }
 
 export function Enemies() {
-  const { enemies, level } = useArcadeGame();
+  const enemies = useArcadeGame(s => s.enemies);
+  const level = useArcadeGame(s => s.level);
   const faceTexture = useTexture("/textures/politician_face.jpg");
   const faceTexture2 = useTexture("/textures/politician_face_2.png");
   const bossFaceTexture = useTexture("/textures/boss_face.png");

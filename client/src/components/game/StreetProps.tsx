@@ -15,11 +15,9 @@ function StreetLamp({ position }: { position: [number, number, number] }) {
         <meshStandardMaterial 
           color="#ffd700" 
           emissive="#ffd700" 
-          emissiveIntensity={0.8} 
+          emissiveIntensity={1.5} 
         />
       </mesh>
-      
-      <pointLight position={[0, 3.2, 0]} intensity={2} distance={8} color="#ffd700" />
     </group>
   );
 }
@@ -116,15 +114,15 @@ function Fountain({ position }: { position: [number, number, number] }) {
       
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
         const angle = (i * Math.PI * 2) / 8;
+        const yOffset = 1.3 + (i * 0.07);
         return (
-          <mesh key={i} position={[Math.cos(angle) * 0.3, 1.3 + Math.random() * 0.5, Math.sin(angle) * 0.3]}>
+          <mesh key={i} position={[Math.cos(angle) * 0.3, yOffset, Math.sin(angle) * 0.3]}>
             <sphereGeometry args={[0.08, 8, 8]} />
             <meshStandardMaterial color="#87ceeb" transparent opacity={0.8} />
           </mesh>
         );
       })}
       
-      <pointLight position={[0, 1.5, 0]} intensity={1} distance={5} color="#87ceeb" />
     </group>
   );
 }
@@ -167,7 +165,6 @@ function BigFountain({ position }: { position: [number, number, number] }) {
         <meshStandardMaterial color="#c0c0c0" />
       </mesh>
       
-      <pointLight position={[0, 2, 0]} intensity={2} distance={10} color="#87ceeb" />
     </group>
   );
 }
@@ -405,7 +402,8 @@ function RedFlag({ position }: { position: [number, number, number] }) {
 }
 
 export function StreetProps() {
-  const { level, setObstacles } = useArcadeGame();
+  const level = useArcadeGame(s => s.level);
+  const setObstacles = useArcadeGame(s => s.setObstacles);
   
   const props = useMemo(() => {
     const items: Array<{ 
@@ -452,39 +450,39 @@ export function StreetProps() {
         items.push({ type: 'lamp', position: [25, 0, z] });
       }
     } else if (level === 1 || level === 3 || level === 5) {
-      for (let z = -10; z < maxZ; z += 15) {
+      for (let z = -10; z < maxZ; z += 20) {
         items.push({ type: 'lamp', position: [-15, 0, z] });
         items.push({ type: 'lamp', position: [15, 0, z] });
       }
       
       const carColors = ['#ff0000', '#0000ff', '#ffff00', '#ffffff', '#000000', '#00ff00'];
-      for (let z = -5; z < maxZ; z += 30) {
-        const side = z % 60 === 5 ? -12 : 12;
-        const colorIndex = Math.floor(z / 30) % carColors.length;
+      for (let z = -5; z < maxZ; z += 40) {
+        const side = z % 80 === 5 ? -12 : 12;
+        const colorIndex = Math.floor(z / 40) % carColors.length;
         items.push({ type: 'car', position: [side, 0, z], color: carColors[colorIndex] });
       }
       
-      for (let z = -2; z < maxZ; z += 36) {
-        const side = z % 72 === 8 ? -13 : 13;
+      for (let z = -2; z < maxZ; z += 48) {
+        const side = z % 96 === 8 ? -13 : 13;
         items.push({ type: 'bench', position: [side, 0, z] });
       }
     } else if (level === 2 || level === 4 || level === 6) {
-      for (let z = -10; z < maxZ; z += 18) {
+      for (let z = -10; z < maxZ; z += 24) {
         items.push({ type: 'planter', position: [-14, 0, z] });
         items.push({ type: 'planter', position: [14, 0, z] });
       }
       
-      for (let z = 0; z < maxZ; z += 45) {
+      for (let z = 0; z < maxZ; z += 58) {
         items.push({ type: 'fountain', position: [0, 0, z] });
       }
       
-      for (let z = -5; z < maxZ; z += 26) {
-        const side = z % 52 === 5 ? -11 : 11;
+      for (let z = -5; z < maxZ; z += 34) {
+        const side = z % 68 === 5 ? -11 : 11;
         items.push({ type: 'parkbench', position: [side, 0, z] });
       }
       
-      for (let z = 5; z < maxZ; z += 24) {
-        const side = z % 48 === 5 ? -8 : 8;
+      for (let z = 5; z < maxZ; z += 32) {
+        const side = z % 64 === 5 ? -8 : 8;
         items.push({ type: 'planter', position: [side, 0, z] });
       }
     } else if (level === 8 || level === 10 || level === 12) {
