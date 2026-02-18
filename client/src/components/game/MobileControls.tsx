@@ -37,7 +37,8 @@ function getDpadControlFromPosition(relX: number, relY: number): DpadControl | n
 }
 
 export function MobileControls() {
-  const { phase, setTouchControl } = useArcadeGame();
+  const phase = useArcadeGame((s) => s.phase);
+  const setTouchControl = useArcadeGame((s) => s.setTouchControl);
   const [isMobile, setIsMobile] = useState(false);
   const activeDpadRef = useRef<DpadControl | null>(null);
   const dpadContainerRef = useRef<HTMLDivElement>(null);
@@ -48,6 +49,8 @@ export function MobileControls() {
   const grenadeRef = useRef(false);
   const [renderTick, setRenderTick] = useState(0);
   const lastRenderRef = useRef(0);
+  const setTouchControlRef = useRef(setTouchControl);
+  setTouchControlRef.current = setTouchControl;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -63,14 +66,14 @@ export function MobileControls() {
 
   useEffect(() => {
     return () => {
-      setTouchControl("forward", false);
-      setTouchControl("back", false);
-      setTouchControl("left", false);
-      setTouchControl("right", false);
-      setTouchControl("shooting", false);
-      setTouchControl("throwingGrenade", false);
+      setTouchControlRef.current("forward", false);
+      setTouchControlRef.current("back", false);
+      setTouchControlRef.current("left", false);
+      setTouchControlRef.current("right", false);
+      setTouchControlRef.current("shooting", false);
+      setTouchControlRef.current("throwingGrenade", false);
     };
-  }, [setTouchControl]);
+  }, []);
 
   const scheduleRender = useCallback(() => {
     const now = performance.now();
@@ -90,7 +93,7 @@ export function MobileControls() {
     if (relX < -0.15 || relX > 1.15 || relY < -0.15 || relY > 1.15) {
       if (activeDpadRef.current !== null) {
         activeDpadRef.current = null;
-        setDpadDirection(null, setTouchControl);
+        setDpadDirection(null, setTouchControlRef.current);
         scheduleRender();
       }
       return;
@@ -103,17 +106,17 @@ export function MobileControls() {
 
     if (clamped !== activeDpadRef.current) {
       activeDpadRef.current = clamped;
-      setDpadDirection(clamped, setTouchControl);
+      setDpadDirection(clamped, setTouchControlRef.current);
       scheduleRender();
     }
-  }, [setTouchControl, scheduleRender]);
+  }, [scheduleRender]);
 
-  const findTouchById = (touches: React.TouchList, id: number): React.Touch | null => {
+  const findTouchById = useCallback((touches: React.TouchList, id: number): React.Touch | null => {
     for (let i = 0; i < touches.length; i++) {
       if (touches[i].identifier === id) return touches[i];
     }
     return null;
-  };
+  }, []);
 
   const onDpadTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -131,7 +134,7 @@ export function MobileControls() {
     if (dpadTouchIdRef.current === null) return;
     const t = findTouchById(e.touches, dpadTouchIdRef.current);
     if (t) resolveDpadTouch(t.clientX, t.clientY);
-  }, [resolveDpadTouch]);
+  }, [resolveDpadTouch, findTouchById]);
 
   const onDpadTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -139,12 +142,12 @@ export function MobileControls() {
       if (e.changedTouches[i].identifier === dpadTouchIdRef.current) {
         dpadTouchIdRef.current = null;
         activeDpadRef.current = null;
-        setDpadDirection(null, setTouchControl);
+        setDpadDirection(null, setTouchControlRef.current);
         scheduleRender();
         break;
       }
     }
-  }, [setTouchControl, scheduleRender]);
+  }, [scheduleRender]);
 
   const onShootTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -152,10 +155,10 @@ export function MobileControls() {
     if (shootTouchIdRef.current === null && e.changedTouches.length > 0) {
       shootTouchIdRef.current = e.changedTouches[0].identifier;
       shootingRef.current = true;
-      setTouchControl("shooting", true);
+      setTouchControlRef.current("shooting", true);
       scheduleRender();
     }
-  }, [setTouchControl, scheduleRender]);
+  }, [scheduleRender]);
 
   const onShootTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -164,12 +167,12 @@ export function MobileControls() {
       if (e.changedTouches[i].identifier === shootTouchIdRef.current) {
         shootTouchIdRef.current = null;
         shootingRef.current = false;
-        setTouchControl("shooting", false);
+        setTouchControlRef.current("shooting", false);
         scheduleRender();
         break;
       }
     }
-  }, [setTouchControl, scheduleRender]);
+  }, [scheduleRender]);
 
   const onGrenadeTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -177,10 +180,10 @@ export function MobileControls() {
     if (grenadeTouchIdRef.current === null && e.changedTouches.length > 0) {
       grenadeTouchIdRef.current = e.changedTouches[0].identifier;
       grenadeRef.current = true;
-      setTouchControl("throwingGrenade", true);
+      setTouchControlRef.current("throwingGrenade", true);
       scheduleRender();
     }
-  }, [setTouchControl, scheduleRender]);
+  }, [scheduleRender]);
 
   const onGrenadeTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -189,12 +192,46 @@ export function MobileControls() {
       if (e.changedTouches[i].identifier === grenadeTouchIdRef.current) {
         grenadeTouchIdRef.current = null;
         grenadeRef.current = false;
-        setTouchControl("throwingGrenade", false);
+        setTouchControlRef.current("throwingGrenade", false);
         scheduleRender();
         break;
       }
     }
-  }, [setTouchControl, scheduleRender]);
+  }, [scheduleRender]);
+
+  useEffect(() => {
+    if (!isMobile || phase !== "playing") return;
+
+    const handleGlobalTouchEnd = (e: TouchEvent) => {
+      let activeTouchIds: number[] = [];
+      for (let i = 0; i < e.touches.length; i++) {
+        activeTouchIds.push(e.touches[i].identifier);
+      }
+
+      if (dpadTouchIdRef.current !== null && !activeTouchIds.includes(dpadTouchIdRef.current)) {
+        dpadTouchIdRef.current = null;
+        activeDpadRef.current = null;
+        setDpadDirection(null, setTouchControlRef.current);
+      }
+      if (shootTouchIdRef.current !== null && !activeTouchIds.includes(shootTouchIdRef.current)) {
+        shootTouchIdRef.current = null;
+        shootingRef.current = false;
+        setTouchControlRef.current("shooting", false);
+      }
+      if (grenadeTouchIdRef.current !== null && !activeTouchIds.includes(grenadeTouchIdRef.current)) {
+        grenadeTouchIdRef.current = null;
+        grenadeRef.current = false;
+        setTouchControlRef.current("throwingGrenade", false);
+      }
+    };
+
+    document.addEventListener("touchend", handleGlobalTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", handleGlobalTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener("touchend", handleGlobalTouchEnd);
+      document.removeEventListener("touchcancel", handleGlobalTouchEnd);
+    };
+  }, [isMobile, phase]);
 
   if (!isMobile || phase !== "playing") return null;
 
