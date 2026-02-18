@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useMemo } from "react";
 import { KeyboardControls, useTexture } from "@react-three/drei";
+import * as THREE from "three";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
 import { Grenades } from "./Grenades";
@@ -82,14 +83,21 @@ export function Game() {
             stencil: false,
             depth: true,
           }}
+          scene={{ background: new THREE.Color("#f5a26c") }}
           frameloop="always"
+          style={{ background: "#f5a26c" }}
         >
           <LevelSky />
           {!isMobile && <PerfOverlay />}
           
           <Lights />
           
-          <Suspense fallback={null}>
+          <Suspense fallback={
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+              <planeGeometry args={[80, 120]} />
+              <meshStandardMaterial color="#555555" />
+            </mesh>
+          }>
             <ScrollingBackground />
           </Suspense>
           
