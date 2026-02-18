@@ -381,7 +381,7 @@ export const useArcadeGame = create<ArcadeGameState>()(
       grenades: [],
       debris: [],
       scorePopups: [],
-      activePowerUps: [],
+      // NO limpiar activePowerUps - conservar poderes activos entre niveles
     }),
     
     addDebris: (newDebris) => set((state) => {

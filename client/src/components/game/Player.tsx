@@ -363,9 +363,10 @@ export function Player() {
         <PowerUpHalo key={pu.type} powerUp={pu} playerMeshRef={meshRef} />
       ))}
       
-      {showArmorUpEffect && (
+      {/* Armor effect desactivado - solo se muestra texto flotante */}
+      {/* {showArmorUpEffect && (
         <ArmorUpEffect playerMeshRef={meshRef} amount={armorUpAmount} />
-      )}
+      )} */}
     </>
   );
 }

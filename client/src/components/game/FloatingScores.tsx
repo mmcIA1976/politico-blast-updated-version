@@ -20,12 +20,14 @@ export function FloatingScores() {
         const opacity = progress < 0.7 ? 1 : 1 - ((progress - 0.7) / 0.3);
         const scale = 1 + progress * 0.5;
 
-        // Si points es -1, mostrar "POWER UP!" en lugar de puntos
+        // Si points es 0, mostrar "ARMOR x2" (blindaje de caseta)
+        // Si points es -1, mostrar "POWER UP!"
+        const isArmorText = popup.points === 0;
         const isPowerUpText = popup.points === -1;
-        const displayText = isPowerUpText ? "POWER UP!" : `+${popup.points}`;
-        const textColor = isPowerUpText ? "#00ff00" : "#ff0000";
-        const fontSize = isPowerUpText ? 1.2 : 0.8;
-        const textScale = isPowerUpText ? (1 + progress * 0.8) : scale;
+        const displayText = isArmorText ? "ARMOR x2" : (isPowerUpText ? "POWER UP!" : `+${popup.points}`);
+        const textColor = isArmorText ? "#00bfff" : (isPowerUpText ? "#00ff00" : "#ff0000");
+        const fontSize = (isArmorText || isPowerUpText) ? 1.2 : 0.8;
+        const textScale = (isArmorText || isPowerUpText) ? (1 + progress * 0.8) : scale;
         
         return (
           <Billboard

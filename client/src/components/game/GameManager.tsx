@@ -135,11 +135,11 @@ const releaseAllEnemies = () => {
   current.forEach(releaseEnemyToPool);
 };
 
-const DEBRIS_SHARDS_PER_ENEMY = 4;
+const DEBRIS_SHARDS_PER_ENEMY = 2; // Reducido de 4 a 2 para mejor rendimiento
 
 // Max enemies per level (not boss levels)
 const BASE_MAX_ENEMIES: Record<number, number> = {
-  1: 12,
+  1: 10,
   2: 15,
   3: 18,
   4: 20,
@@ -156,6 +156,8 @@ const BASE_MAX_ENEMIES: Record<number, number> = {
 const getMaxEnemiesForLevel = (level: number): number => {
   const base = BASE_MAX_ENEMIES[level] ?? 0;
   if (!base) return 0;
+  // Nivel 1: respetar el total exacto solicitado
+  if (level === 1) return base;
   const reduced = Math.max(1, Math.floor(base * 0.8));
   return reduced;
 };
@@ -218,6 +220,18 @@ export function GameManager() {
     return 45 * (lvl - 1);
   };
   const enemyPhraseTimer = useRef(0);
+  
+  // Resetear contadores cuando el juego se reinicia
+  useEffect(() => {
+    if (phase === "playing" && level === 1) {
+      levelEnemiesSpawned.current = 0;
+      scooterSpawnedForLevel.current = 0;
+      boothSpawnedLevels.current = {};
+      boothActive.current = false;
+      lastLevel.current = 1;
+      // console.log("Game restarted - counters reset");
+    }
+  }, [phase, level]);
   
   useFrame((state, rawDelta) => {
     if (phase !== "playing") return;
@@ -391,28 +405,30 @@ export function GameManager() {
                 // Enemigos normales mueren con la granada - crear debris
                 killIds.push(enemy.id);
                 
-                // Crear trozos que salen disparados
-                const colors = ["#dc2626", "#7f1d1d", "#991b1b", "#450a0a", "#fef08a"];
-                for (let i = 0; i < DEBRIS_SHARDS_PER_ENEMY; i++) {
-                  debrisCounter++;
-                  const angle = (i / DEBRIS_SHARDS_PER_ENEMY) * Math.PI * 2 + Math.random() * 0.5;
-                  const speed = 8 + Math.random() * 12;
-                  newDebris.push({
-                    id: `debris_${enemy.id}_${debrisCounter}`,
-                    position: { 
-                      x: enemy.position.x, 
-                      y: enemy.position.y + 0.5 + Math.random() * 0.5, 
-                      z: enemy.position.z 
-                    },
-                    velocity: {
-                      x: Math.cos(angle) * speed,
-                      y: 5 + Math.random() * 8,
-                      z: Math.sin(angle) * speed,
-                    },
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    size: 0.15 + Math.random() * 0.2,
-                    lifetime: 1.5 + Math.random() * 0.5,
-                  });
+                // Crear trozos que salen disparados (NO para booth - optimización)
+                if (enemy.type !== "booth") {
+                  const colors = ["#dc2626", "#7f1d1d", "#991b1b", "#450a0a", "#fef08a"];
+                  for (let i = 0; i < DEBRIS_SHARDS_PER_ENEMY; i++) {
+                    debrisCounter++;
+                    const angle = (i / DEBRIS_SHARDS_PER_ENEMY) * Math.PI * 2 + Math.random() * 0.5;
+                    const speed = 8 + Math.random() * 12;
+                    newDebris.push({
+                      id: `debris_${enemy.id}_${debrisCounter}`,
+                      position: { 
+                        x: enemy.position.x, 
+                        y: enemy.position.y + 0.5 + Math.random() * 0.5, 
+                        z: enemy.position.z 
+                      },
+                      velocity: {
+                        x: Math.cos(angle) * speed,
+                        y: 5 + Math.random() * 8,
+                        z: Math.sin(angle) * speed,
+                      },
+                      color: colors[Math.floor(Math.random() * colors.length)],
+                      size: 0.15 + Math.random() * 0.2,
+                      lifetime: 1.5 + Math.random() * 0.5,
+                    });
+                  }
                 }
                 
                 let grenadeKillScore = 25;
@@ -634,9 +650,12 @@ export function GameManager() {
     
     const maxEnemies = getMaxEnemiesForLevel(level);
     const remainingToSpawn = maxEnemies - levelEnemiesSpawned.current;
-    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter" && e.type !== "booth").length;
+    // Contar TODOS los enemigos excepto bosses para el límite de 4 en pantalla
+    const currentEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan").length;
+    const currentRegularEnemyCount = enemies.filter(e => e.type !== "boss" && e.type !== "toucan" && e.type !== "scooter" && e.type !== "booth").length;
     
-    if (level >= 3 && level % 3 === 0 && !boothSpawnedLevels.current[level]) {
+    // Límite de 4 enemigos en pantalla (excepto bosses)
+    if (level >= 3 && level % 3 === 0 && !boothSpawnedLevels.current[level] && currentEnemyCount < 4) {
       boothSpawnedLevels.current[level] = true;
       boothActive.current = true;
       bulletCounter++;
@@ -655,10 +674,39 @@ export function GameManager() {
       );
     }
     
-    if (isPhase1 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
+    // Límite de 4 enemigos en pantalla - spawn más frecuente para mejor distribución
+    const spawnInterval = level === 1 ? 1.6 : 2.0; // Nivel 1 ligeramente más rápido
+    const levelLength = 45;
+    const levelStart = getLevelRangeStart(level);
+    const levelProgress = Math.max(0, newScrollPosition - levelStart);
+    const segmentSize = levelLength / 4;
+    const segmentIndex = Math.min(3, Math.floor(levelProgress / segmentSize));
+
+    // Nivel 1: total 10 enemigos distribuidos 2 / 3 / 2 / 3
+    const level1SegmentCaps = [2, 5, 7, 10];
+    const level1SegmentMaxSimultaneous = [2, 3, 2, 3];
+    const level1SpawnCap = level1SegmentCaps[segmentIndex] ?? 10;
+    const level1MaxOnScreen = level1SegmentMaxSimultaneous[segmentIndex] ?? 3;
+    
+    // En niveles con booth (3, 6, 9, 12...), limitar enemigos al principio
+    const isBoothLevel = level % 3 === 0 && level >= 3 && level < 7;
+    const boothLevelEnemiesSpawned = levelEnemiesSpawned.current;
+    const maxEnemiesAtStart = isBoothLevel && boothLevelEnemiesSpawned < 6 ? 2 : 4; // Solo 2 al principio en niveles con booth
+    
+    const level1CanSpawn = level !== 1 || levelEnemiesSpawned.current < level1SpawnCap;
+    const level1OnScreenLimit = level === 1 ? level1MaxOnScreen : maxEnemiesAtStart;
+
+    if (
+      isPhase1 &&
+      enemySpawnTimer.current > spawnInterval &&
+      remainingToSpawn > 0 &&
+      level1CanSpawn &&
+      currentEnemyCount < level1OnScreenLimit
+    ) {
       enemySpawnTimer.current = 0;
       
-      let numEnemies = Math.min(2, remainingToSpawn);
+      // Spawnar de 1 en 1 para mejor distribución
+      let numEnemies = Math.min(1, remainingToSpawn);
       let enemyHealth = 1;
       
       if (level >= 3) enemyHealth = 2;
@@ -692,7 +740,8 @@ export function GameManager() {
       playEnemyScream(false, false, false, level);
     }
     
-    if (isPhase2 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 6) {
+    // Límite de 4 enemigos en pantalla también para fase 2
+    if (isPhase2 && enemySpawnTimer.current > 2.5 && remainingToSpawn > 0 && currentEnemyCount < 4) {
       enemySpawnTimer.current = 0;
       
       let numEnemies = Math.min(2, remainingToSpawn);
@@ -784,7 +833,8 @@ export function GameManager() {
     for (let i = 0; i < bullets.length; i++) {
       if (!bullets[i].fromPlayer) enemyBulletCount++;
     }
-    const maxEnemyBullets = (BOSS_LEVELS.has(level)) ? 8 : 15;
+    // Límite de balas enemigas: 6 para niveles normales, 8 para bosses
+    const maxEnemyBullets = (BOSS_LEVELS.has(level)) ? 8 : 6;
     
     // Actualizar power-ups con menos frecuencia
     if (shouldUpdatePowerUps) {
@@ -931,21 +981,22 @@ export function GameManager() {
           }
           
           let newScooterPhraseTime = enemy.scooterPhraseTime || enemy.spawnTime;
-          if (currentTime - newScooterPhraseTime > 5) {
+          if (currentTime - newScooterPhraseTime > 8) { // Aumentado de 5s a 8s
             newScooterPhraseTime = currentTime;
-            const scooterPhrases = [
-              "¡¡Un segarro amego!!",
-              "¡¡De las pagas cobro más que tú pringao!!",
-            ];
-            const lastP = useAudio.getState().lastPhrase;
-            const available = scooterPhrases.filter(p => p !== lastP);
-            const chosen = available[Math.floor(Math.random() * available.length)] || scooterPhrases[0];
-            useAudio.setState({ lastPhrase: chosen, lastPhraseTime: Date.now() });
-            const utt = new SpeechSynthesisUtterance(chosen);
-            utt.lang = "es-ES";
-            utt.rate = 1.1;
-            utt.pitch = 0.9;
-            speechSynthesis.speak(utt);
+            // Optimización: Frases de scooter comentadas para mejor rendimiento
+            // const scooterPhrases = [
+            //   "¡¡Un segarro amego!!",
+            //   "¡¡De las pagas cobro más que tú pringao!!",
+            // ];
+            // const lastP = useAudio.getState().lastPhrase;
+            // const available = scooterPhrases.filter(p => p !== lastP);
+            // const chosen = available[Math.floor(Math.random() * available.length)] || scooterPhrases[0];
+            // useAudio.setState({ lastPhrase: chosen, lastPhraseTime: Date.now() });
+            // const utt = new SpeechSynthesisUtterance(chosen);
+            // utt.lang = "es-ES";
+            // utt.rate = 1.1;
+            // utt.pitch = 0.9;
+            // speechSynthesis.speak(utt);
           }
           
           return {

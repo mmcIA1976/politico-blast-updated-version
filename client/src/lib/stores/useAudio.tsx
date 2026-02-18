@@ -141,9 +141,19 @@ export const useAudio = create<AudioState>((set, get) => ({
   },
   
   playPlayerDamage: () => {
-    const { isMuted, enqueueSpeech } = get();
+    const { explosionSound, isMuted } = get();
     if (isMuted) return;
-    enqueueSpeech({ text: "¡Puto rojo!", rate: 1.3, pitch: 1.1, volume: 1.0 });
+    
+    // Reproducir sonido de explosión a volumen alto (optimización: sin speech synthesis)
+    if (explosionSound) {
+      const soundClone = explosionSound.cloneNode() as HTMLAudioElement;
+      soundClone.volume = 1.0; // Volumen alto
+      soundClone.playbackRate = 1.2; // Más rápido para impacto
+      soundClone.play().catch(error => {
+        console.log("Player damage sound play prevented:", error);
+      });
+      console.log("PLAYER HIT - Playing explosion sound");
+    }
   },
   
   playEnemyScream: (isBoss = false, isZooPhase = false, isBoss2 = false, level = 0) => {
