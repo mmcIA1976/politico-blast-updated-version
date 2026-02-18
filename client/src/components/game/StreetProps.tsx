@@ -415,27 +415,27 @@ export function StreetProps() {
       animalType?: 'lion' | 'penguin' | 'elephant';
     }> = [];
     
-    const maxZ = (level === 7 || level === 14) ? 260 : 280;
+    const maxZ = (level === 7 || level === 14) ? 340 : 365;
     
     const getZooOffset = () => {
-      if (level === 8) return 315;
-      if (level === 9) return 360;
-      if (level === 10) return 405;
-      if (level === 11) return 450;
-      if (level === 12) return 495;
-      if (level === 13) return 540;
-      if (level === 14) return 585;
+      if (level === 8) return 59 * 7;
+      if (level === 9) return 59 * 8;
+      if (level === 10) return 59 * 9;
+      if (level === 11) return 59 * 10;
+      if (level === 12) return 59 * 11;
+      if (level === 13) return 59 * 12;
+      if (level === 14) return 59 * 13;
       return 0;
     };
     const zooOffset = getZooOffset();
     
     if (level === 7) {
-      for (let z = -10; z < 260; z += 30) {
+      for (let z = -10; z < 340; z += 30) {
         items.push({ type: 'lamp', position: [-25, 0, z] });
         items.push({ type: 'lamp', position: [25, 0, z] });
       }
       
-      items.push({ type: 'bigfountain', position: [0, 0, 295] });
+      items.push({ type: 'bigfountain', position: [0, 0, 384] });
       
       items.push({ type: 'parkbench', position: [-18, 0, 285] });
       items.push({ type: 'parkbench', position: [18, 0, 305] });
@@ -527,7 +527,7 @@ export function StreetProps() {
         items.push({ type: 'zoorock', position: [12, 0, zooOffset + z] });
       }
     } else if (level === 14) {
-      const bossArenaOffset = 255;
+      const bossArenaOffset = 59 * 12;
       
       for (let z = -10; z < 110; z += 18) {
         items.push({ type: 'bossarenatree', position: [-25, 0, bossArenaOffset + z] });

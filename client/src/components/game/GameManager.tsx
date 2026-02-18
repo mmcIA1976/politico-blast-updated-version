@@ -217,7 +217,7 @@ export function GameManager() {
 
   const getLevelRangeStart = (lvl: number) => {
     if (lvl <= 1) return 0;
-    return 45 * (lvl - 1);
+    return 59 * (lvl - 1);
   };
   const enemyPhraseTimer = useRef(0);
   
@@ -598,7 +598,7 @@ export function GameManager() {
       enemiesToSpawn.push(
         spawnEnemyFromSeed({
           id: `boss${bulletCounter}`,
-          position: { x: 0, y: 0.7, z: 295 },
+          position: { x: 0, y: 0.7, z: 384 },
           health: 15,
           maxHealth: 15,
           type: "boss",
@@ -618,7 +618,7 @@ export function GameManager() {
       enemiesToSpawn.push(
         spawnEnemyFromSeed({
           id: `boss2${bulletCounter}`,
-          position: { x: 0, y: 0.8, z: 295 },
+          position: { x: 0, y: 0.8, z: 797 },
           health: 20,
           maxHealth: 20,
           type: "toucan",
@@ -676,7 +676,7 @@ export function GameManager() {
     
     // Límite de 4 enemigos en pantalla - spawn más frecuente para mejor distribución
     const spawnInterval = level === 1 ? 1.6 : 2.0; // Nivel 1 ligeramente más rápido
-    const levelLength = 45;
+    const levelLength = 59;
     const levelStart = getLevelRangeStart(level);
     const levelProgress = Math.max(0, newScrollPosition - levelStart);
     const segmentSize = levelLength / 4;
