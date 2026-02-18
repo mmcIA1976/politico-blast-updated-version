@@ -1,7 +1,6 @@
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
-import { useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 
 // Función para calcular el color según el porcentaje de vida
@@ -396,17 +395,66 @@ function ScooterEnemy({ health, maxHealth }: { health: number; maxHealth: number
   );
 }
 
+const enemyTextureLoader = new THREE.TextureLoader();
+const enemyTextureCache: Record<string, THREE.Texture> = {};
+
+function loadEnemyTexture(path: string): Promise<THREE.Texture> {
+  if (enemyTextureCache[path]) return Promise.resolve(enemyTextureCache[path]);
+  return new Promise((resolve) => {
+    enemyTextureLoader.load(path, (tex) => {
+      enemyTextureCache[path] = tex;
+      resolve(tex);
+    });
+  });
+}
+
+const ENEMY_TEXTURE_PATHS = [
+  "/textures/politician_face.jpg",
+  "/textures/politician_face_2.png",
+  "/textures/boss_face.png",
+  "/textures/oscar_puente_face.png",
+  "/textures/felix_bolanos_face.jpg",
+  "/textures/yolanda_diaz_face.png",
+];
+ENEMY_TEXTURE_PATHS.forEach(loadEnemyTexture);
+
 export function Enemies() {
   const enemies = useArcadeGame(s => s.enemies);
   const level = useArcadeGame(s => s.level);
-  const [faceTexture, faceTexture2, bossFaceTexture, oscarPuenteFace, felixBolanosFace, yolandaDiazFace] = useTexture([
-    "/textures/politician_face.jpg",
-    "/textures/politician_face_2.png",
-    "/textures/boss_face.png",
-    "/textures/oscar_puente_face.png",
-    "/textures/felix_bolanos_face.jpg",
-    "/textures/yolanda_diaz_face.png",
-  ]);
+  
+  const [texLoaded, setTexLoaded] = useState(false);
+  const faceTextureRef = useRef<THREE.Texture | null>(null);
+  const faceTexture2Ref = useRef<THREE.Texture | null>(null);
+  const bossFaceTextureRef = useRef<THREE.Texture | null>(null);
+  const oscarPuenteFaceRef = useRef<THREE.Texture | null>(null);
+  const felixBolanosFaceRef = useRef<THREE.Texture | null>(null);
+  const yolandaDiazFaceRef = useRef<THREE.Texture | null>(null);
+  
+  useEffect(() => {
+    let mounted = true;
+    Promise.all(ENEMY_TEXTURE_PATHS.map(loadEnemyTexture)).then(([f1, f2, boss, oscar, felix, yolanda]) => {
+      if (!mounted) return;
+      faceTextureRef.current = f1;
+      faceTexture2Ref.current = f2;
+      bossFaceTextureRef.current = boss;
+      oscarPuenteFaceRef.current = oscar;
+      felixBolanosFaceRef.current = felix;
+      yolandaDiazFaceRef.current = yolanda;
+      setTexLoaded(true);
+    });
+    return () => { mounted = false; };
+  }, []);
+  
+  const faceTexture = faceTextureRef.current;
+  const faceTexture2 = faceTexture2Ref.current;
+  const bossFaceTexture = bossFaceTextureRef.current;
+  const oscarPuenteFace = oscarPuenteFaceRef.current;
+  const felixBolanosFace = felixBolanosFaceRef.current;
+  const yolandaDiazFace = yolandaDiazFaceRef.current;
+  
+  if (!texLoaded || !faceTexture || !faceTexture2 || !bossFaceTexture || !oscarPuenteFace || !felixBolanosFace || !yolandaDiazFace) {
+    return <group />;
+  }
   
   return (
     <group>

@@ -1,7 +1,6 @@
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useMemo } from "react";
-import { KeyboardControls, useTexture } from "@react-three/drei";
-import * as THREE from "three";
+import { useMemo } from "react";
+import { KeyboardControls } from "@react-three/drei";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
 import { Grenades } from "./Grenades";
@@ -22,16 +21,6 @@ import { DebugControls } from "./DebugControls";
 import { PerfOverlay } from "./PerfOverlay";
 import { SpeechManager } from "./SpeechManager";
 import { LevelSky } from "./LevelSky";
-
-useTexture.preload("/textures/asphalt.jpg");
-useTexture.preload("/textures/grass.jpg");
-useTexture.preload("/textures/sand.jpg");
-useTexture.preload("/textures/politician_face.jpg");
-useTexture.preload("/textures/politician_face_2.png");
-useTexture.preload("/textures/boss_face.png");
-useTexture.preload("/textures/oscar_puente_face.png");
-useTexture.preload("/textures/felix_bolanos_face.jpg");
-useTexture.preload("/textures/yolanda_diaz_face.png");
 
 enum Controls {
   forward = "forward",
@@ -83,35 +72,21 @@ export function Game() {
             stencil: false,
             depth: true,
           }}
-          scene={{ background: new THREE.Color("#f5a26c") }}
           frameloop="always"
-          style={{ background: "#f5a26c" }}
+          style={{ background: "#000" }}
         >
           <LevelSky />
           {!isMobile && <PerfOverlay />}
           
           <Lights />
-          
-          <Suspense fallback={
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-              <planeGeometry args={[80, 120]} />
-              <meshStandardMaterial color="#555555" />
-            </mesh>
-          }>
-            <ScrollingBackground />
-          </Suspense>
-          
+          <ScrollingBackground />
           <StreetProps />
           <Player />
           <Bullets />
           <Grenades />
           <Debris />
           <FloatingScores />
-          
-          <Suspense fallback={null}>
-            <Enemies />
-          </Suspense>
-          
+          <Enemies />
           <PowerUps />
           <GameManager />
           <Camera />
