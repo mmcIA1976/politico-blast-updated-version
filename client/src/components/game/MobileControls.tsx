@@ -233,7 +233,7 @@ export function MobileControls() {
         right: 0,
         height: "200px",
         pointerEvents: "auto",
-        zIndex: 1000,
+        zIndex: 1100,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "flex-end",

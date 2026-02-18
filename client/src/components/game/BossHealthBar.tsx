@@ -19,11 +19,14 @@ export function BossHealthBar() {
       left: "50%",
       transform: "translateX(-50%)",
       width: "400px",
-      zIndex: 1000,
+      maxWidth: "90vw",
+      zIndex: 500,
       background: "rgba(0, 0, 0, 0.8)",
       padding: "12px 20px",
       borderRadius: "8px",
-      border: "2px solid #ffd700"
+      border: "2px solid #ffd700",
+      pointerEvents: "none",
+      touchAction: "none",
     }}>
       <div style={{
         color: "#ffd700",
