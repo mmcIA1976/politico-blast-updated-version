@@ -8,9 +8,10 @@ const PLAYER_BULLET_COLORS: Record<PlayerBulletStyle, string> = {
   default: "#ff1b2d",
   triple: "#4dc4ff",
   power: "#ff8a00",
+  rapid: "#ff8c00",
 };
 
-const PLAYER_STYLES: PlayerBulletStyle[] = ["default", "triple", "power"];
+const PLAYER_STYLES: PlayerBulletStyle[] = ["default", "triple", "power", "rapid"];
 const MAX_PLAYER_BULLETS_PER_STYLE = 120;
 
 function EnemyBullet({ bullet }: { bullet: Bullet }) {
@@ -77,13 +78,19 @@ export function Bullets() {
       default: [] as Bullet[],
       triple: [] as Bullet[],
       power: [] as Bullet[],
+      rapid: [] as Bullet[],
     }),
     []
   );
+  const refDefault = useRef<THREE.InstancedMesh>(null);
+  const refTriple = useRef<THREE.InstancedMesh>(null);
+  const refPower = useRef<THREE.InstancedMesh>(null);
+  const refRapid = useRef<THREE.InstancedMesh>(null);
   const refs: Record<PlayerBulletStyle, React.RefObject<THREE.InstancedMesh>> = {
-    default: useRef<THREE.InstancedMesh>(null),
-    triple: useRef<THREE.InstancedMesh>(null),
-    power: useRef<THREE.InstancedMesh>(null),
+    default: refDefault,
+    triple: refTriple,
+    power: refPower,
+    rapid: refRapid,
   };
   
   useFrame((_, rawDelta) => {
@@ -135,6 +142,7 @@ export function Bullets() {
     playerBuckets.default.length = 0;
     playerBuckets.triple.length = 0;
     playerBuckets.power.length = 0;
+    playerBuckets.rapid.length = 0;
     
     for (let i = 0; i < bullets.length; i++) {
       const bullet = bullets[i];

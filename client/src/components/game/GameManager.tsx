@@ -308,7 +308,7 @@ export function GameManager() {
       } else {
         bulletCounter++;
         const bulletId = `b${bulletCounter}`;
-        const style: PlayerBulletStyle = hasPowerShot ? "power" : "default";
+        const style: PlayerBulletStyle = hasPowerShot ? "power" : hasRapidFire ? "rapid" : "default";
         
         addBullet({
           id: bulletId,

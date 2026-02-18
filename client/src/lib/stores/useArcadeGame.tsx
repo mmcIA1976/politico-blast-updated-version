@@ -10,7 +10,7 @@ export interface Vec3 {
   z: number;
 }
 
-export type PlayerBulletStyle = "default" | "triple" | "power";
+export type PlayerBulletStyle = "default" | "triple" | "power" | "rapid";
 
 export interface Bullet {
   id: string;
