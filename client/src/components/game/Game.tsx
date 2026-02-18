@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
-import { useMemo } from "react";
-import { KeyboardControls } from "@react-three/drei";
+import { Suspense, useMemo } from "react";
+import { KeyboardControls, useTexture } from "@react-three/drei";
 import { Player } from "./Player";
 import { Bullets } from "./Bullets";
 import { Grenades } from "./Grenades";
@@ -21,6 +21,16 @@ import { DebugControls } from "./DebugControls";
 import { PerfOverlay } from "./PerfOverlay";
 import { SpeechManager } from "./SpeechManager";
 import { LevelSky } from "./LevelSky";
+
+useTexture.preload("/textures/asphalt.jpg");
+useTexture.preload("/textures/grass.jpg");
+useTexture.preload("/textures/sand.jpg");
+useTexture.preload("/textures/politician_face.jpg");
+useTexture.preload("/textures/politician_face_2.png");
+useTexture.preload("/textures/boss_face.png");
+useTexture.preload("/textures/oscar_puente_face.png");
+useTexture.preload("/textures/felix_bolanos_face.jpg");
+useTexture.preload("/textures/yolanda_diaz_face.png");
 
 enum Controls {
   forward = "forward",
@@ -79,14 +89,18 @@ export function Game() {
           {!isMobile && <PerfOverlay />}
           
           <Lights />
-          <ScrollingBackground />
+          
+          <Suspense fallback={null}>
+            <ScrollingBackground />
+            <Enemies />
+          </Suspense>
+          
           <StreetProps />
           <Player />
           <Bullets />
           <Grenades />
           <Debris />
           <FloatingScores />
-          <Enemies />
           <PowerUps />
           <GameManager />
           <Camera />

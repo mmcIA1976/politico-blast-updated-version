@@ -446,7 +446,7 @@ export function GameManager() {
                   deathUtt.lang = "es-ES";
                   deathUtt.rate = 1.2;
                   deathUtt.pitch = 0.8;
-                  speechSynthesis.speak(deathUtt);
+                  setTimeout(() => speechSynthesis.speak(deathUtt), 0);
                 } else if (enemy.type === "booth") {
                   grenadeKillScore = 150;
                   scoreToAdd += 150;
@@ -814,7 +814,7 @@ export function GameManager() {
       utterance.lang = "es-ES";
       utterance.rate = 1.1;
       utterance.pitch = 0.9;
-      speechSynthesis.speak(utterance);
+      setTimeout(() => speechSynthesis.speak(utterance), 0);
       console.log(`SCOOTER SPAWNED level ${level}! Total scooters: ${scooterCount + 1}`);
     }
     
@@ -1078,7 +1078,7 @@ export function GameManager() {
                     utterance.lang = "es-ES";
                     utterance.rate = 1.1;
                     utterance.pitch = 1.3;
-                    speechSynthesis.speak(utterance);
+                    setTimeout(() => speechSynthesis.speak(utterance), 0);
                     console.log("LA CHIKI ENRAGED (JUMP)! ¡Me cago en la mar llena de fascistas!");
                   } else {
                     // Modo temblor: frase YO MOPONGOO dos veces
@@ -1090,8 +1090,7 @@ export function GameManager() {
                     utterance2.lang = "es-ES";
                     utterance2.rate = 1.3;
                     utterance2.pitch = 1.5;
-                    speechSynthesis.speak(utterance1);
-                    speechSynthesis.speak(utterance2);
+                    setTimeout(() => { speechSynthesis.speak(utterance1); speechSynthesis.speak(utterance2); }, 0);
                     console.log("LA CHIKI ENRAGED (SHAKE)! ¡YO MOPONGOO! ¡YO MOPONGOO!");
                   }
                 }
@@ -1140,8 +1139,7 @@ export function GameManager() {
                   utterance2.lang = "es-ES";
                   utterance2.rate = 1.2;
                   utterance2.pitch = 1.4;
-                  speechSynthesis.speak(utterance1);
-                  speechSynthesis.speak(utterance2);
+                  setTimeout(() => { speechSynthesis.speak(utterance1); speechSynthesis.speak(utterance2); }, 0);
                   console.log("YOLANDA ENRAGED (SUMAR)! ¡SUMAR! ¡SUMAR!");
                 }
               }
@@ -1274,7 +1272,7 @@ export function GameManager() {
                     deathUtt.lang = "es-ES";
                     deathUtt.rate = 1.2;
                     deathUtt.pitch = 0.8;
-                    speechSynthesis.speak(deathUtt);
+                    setTimeout(() => speechSynthesis.speak(deathUtt), 0);
                   } else if (enemy.type === "booth") {
                     killScore = 150;
                     scoreToAdd += 150;

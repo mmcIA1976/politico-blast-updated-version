@@ -1,16 +1,24 @@
-import { useRef, useMemo, useState, useEffect } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
-const loader = new THREE.TextureLoader();
-const textureCache: Record<string, THREE.Texture> = {};
+const ALL_GROUND_TEXTURES = [
+  "/textures/asphalt.jpg",
+  "/textures/grass.jpg",
+  "/textures/sand.jpg",
+];
 
-function loadTexture(path: string): Promise<THREE.Texture> {
-  if (textureCache[path]) return Promise.resolve(textureCache[path]);
-  return new Promise((resolve) => {
-    loader.load(path, (tex) => {
+export function ScrollingBackground() {
+  const groupRef = useRef<THREE.Group>(null);
+  const level = useArcadeGame(s => s.level);
+  
+  const [asphaltTex, grassTex, sandTex] = useTexture(ALL_GROUND_TEXTURES);
+  
+  useMemo(() => {
+    [asphaltTex, grassTex, sandTex].forEach(tex => {
       tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(4, 8);
       tex.minFilter = THREE.LinearMipmapLinearFilter;
@@ -18,48 +26,17 @@ function loadTexture(path: string): Promise<THREE.Texture> {
       tex.anisotropy = 4;
       tex.generateMipmaps = true;
       tex.needsUpdate = true;
-      textureCache[path] = tex;
-      resolve(tex);
     });
-  });
-}
-
-loadTexture("/textures/asphalt.jpg");
-loadTexture("/textures/grass.jpg");
-loadTexture("/textures/sand.jpg");
-
-export function ScrollingBackground() {
-  const groupRef = useRef<THREE.Group>(null);
-  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
-  const level = useArcadeGame(s => s.level);
-  
-  const [textures, setTextures] = useState<{
-    asphalt: THREE.Texture | null;
-    grass: THREE.Texture | null;
-    sand: THREE.Texture | null;
-  }>({ asphalt: null, grass: null, sand: null });
-  
-  useEffect(() => {
-    let mounted = true;
-    Promise.all([
-      loadTexture("/textures/asphalt.jpg"),
-      loadTexture("/textures/grass.jpg"),
-      loadTexture("/textures/sand.jpg"),
-    ]).then(([asphalt, grass, sand]) => {
-      if (mounted) setTextures({ asphalt, grass, sand });
-    });
-    return () => { mounted = false; };
-  }, []);
+  }, [asphaltTex, grassTex, sandTex]);
   
   const texture = useMemo(() => {
-    if (!textures.asphalt) return null;
-    if (level === 1 || level === 3 || level === 5) return textures.asphalt;
-    if (level === 2 || level === 4 || level === 6) return textures.grass;
-    if (level === 7) return textures.sand;
-    if (level === 8 || level === 10 || level === 12 || level === 14) return textures.grass;
-    if (level === 9 || level === 11 || level === 13) return textures.sand;
-    return textures.asphalt;
-  }, [level, textures]);
+    if (level === 1 || level === 3 || level === 5) return asphaltTex;
+    if (level === 2 || level === 4 || level === 6) return grassTex;
+    if (level === 7) return sandTex;
+    if (level === 8 || level === 10 || level === 12 || level === 14) return grassTex;
+    if (level === 9 || level === 11 || level === 13) return sandTex;
+    return asphaltTex;
+  }, [level, asphaltTex, grassTex, sandTex]);
   
   const groundColor = useMemo(() => {
     if (level === 8) return "#4a7c2a";
@@ -90,7 +67,7 @@ export function ScrollingBackground() {
     <group ref={groupRef}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={planeSize as [number, number]} />
-        <meshStandardMaterial ref={materialRef} map={texture} color={groundColor || "#555555"} />
+        <meshStandardMaterial map={texture} color={groundColor} />
       </mesh>
     </group>
   );
