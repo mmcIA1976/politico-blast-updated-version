@@ -472,7 +472,7 @@ export function StreetProps() {
         items.push({ type: 'planter', position: [14, 0, z] });
       }
       
-      for (let z = 0; z < maxZ; z += 58) {
+      for (let z = 58; z < maxZ; z += 58) {
         items.push({ type: 'fountain', position: [0, 0, z] });
       }
       
