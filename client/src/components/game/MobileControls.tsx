@@ -41,6 +41,9 @@ export function MobileControls() {
   const [isMobile, setIsMobile] = useState(false);
   const activeDpadRef = useRef<DpadControl | null>(null);
   const dpadContainerRef = useRef<HTMLDivElement>(null);
+  const dpadTouchIdRef = useRef<number | null>(null);
+  const shootTouchIdRef = useRef<number | null>(null);
+  const grenadeTouchIdRef = useRef<number | null>(null);
   const shootingRef = useRef(false);
   const grenadeRef = useRef(false);
   const [renderTick, setRenderTick] = useState(0);
@@ -77,7 +80,7 @@ export function MobileControls() {
     }
   }, []);
 
-  const resolveTouch = useCallback((clientX: number, clientY: number) => {
+  const resolveDpadTouch = useCallback((clientX: number, clientY: number) => {
     const container = dpadContainerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
@@ -105,23 +108,92 @@ export function MobileControls() {
     }
   }, [setTouchControl, scheduleRender]);
 
+  const findTouchById = (touches: React.TouchList, id: number): React.Touch | null => {
+    for (let i = 0; i < touches.length; i++) {
+      if (touches[i].identifier === id) return touches[i];
+    }
+    return null;
+  };
+
   const onDpadTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    const t = e.touches[0];
-    if (t) resolveTouch(t.clientX, t.clientY);
-  }, [resolveTouch]);
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      if (dpadTouchIdRef.current === null) {
+        dpadTouchIdRef.current = t.identifier;
+        resolveDpadTouch(t.clientX, t.clientY);
+      }
+    }
+  }, [resolveDpadTouch]);
 
   const onDpadTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    const t = e.touches[0];
-    if (t) resolveTouch(t.clientX, t.clientY);
-  }, [resolveTouch]);
+    if (dpadTouchIdRef.current === null) return;
+    const t = findTouchById(e.touches, dpadTouchIdRef.current);
+    if (t) resolveDpadTouch(t.clientX, t.clientY);
+  }, [resolveDpadTouch]);
 
   const onDpadTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    activeDpadRef.current = null;
-    setDpadDirection(null, setTouchControl);
-    scheduleRender();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === dpadTouchIdRef.current) {
+        dpadTouchIdRef.current = null;
+        activeDpadRef.current = null;
+        setDpadDirection(null, setTouchControl);
+        scheduleRender();
+        break;
+      }
+    }
+  }, [setTouchControl, scheduleRender]);
+
+  const onShootTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (shootTouchIdRef.current === null && e.changedTouches.length > 0) {
+      shootTouchIdRef.current = e.changedTouches[0].identifier;
+      shootingRef.current = true;
+      setTouchControl("shooting", true);
+      scheduleRender();
+    }
+  }, [setTouchControl, scheduleRender]);
+
+  const onShootTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === shootTouchIdRef.current) {
+        shootTouchIdRef.current = null;
+        shootingRef.current = false;
+        setTouchControl("shooting", false);
+        scheduleRender();
+        break;
+      }
+    }
+  }, [setTouchControl, scheduleRender]);
+
+  const onGrenadeTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (grenadeTouchIdRef.current === null && e.changedTouches.length > 0) {
+      grenadeTouchIdRef.current = e.changedTouches[0].identifier;
+      grenadeRef.current = true;
+      setTouchControl("throwingGrenade", true);
+      scheduleRender();
+    }
+  }, [setTouchControl, scheduleRender]);
+
+  const onGrenadeTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === grenadeTouchIdRef.current) {
+        grenadeTouchIdRef.current = null;
+        grenadeRef.current = false;
+        setTouchControl("throwingGrenade", false);
+        scheduleRender();
+        break;
+      }
+    }
   }, [setTouchControl, scheduleRender]);
 
   if (!isMobile || phase !== "playing") return null;
@@ -198,7 +270,7 @@ export function MobileControls() {
       </div>
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-        <button
+        <div
           style={{
             width: "65px",
             height: "65px",
@@ -217,16 +289,15 @@ export function MobileControls() {
             WebkitTapHighlightColor: "transparent",
             outline: "none",
           }}
-          onPointerDown={(e) => { e.preventDefault(); grenadeRef.current = true; setTouchControl("throwingGrenade", true); scheduleRender(); }}
-          onPointerUp={(e) => { e.preventDefault(); grenadeRef.current = false; setTouchControl("throwingGrenade", false); scheduleRender(); }}
-          onPointerCancel={(e) => { e.preventDefault(); grenadeRef.current = false; setTouchControl("throwingGrenade", false); scheduleRender(); }}
-          onPointerLeave={(e) => { e.preventDefault(); grenadeRef.current = false; setTouchControl("throwingGrenade", false); scheduleRender(); }}
+          onTouchStart={onGrenadeTouchStart}
+          onTouchEnd={onGrenadeTouchEnd}
+          onTouchCancel={onGrenadeTouchEnd}
           onContextMenu={(e) => e.preventDefault()}
         >
           💣
-        </button>
+        </div>
 
-        <button
+        <div
           style={{
             width: "80px",
             height: "80px",
@@ -245,14 +316,13 @@ export function MobileControls() {
             WebkitTapHighlightColor: "transparent",
             outline: "none",
           }}
-          onPointerDown={(e) => { e.preventDefault(); shootingRef.current = true; setTouchControl("shooting", true); scheduleRender(); }}
-          onPointerUp={(e) => { e.preventDefault(); shootingRef.current = false; setTouchControl("shooting", false); scheduleRender(); }}
-          onPointerCancel={(e) => { e.preventDefault(); shootingRef.current = false; setTouchControl("shooting", false); scheduleRender(); }}
-          onPointerLeave={(e) => { e.preventDefault(); shootingRef.current = false; setTouchControl("shooting", false); scheduleRender(); }}
+          onTouchStart={onShootTouchStart}
+          onTouchEnd={onShootTouchEnd}
+          onTouchCancel={onShootTouchEnd}
           onContextMenu={(e) => e.preventDefault()}
         >
           FUEGO
-        </button>
+        </div>
       </div>
     </div>
   );
