@@ -41,60 +41,135 @@ export function HUD() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0, 0, 0, 0.8)",
+        justifyContent: "flex-end",
+        background: "#000",
         color: "white",
-        fontFamily: "Inter, sans-serif",
+        fontFamily: "'Inter', sans-serif",
         zIndex: 1000,
-        padding: "20px",
-        boxSizing: "border-box",
+        overflow: "hidden",
       }}>
-        <h1 style={{ 
-          fontSize: isMobile ? "1.8rem" : "3rem", 
-          marginBottom: "1rem", 
-          color: "#ffff00",
-          textAlign: "center",
-        }}>
-          COMMANDO POLÍTICO
-        </h1>
-        <p style={{ 
-          fontSize: isMobile ? "0.9rem" : "1.2rem", 
-          marginBottom: "1.5rem", 
-          textAlign: "center", 
-          maxWidth: "600px",
-          padding: "0 10px",
-        }}>
-          ¡Defiéndete de los políticos corruptos en las calles de España!
-        </p>
-        <div style={{ marginBottom: "1.5rem", textAlign: "center", fontSize: isMobile ? "0.85rem" : "1rem" }}>
-          {isMobile ? (
-            <>
-              <p style={{ marginBottom: "0.5rem" }}>👆 Usa los controles en pantalla</p>
-              <p>🔴 Pulsa FUEGO para disparar</p>
-            </>
-          ) : (
-            <>
-              <p style={{ marginBottom: "0.5rem" }}>🎮 WASD o Flechas - Mover</p>
-              <p style={{ marginBottom: "0.5rem" }}>🔫 Espacio - Disparar</p>
-              <p>💣 G - Lanzar granada</p>
-            </>
-          )}
-        </div>
-        <button
-          onClick={() => setPhase("playing")}
+        <img
+          src="/textures/menu_hero.png"
+          alt="Commando Politico"
           style={{
-            padding: isMobile ? "0.8rem 1.5rem" : "1rem 2rem",
-            fontSize: isMobile ? "1.2rem" : "1.5rem",
-            background: "#ff6b6b",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontWeight: "bold",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center top",
           }}
-        >
-          COMENZAR
-        </button>
+        />
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.92) 80%)",
+        }} />
+
+        <div style={{
+          position: "relative",
+          zIndex: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+          paddingBottom: isMobile ? "30px" : "50px",
+          padding: isMobile ? "0 16px 30px" : "0 20px 50px",
+          boxSizing: "border-box",
+        }}>
+          <h1 style={{
+            fontSize: isMobile ? "2rem" : "3.5rem",
+            fontWeight: 900,
+            color: "#ffdd00",
+            textAlign: "center",
+            textTransform: "uppercase",
+            letterSpacing: isMobile ? "2px" : "6px",
+            textShadow: "3px 3px 0 #c00, 6px 6px 0 rgba(0,0,0,0.5), 0 0 30px rgba(255,200,0,0.4)",
+            margin: "0 0 6px 0",
+            lineHeight: 1.1,
+          }}>
+            COMMANDO POLITICO
+          </h1>
+          <p style={{
+            fontSize: isMobile ? "0.8rem" : "1.1rem",
+            color: "#ffaa00",
+            textAlign: "center",
+            margin: "0 0 16px 0",
+            fontWeight: 600,
+            letterSpacing: "1px",
+            textShadow: "1px 1px 3px rgba(0,0,0,0.8)",
+          }}>
+            ¡Defiende las calles de los politicos corruptos!
+          </p>
+
+          <div style={{
+            background: "rgba(0, 0, 0, 0.6)",
+            border: "1px solid rgba(255, 200, 0, 0.3)",
+            borderRadius: "10px",
+            padding: isMobile ? "10px 16px" : "14px 28px",
+            marginBottom: isMobile ? "16px" : "24px",
+            maxWidth: "420px",
+            width: "100%",
+            boxSizing: "border-box",
+            backdropFilter: "blur(4px)",
+          }}>
+            <div style={{
+              fontSize: isMobile ? "0.7rem" : "0.85rem",
+              textAlign: "center",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "2px",
+              marginBottom: "8px",
+              color: "#ffdd00",
+            }}>
+              CONTROLES
+            </div>
+            {isMobile ? (
+              <div style={{ fontSize: "0.8rem", textAlign: "center", lineHeight: 1.8 }}>
+                <div><span style={{ color: "#ffdd00" }}>D-PAD</span> - Mover al personaje</div>
+                <div><span style={{ color: "#ff4444" }}>FUEGO</span> - Disparar</div>
+                <div><span style={{ color: "#44cc44" }}>GRANADA</span> - Lanzar granada</div>
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.9rem", textAlign: "center", lineHeight: 1.8 }}>
+                <div><span style={{ color: "#ffdd00" }}>WASD / Flechas</span> - Mover</div>
+                <div><span style={{ color: "#ff4444" }}>Espacio</span> - Disparar</div>
+                <div><span style={{ color: "#44cc44" }}>G</span> - Lanzar granada</div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setPhase("playing")}
+            style={{
+              padding: isMobile ? "14px 40px" : "16px 60px",
+              fontSize: isMobile ? "1.3rem" : "1.6rem",
+              fontWeight: 900,
+              background: "linear-gradient(180deg, #ff4444 0%, #cc0000 100%)",
+              color: "white",
+              border: "3px solid #ffdd00",
+              borderRadius: "12px",
+              cursor: "pointer",
+              textTransform: "uppercase",
+              letterSpacing: "3px",
+              textShadow: "2px 2px 0 rgba(0,0,0,0.5)",
+              boxShadow: "0 6px 20px rgba(255,0,0,0.4), 0 0 40px rgba(255,200,0,0.15)",
+              transition: "transform 0.1s, box-shadow 0.1s",
+            }}
+            onPointerDown={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.95)";
+            }}
+            onPointerUp={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+            }}
+          >
+            COMENZAR
+          </button>
+        </div>
       </div>
     );
   }
