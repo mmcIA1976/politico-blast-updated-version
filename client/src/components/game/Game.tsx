@@ -91,17 +91,22 @@ export function Game() {
           
           <Suspense fallback={null}>
             <ScrollingBackground />
-            <StreetProps />
-            <Player />
-            <Bullets />
-            <Grenades />
-            <Debris />
-            <FloatingScores />
-            <Enemies />
-            <PowerUps />
-            <GameManager />
-            <Camera />
           </Suspense>
+          
+          <StreetProps />
+          <Player />
+          <Bullets />
+          <Grenades />
+          <Debris />
+          <FloatingScores />
+          
+          <Suspense fallback={null}>
+            <Enemies />
+          </Suspense>
+          
+          <PowerUps />
+          <GameManager />
+          <Camera />
         </Canvas>
         
         <HUD />
