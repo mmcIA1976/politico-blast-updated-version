@@ -19,11 +19,15 @@ export function HUD() {
   const fadeTimerRef = useRef<number | null>(null);
   
   const handleStart = useCallback(() => {
-    setMenuFading(true);
-    fadeTimerRef.current = window.setTimeout(() => {
-      setPhase("playing");
-      setMenuFading(false);
-    }, 400);
+    setPhase("playing");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setMenuFading(true);
+        fadeTimerRef.current = window.setTimeout(() => {
+          setMenuFading(false);
+        }, 600);
+      });
+    });
   }, [setPhase]);
   
   useEffect(() => {
@@ -72,7 +76,7 @@ export function HUD() {
         zIndex: 1000,
         overflow: "hidden",
         opacity: menuFading ? 0 : 1,
-        transition: "opacity 0.4s ease-out",
+        transition: "opacity 0.6s ease-out",
         pointerEvents: menuFading ? "none" : "auto",
       }}>
         <img
