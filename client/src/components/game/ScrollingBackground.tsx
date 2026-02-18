@@ -5,38 +5,23 @@ import * as THREE from "three";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { playerWorldPosition } from "@/lib/stores/playerPositionRef";
 
-const ALL_GROUND_TEXTURES = [
-  "/textures/asphalt.jpg",
-  "/textures/grass.jpg",
-  "/textures/sand.jpg",
-];
-
 export function ScrollingBackground() {
   const groupRef = useRef<THREE.Group>(null);
-  const level = useArcadeGame(s => s.level);
+  const { level } = useArcadeGame();
   
-  const [asphaltTex, grassTex, sandTex] = useTexture(ALL_GROUND_TEXTURES);
-  
-  useMemo(() => {
-    [asphaltTex, grassTex, sandTex].forEach(tex => {
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(4, 8);
-      tex.minFilter = THREE.LinearMipmapLinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.anisotropy = 4;
-      tex.generateMipmaps = true;
-      tex.needsUpdate = true;
-    });
-  }, [asphaltTex, grassTex, sandTex]);
-  
-  const texture = useMemo(() => {
-    if (level === 1 || level === 3 || level === 5) return asphaltTex;
-    if (level === 2 || level === 4 || level === 6) return grassTex;
-    if (level === 7) return sandTex;
-    if (level === 8 || level === 10 || level === 12 || level === 14) return grassTex;
-    if (level === 9 || level === 11 || level === 13) return sandTex;
-    return asphaltTex;
-  }, [level, asphaltTex, grassTex, sandTex]);
+  const texturePath = useMemo(() => {
+    if (level === 1) return "/textures/asphalt.jpg";
+    if (level === 2) return "/textures/grass.jpg";
+    if (level === 3) return "/textures/asphalt.jpg";
+    if (level === 4) return "/textures/grass.jpg";
+    if (level === 5) return "/textures/asphalt.jpg";
+    if (level === 6) return "/textures/grass.jpg";
+    if (level === 7) return "/textures/sand.jpg";
+    if (level === 8 || level === 10 || level === 12) return "/textures/grass.jpg";
+    if (level === 9 || level === 11 || level === 13) return "/textures/sand.jpg";
+    if (level === 14) return "/textures/grass.jpg";
+    return "/textures/asphalt.jpg";
+  }, [level]);
   
   const groundColor = useMemo(() => {
     if (level === 8) return "#4a7c2a";
@@ -48,6 +33,18 @@ export function ScrollingBackground() {
     if (level === 14) return "#1a4a10";
     return undefined;
   }, [level]);
+  
+  const texture = useTexture(texturePath);
+  
+  useMemo(() => {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 8);
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.anisotropy = 4;
+    texture.generateMipmaps = true;
+    texture.needsUpdate = true;
+  }, [texture]);
   
   useFrame(() => {
     if (texture) {

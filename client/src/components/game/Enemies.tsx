@@ -399,14 +399,12 @@ function ScooterEnemy({ health, maxHealth }: { health: number; maxHealth: number
 export function Enemies() {
   const enemies = useArcadeGame(s => s.enemies);
   const level = useArcadeGame(s => s.level);
-  const [faceTexture, faceTexture2, bossFaceTexture, oscarPuenteFace, felixBolanosFace, yolandaDiazFace] = useTexture([
-    "/textures/politician_face.jpg",
-    "/textures/politician_face_2.png",
-    "/textures/boss_face.png",
-    "/textures/oscar_puente_face.png",
-    "/textures/felix_bolanos_face.jpg",
-    "/textures/yolanda_diaz_face.png",
-  ]);
+  const faceTexture = useTexture("/textures/politician_face.jpg");
+  const faceTexture2 = useTexture("/textures/politician_face_2.png");
+  const bossFaceTexture = useTexture("/textures/boss_face.png");
+  const oscarPuenteFace = useTexture("/textures/oscar_puente_face.png");
+  const felixBolanosFace = useTexture("/textures/felix_bolanos_face.jpg");
+  const yolandaDiazFace = useTexture("/textures/yolanda_diaz_face.png");
   
   return (
     <group>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useArcadeGame } from "@/lib/stores/useArcadeGame";
 import { useAudio } from "@/lib/stores/useAudio";
 
@@ -15,26 +15,6 @@ export function HUD() {
   const { isMuted, toggleMute } = useAudio();
   const [, setTick] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [menuFading, setMenuFading] = useState(false);
-  const fadeTimerRef = useRef<number | null>(null);
-  
-  const handleStart = useCallback(() => {
-    setPhase("playing");
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setMenuFading(true);
-        fadeTimerRef.current = window.setTimeout(() => {
-          setMenuFading(false);
-        }, 600);
-      });
-    });
-  }, [setPhase]);
-  
-  useEffect(() => {
-    return () => {
-      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
-    };
-  }, []);
   
   useEffect(() => {
     const checkMobile = () => {
@@ -58,7 +38,7 @@ export function HUD() {
     }
   }, [activePowerUps.length > 0]);
   
-  if (phase === "menu" || menuFading) {
+  if (phase === "menu") {
     return (
       <div style={{
         position: "fixed",
@@ -75,9 +55,6 @@ export function HUD() {
         fontFamily: "'Inter', sans-serif",
         zIndex: 1000,
         overflow: "hidden",
-        opacity: menuFading ? 0 : 1,
-        transition: "opacity 0.6s ease-out",
-        pointerEvents: menuFading ? "none" : "auto",
       }}>
         <img
           src="/textures/menu_hero.png"
@@ -177,7 +154,7 @@ export function HUD() {
           </div>
 
           <button
-            onClick={handleStart}
+            onClick={() => setPhase("playing")}
             style={{
               padding: isMobile ? "14px 40px" : "16px 60px",
               fontSize: isMobile ? "1.3rem" : "1.6rem",
