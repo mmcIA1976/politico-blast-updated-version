@@ -65,8 +65,9 @@ export function HUD() {
             left: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: isMobile ? "contain" : "cover",
             objectPosition: "center top",
+            backgroundColor: "#000",
           }}
         />
         <div style={{
@@ -85,8 +86,9 @@ export function HUD() {
           flexDirection: "column",
           alignItems: "center",
           width: "100%",
-          paddingBottom: isMobile ? "30px" : "50px",
-          padding: isMobile ? "0 16px 30px" : "0 20px 50px",
+          paddingBottom: isMobile ? "18px" : "50px",
+          padding: isMobile ? "0 16px 18px" : "0 20px 50px",
+          marginBottom: isMobile ? "12%" : "0",
           boxSizing: "border-box",
         }}>
           <h1 style={{
